@@ -34,7 +34,7 @@ instance.interceptors.response.use((response) => {
   if (response.data.code && response.data.code === '10009') {
     // 用户没登录
     store.commit('token', '')
-    localStorage.removeItem('token')
+    sessionStorage.removeItem('token')
     router.push({name: '登录', query: {redirect: router.currentRoute.fullPath}})
     // localStorage.setItem('lastRouter', '/')
   }

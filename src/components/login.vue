@@ -3,6 +3,7 @@
       <div class="content">
           <div class="loginCon">
             <p class="title">设备界面登录</p>
+            <!-- <img src="../assets/image/logo.png" alt=""> -->
             <el-form ref="form" :model="form" label-width="80px" class="form">
                 <el-form-item>
                     <el-input class="user" v-model="form.userAccount" placeholder="用户名"></el-input>
@@ -10,12 +11,12 @@
                 <el-form-item>
                     <el-input class="pass" type="password" v-model="form.password" placeholder="密码"></el-input>
                 </el-form-item>
-                <div class="code">
+                <!-- <div class="code">
                   <el-form-item>
                       <el-input class="left" v-model="inputCode" placeholder="验证码"></el-input>
                   </el-form-item>
                   <div @click="createCode" class="right">{{validateCode}}</div>
-                </div>
+                </div> -->
             </el-form>
             <el-button type="primary" size="medium" class="btn" @click="login">登录</el-button>
           </div>
@@ -40,37 +41,37 @@ export default {
     this.createCode()
     localStorage.setItem('activeIndex', '/')
     this.$store.commit('setMenuDisabled', false)
-    if (localStorage.getItem('lastRouter') !== '/') {
-      localStorage.setItem('lastRouter', '/')
-    }
+    // if (localStorage.getItem('lastRouter') !== '/') {
+    //   localStorage.setItem('lastRouter', '/')
+    // }
   },
   methods: {
     login () {
-      if (this.form.userAccount === '' || this.form.password === '' || this.inputCode === '') {
+      if (this.form.userAccount === '' || this.form.password === '') {
         this.$message({
           message: '请填写完整信息!',
           type: 'warning'
         })
         return
       }
-      this.validate()
-      if (this.validateFlag) {
-        req('login', this.form).then(res => {
-          if (res.code === '00000') {
-            localStorage.setItem('token', res.data)
-            this.$store.commit('token', res.data)
-            this.$router.push({path: '/'})
-          } else {
-            this.$message({
-              message: res.msg,
-              type: 'warning'
-            })
-            // 刷新验证码
-            this.createCode()
-            this.inputCode = ''
-          }
-        })
-      }
+      // this.validate()
+      // if (this.validateFlag) {
+      req('login', this.form).then(res => {
+        if (res.code === '00000') {
+          sessionStorage.setItem('token', res.data)
+          this.$store.commit('token', res.data)
+          this.$router.push({path: '/'})
+        } else {
+          this.$message({
+            message: res.msg,
+            type: 'warning'
+          })
+          // 刷新验证码
+          this.createCode()
+          this.inputCode = ''
+        }
+      })
+      // }
     },
     createCode () {
       let code = ''
@@ -119,7 +120,7 @@ export default {
         position: relative;
         .loginCon{
             width: 500px;
-            height: 360px;
+            height: 300px;
             background:rgba(255, 255, 255, .3);
             position: absolute;
             left: 0;

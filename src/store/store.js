@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 
 const state = {
-  token: localStorage.getItem('token'),
+  token: sessionStorage.getItem('token'),
   activeIndex: '',
   menuDisabled: false
 }

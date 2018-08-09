@@ -20,6 +20,7 @@
       <span>获取时间： {{statisticData.assginTime ? statisticData.assginTime : '无'}}</span>
     </div>
     <el-table
+      height="450"
       style="width: 100%"
       ref="multipleTable"
       :data="tableData"
@@ -233,7 +234,7 @@ export default {
     })
   },
   mounted () {
-    if (this.$store.state.activeIndex || localStorage.getItem('lastRouter') !== '/') {
+    if (this.$store.state.activeIndex) {
       this.getData()
       this.timerId = setInterval(() => {
         if (this.reaminingTime) {
@@ -474,10 +475,12 @@ export default {
     printTicket (obj) {
       // latech.printInit() // eslint-disable-line
       if (obj.status === '1') {
-        console.log(12322)
         latech.printBMPFromJS(obj.resultStr) // eslint-disable-line
       } else {
+        console.log(123)
         latech.printStringFormJS(obj.resultStr) // eslint-disable-line
+        // latech.printFeedLineFromJS(1) // eslint-disable-line
+        // latech.printCutPaperFromJS() // eslint-disable-line
       }
     },
     readTicket () {
@@ -495,7 +498,7 @@ export default {
               let size = latech.ScannerGetOriginImageSize() // eslint-disable-line
               //  获取图片
               _this.imgStr = latech.ScannerGetOriginImage(size) // eslint-disable-line
-              this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
+              _this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
               //  退票
               latech.ScannerRollBackFromJS() // eslint-disable-line
               _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
@@ -548,6 +551,7 @@ export default {
       //   })
       //   return
       // }
+      console.log(1, this.realTicketNumber)
       if (!this.realTicketNumber || !this.imgStr) {
         this.$message({
           type: 'error',
@@ -626,7 +630,7 @@ export default {
         ticketInfoNumber: this.ticketInfoNumber,
         realTicketNumber: this.realTicketNumber,
         betContextOdds: JSON.stringify(this.betContextOdds),
-        printResult: this.imgsrc
+        printResult: this.imgStr
       }
       req('editTicket', params)
         .then(res => {
@@ -665,13 +669,20 @@ export default {
 <style lang="less">
 .order-List{
   .detail{
-    font-weight: 400;
+    box-sizing: border-box;
+    width: calc(100% - 60px);
+    line-height: 40px;
     color: #1f2f3d;
     font-size: 20px;
-    margin: 8px 0!important;
-    display: flex;
+    padding: 20px 20px 0;
+    position: fixed;
+    top: 90px;
+    left: 30px;
+    z-index: 998;
+    background: #ffffff;
     div{
-      flex: 1;
+      display: inline-block;
+      margin-right: 50px;
     }
     .timer{
       span{
@@ -680,8 +691,25 @@ export default {
       }
     }
   }
+  .count-order{
+    box-sizing: border-box;
+    width: calc(100% - 60px);
+    padding:0 20px 10px;
+    height: 30px;
+    font-size: 16px;
+    background: #ffffff;
+    position: fixed;
+    top: 150px;
+    left: 30px;
+    z-index: 998;
+    border-bottom: 1px solid #4dafdb;
+    span{
+      margin-right: 50px;
+    }
+  }
   .orderlist-table{
     font-size: 14px!important;
+    margin-top: 90px;
     .el-table__header-wrapper{
       th{
         padding: 5px 0;
@@ -699,19 +727,9 @@ export default {
       }
     }
   }
-  .count-order{
-    margin-bottom: 15px;
-    font-size: 16px;
-    display: flex;
-    span{
-      flex: 1;
-    }
-  }
   .page{
     margin-top: 15px;
     margin-left: 100px;
-  }
-  .el-pagination{
     text-align:center;
     margin:20px 0;
   }
@@ -840,6 +858,11 @@ export default {
     z-index: 99999;
     img{
       width: 100%;
+    }
+  }
+  .orderNum-popover{
+    .el-button.is-disabled{
+      color: #D9D6CF!important;
     }
   }
 }

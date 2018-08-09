@@ -16,6 +16,7 @@
       <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
     </div>
     <el-table
+      height="450"
       ref="multipleTable"
       :data="tableData"
       tooltip-effect="dark"
@@ -433,8 +434,8 @@ export default {
           }
           req1('toggleLogin', form).then(res => {
             if (res.code === '00000') {
-              localStorage.setItem('lastToken', localStorage.getItem('token'))
-              localStorage.setItem('token', res.data)
+              sessionStorage.setItem('lastToken', sessionStorage.getItem('token'))
+              sessionStorage.setItem('token', res.data)
               this.$store.commit('token', res.data)
               this.managerDialogVisible = false
               this.$router.push({name: '审核订单'})
@@ -478,24 +479,39 @@ export default {
 
 <style lang="less">
 .account-order{
+  margin-top: 90px;
   .detail{
-    font-weight: 400;
+    box-sizing: border-box;
+    width: calc(100% - 60px);
+    line-height: 40px;
     color: #1f2f3d;
     font-size: 20px;
-    >span{
+    position: fixed;
+    top: 90px;
+    left: 30px;
+    z-index: 998;
+    background: #ffffff;
+    padding: 20px 20px 0;
+    span{
       display: inline-block;
-      width: 180px;
+      // width: 180px;
     }
     .btn{
       float: right;
     }
   }
   .count-order{
-    width: 100%;
+    box-sizing: border-box;
+    width: calc(100% - 60px);
+    padding:0 20px 10px;
+    height: 30px;
+    font-size: 16px;
+    background: #ffffff;
+    position: fixed;
+    top: 150px;
+    left: 30px;
+    z-index: 998;
     border-bottom: 1px solid #4dafdb;
-    overflow: hidden;
-    padding-bottom: 20px;
-    margin-bottom: 20px;
     .count-all{
       display: inline-block;
       margin: 0;
@@ -531,11 +547,11 @@ export default {
       .el-form-item__content{
         width: 300px!important;
         display: inline-block;
-        // display: inline-block;
         margin: 0!important;
         margin-left: 0!important;
         .code{
           width: 180px!important;
+          margin-right: 20px;
         }
         .managerLogin-right{
           float: right;
@@ -548,11 +564,16 @@ export default {
           cursor:pointer;
         }
       }
+      .el-button+.el-button {
+        margin-left: 50px;
+      }
     }
   }
-  .el-dialog{
-    margin-top: 0 !important;
-    margin-bottom: 0;
+  .orderNum-popover{
+    .el-dialog{
+      margin-top: 0 !important;
+      margin-bottom: 0;
+    }
     .hoverItem{
       display: inline-block;
       margin: 10px 40px 0 0;

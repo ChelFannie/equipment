@@ -14,7 +14,7 @@ Vue.component('i-form', IForm)
 
 // 路由全局守卫
 router.beforeEach((to, from, next) => {
-  localStorage.setItem('lastRouter', from.path)
+  // localStorage.setItem('lastRouter', from.path)
   if (!to.meta.requireAuth) {
     if (store.state.token) {
       next()

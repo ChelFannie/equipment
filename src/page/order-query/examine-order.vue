@@ -3,7 +3,7 @@
     <div class="detail">
       <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
       <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span>
-      <span>提交时间：无 </span>
+      <span>提交时间：{{submitSettleTime}}</span>
     </div>
     <div class="count-order">
       <p class="count-all">审核统计：&nbsp;</p>
@@ -18,7 +18,6 @@
       tooltip-effect="dark"
       border
       style="width: 100%"
-      @selection-change="handleSelectionChange"
       :row-class-name="tableRowClassName">
       <el-table-column
         prop="serialNumber"
@@ -36,7 +35,7 @@
         align="center">
       </el-table-column>
     </el-table>
-    <el-pagination
+    <!-- <el-pagination
       class="page"
       background
       @size-change="handleSizeChange"
@@ -46,7 +45,7 @@
       :page-sizes="[10, 50, 100, 150, 200, 300, 500]"
       layout="total, sizes, prev, pager, next, jumper"
       :total="totalCount">
-    </el-pagination>
+    </el-pagination> -->
     <el-dialog
       :visible.sync="showOutPopover"
       width="60%"
@@ -86,17 +85,14 @@
     <div class="enlarge" v-if="enlargeImg">
       <img :src="imgStr" alt="" @click="narrow">
     </div>
-    {{operationAccounts}}
   </div>
 </template>
 
 <script>
-// import iPopover from '../../components/common/i-popover'
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import req from '../../api/order-list/index.js'
 export default {
   components: {
-    // iPopover
   },
   data () {
     return {
@@ -129,6 +125,7 @@ export default {
         rebatePoint: 0,
         accountList: []
       },
+      submitSettleTime: '',
       timer: null,
       scanTicket: '',
       imgStr: '',
@@ -143,13 +140,16 @@ export default {
       }
     },
     scanTicket (val) {
-      console.log(val)
-    }
-  },
-  computed: {
-    operationAccounts () {
-      this.operationAccount()
-      return ''
+      console.log(val, '落地票号')
+      this.tableData.map(item => {
+        if (item.realTicketNumber === val) {
+          this.$set(item, 'changeSettleStatus', 5)// 审核成功
+        }
+      })
+      console.log(this.tableData[0].realTicketNumber, '数组落地票号')
+      this.tableData.sort((a, b) => {
+        return a.changeSettleStatus - b.changeSettleStatus
+      })
     }
   },
   created () {
@@ -165,11 +165,6 @@ export default {
     document.getElementById('outPopover').addEventListener('click', (event) => {
       event.stopPropagation()
     })
-    try {
-      this.scan()
-    } catch (error) {
-      console.log('条码枪')
-    }
   },
   methods: {
     getData () {
@@ -180,11 +175,19 @@ export default {
       req('getAuditingList', memberParams)
         .then(res => {
           if (res.code === '00000') {
+            try {
+              this.scan()
+            } catch (error) {
+              console.log('条码枪')
+            }
+            this.submitSettleTime = res.data.submitSettleTime ? res.data.submitSettleTime : '无'
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
             this.statisticData = res.data.statistic
+            let amounts = 0
+            let awardAmounts = 0
             res.data.orderList.result.map(val => {
               val.lotteryTypeWord = ChangeBetContext.lotteryType(val.lotteryType)
-              val.printFlag = ChangeBetContext.printFlag(val.printFlag)
+              val.changeSettleStatus = val.settleStatus
               val.subPlayTypeWord = ChangeBetContext.subPlayType(val.subPlayType)
               val.settleStatusWord = ChangeBetContext.settleStatus(val.settleStatus)
               val.amount = val.amount / 100
@@ -192,9 +195,15 @@ export default {
               val.amountWord = (val.amount).toFixed(2)
               val.awardAmountWord = (val.awardAmount).toFixed(2)
               val.flag = false
+              amounts += val.amount
+              awardAmounts += val.awardAmount
             })
             this.tableData = res.data.orderList.result
             this.totalCount = res.data.orderList.totalCount
+            this.accountData.pages = this.tableData.length
+            this.accountData.amounts = amounts
+            this.accountData.awardAmounts = awardAmounts
+            this.accountData.operateMoney = amounts - (awardAmounts + amounts * this.accountData.rebatePoint)
           } else {
             this.$message({
               type: 'error',
@@ -203,33 +212,33 @@ export default {
           }
         })
     },
-    handleSizeChange (val) {
-      this.pageSize = val
-      this.getData()
-    },
-    handleCurrentChange (val) {
-      this.pageIndex = val
-      this.getData()
-    },
-    handleSelectionChange (val) {
-      // 得到被选中的所有的值
-      this.accountData.amounts = 0
-      this.accountData.awardAmounts = 0
-      this.accountData.pages = val.length
-      this.accountData.accountList = val
-      this.accountData.accountList.map(item1 => {
-        this.accountData.amounts += item1.amount
-        this.accountData.awardAmounts += item1.awardAmount
-      })
-    },
-    operationAccount () {
-      this.accountData.operateMoney = this.accountData.amounts - (this.accountData.awardAmounts + this.accountData.amounts * this.accountData.rebatePoint)
-    },
-    selectable (row, index) {
-      return row.settleStatus === 1
-    },
+    // handleSizeChange (val) {
+    //   this.pageSize = val
+    //   this.getData()
+    // },
+    // handleCurrentChange (val) {
+    //   this.pageIndex = val
+    //   this.getData()
+    // },
+    // handleSelectionChange (val) {
+    //   // 得到被选中的所有的值
+    //   this.accountData.amounts = 0
+    //   this.accountData.awardAmounts = 0
+    //   this.accountData.pages = val.length
+    //   this.accountData.accountList = val
+    //   this.accountData.accountList.map(item1 => {
+    //     this.accountData.amounts += item1.amount
+    //     this.accountData.awardAmounts += item1.awardAmount
+    //   })
+    // },
+    // operationAccount () {
+    //   this.accountData.operateMoney = this.accountData.amounts - (this.accountData.awardAmounts + this.accountData.amounts * this.accountData.rebatePoint)
+    // },
+    // selectable (row, index) {
+    //   return row.settleStatus === 1
+    // },
     tableRowClassName ({row, rowIndex}) {
-      if (row.settleStatus !== 1) {
+      if (row.changeSettleStatus !== 2) {
         return 'disabled-row'
       }
       return ''
@@ -243,8 +252,6 @@ export default {
       req('queryTicketList', {serialNumber: rows.serialNumber})
         .then(res => {
           if (res.code === '00000') {
-            // res.data.ticketInfoVoPage.result && (this.ticketInfoNumber = res.data.ticketInfoVoPage.result[0].ticketInfoNumber)
-            // this.getPopoverData()
             if (res.data.ticketInfoVoPage.result && res.data.ticketInfoVoPage.result.length) {
               this.ticketInfoNumber = res.data.ticketInfoVoPage.result[0].ticketInfoNumber
             } else {
@@ -267,18 +274,13 @@ export default {
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
-            // console.log(res.data)
             let orderInfo = res.data.orderInfo
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
             orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
             orderInfo.amount = (orderInfo.amount / 100).toFixed(2)
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
-            if (!this.orderInfo.printResult || this.orderInfo.printResult.indexOf('data:image/bmp;base64,MTIzNDU2IG5vIGNvbW1pdGUgaW1hZ2U=') > -1) {
-              this.printResultFlag = true
-            } else {
-              this.printResultFlag = false
-            }
+            this.orderInfo.printResult && (this.imgStr = this.orderInfo.printResult)
             // 投注项
             let betContextList = res.data.betContextList
             betContextList.map(val => {
@@ -325,10 +327,8 @@ export default {
       this.accountData.accountList.map(item => {
         serialNumberArr.push(item.serialNumber)
       })
-      // console.log(serialNumberArr)
       req('submitToSettle', {'serialNumbers': JSON.stringify(serialNumberArr)})
         .then(res => {
-          // console.log(res)
           if (res.code === '00000') {
             this.$message({
               type: 'success',
@@ -353,7 +353,6 @@ export default {
           const _this = this
           _this.timer = setInterval(function () {
             let flag = latech.BCRScanIsCompleteFromJS() // eslint-disable-line
-            // console.log(flag)
             if (flag === true) { // 判断读票机是否读完票
               // clearInterval(_this.timer)
               _this.scanTicket = latech.BCRGetTicketInfoFromJS() // eslint-disable-line
@@ -431,8 +430,10 @@ export default {
     background: #eeeeee;
   }
   .orderNum-popover{
-    margin-top: 0 !important;
-    margin-bottom: 0;
+    .el-dialog{
+      margin-top: 0 !important;
+      margin-bottom: 0;
+    }
     .el-dialog__header{
       padding: 0;
     }
