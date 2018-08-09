@@ -274,11 +274,21 @@ export default {
           this.$set(item, 'flag', true)
         }
       })
-      req('getOrderDetail', {serialNumber: rows.serialNumber})
+      req('queryTicketList', {serialNumber: rows.serialNumber})
         .then(res => {
           if (res.code === '00000') {
-            res.data.ticketInfoVoPage.result && (this.ticketInfoNumber = res.data.ticketInfoVoPage.result[0].ticketInfoNumber)
-            this.getPopoverData()
+            if (res.data.ticketInfoVoPage.result && res.data.ticketInfoVoPage.result.length) {
+              this.ticketInfoNumber = res.data.ticketInfoVoPage.result[0].ticketInfoNumber
+            } else {
+              this.$message({
+                type: 'error',
+                message: '此订单无票'
+              })
+              return
+            }
+            this.getPopoverData(rows)
+            // res.data.ticketInfoVoPage.result && (this.ticketInfoNumber = res.data.ticketInfoVoPage.result[0].ticketInfoNumber)
+            // this.getPopoverData()
           } else {
             this.$message({
               type: 'error',

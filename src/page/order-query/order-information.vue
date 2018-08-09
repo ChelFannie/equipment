@@ -220,7 +220,7 @@ export default {
   },
   methods: {
     getData () {
-      req('getOrderDetail', {serialNumber: this.serialNumber})
+      req('queryTicketList', {serialNumber: this.serialNumber})
         .then(res => {
           if (res.code === '00000') {
             let orderInfoVo = res.data.orderInfoVo

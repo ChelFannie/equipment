@@ -6,7 +6,7 @@ const config = {
     method: 'post'
   },
   // 得到订单详情数据
-  getOrderDetail: {
+  queryTicketList: {
     url: '/ticket/queryTicketListPage.json',
     method: 'post'
   },

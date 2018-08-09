@@ -134,19 +134,20 @@
       </div>
     </el-dialog>
     <el-dialog
-      title="确认"
+      title="是否确认票信息的内容？"
       :visible.sync="confirmFlag"
       width="30%"
       center
-      id="innerDialog">
-      <p>是否确认票信息的内容？</p>
-      <p>确认后将推送到客户，并且不能修改！</p>
+      id="innerDialog"
+      class="confirm-msg">
+      <!-- <p>是否确认票信息的内容？</p> -->
+      <p class="tip">确认后将推送到客户，并且不能修改！</p>
       <p class="edit-content">赔率数据异常有：<span>{{validateOdds}}</span></p>
       <span slot="footer" class="dialog-footer">
-        <el-button size="small" type="primary" @click.stop="confirmSumbit"
+        <el-button size="medium" type="primary" @click.stop="confirmSumbit"
         v-loading.fullscreen.lock="fullscreenLoading"
         element-loading-text="数据提交中...">确 定</el-button>
-        <el-button size="small" @click.stop="cancelSumbit">取 消</el-button>
+        <el-button size="medium" @click.stop="cancelSumbit">取 消</el-button>
       </span>
     </el-dialog>
     <div class="Mask" v-if="Mask" @click="maskClick"></div>
@@ -321,10 +322,18 @@ export default {
           this.$set(item, 'flag', true)
         }
       })
-      req('getOrderDetail', {serialNumber: rows.serialNumber})
+      req('queryTicketList', {serialNumber: rows.serialNumber})
         .then(res => {
           if (res.code === '00000') {
-            res.data.ticketInfoVoPage.result && (this.ticketInfoNumber = res.data.ticketInfoVoPage.result[0].ticketInfoNumber)
+            if (res.data.ticketInfoVoPage.result && res.data.ticketInfoVoPage.result.length) {
+              this.ticketInfoNumber = res.data.ticketInfoVoPage.result[0].ticketInfoNumber
+            } else {
+              this.$message({
+                type: 'error',
+                message: '此订单无票'
+              })
+              return
+            }
             this.getPopoverData(rows)
           } else {
             this.$message({
@@ -569,6 +578,7 @@ export default {
         betContextOdds: JSON.stringify(this.betContextOdds)
       }
       // console.log(params)
+      this.validateOdds = ''
       req('validateTicketOdds', params)
         .then(res => {
           if (res.code === '20038') {
@@ -579,15 +589,16 @@ export default {
             })
             this.validateOdds = this.validateOdds.substring(0, this.validateOdds.length - 1)
             this.confirmFlag = true
-            this.confirmDisabled = false
-          } else if (res.code === '10009') {
-            this.$router.push('/login')
+            // this.confirmDisabled = false
+          } else if (res.code === '00000') {
+            this.confirmSumbit()
           } else {
             this.$message({
               type: 'error',
-              message: res.msg
+              message: res.msg || '提交失败！'
             })
           }
+          this.confirmDisabled = false
         })
     },
     cancelSumbit () {
@@ -604,24 +615,25 @@ export default {
         printResult: this.imgsrc
       }
       console.log(params)
-      // req('editTicket', params)
-      //   .then(res => {
-      //     if (res.code === '00000') {
-      //       this.fullscreenLoading = false
-      //       this.$message({
-      //         type: 'success',
-      //         message: '修改成功'
-      //       })
-      //       this.confirmFlag = false
-      //       this.showOutPopover = false
-      //     } else {
-      //       this.$message({
-      //         type: 'error',
-      //         message: res.msg
-      //       })
-      //       this.showOutPopover = true
-      //     }
-      //   })
+      req('editTicket', params)
+        .then(res => {
+          if (res.code === '00000') {
+            // this.fullscreenLoading = false
+            this.$message({
+              type: 'success',
+              message: '成功'
+            })
+            this.confirmFlag = false
+            this.showOutPopover = false
+          } else {
+            this.$message({
+              type: 'error',
+              message: res.msg
+            })
+            this.showOutPopover = true
+          }
+          this.fullscreenLoading = false
+        })
     }
   },
   destroyed () {
@@ -697,11 +709,6 @@ export default {
     cursor: pointer;
   }
   .orderNum-popover{
-    // 弹出popover样式
-    // width: 600px !important;
-    // top: 100px !important;
-    // left: 525px!important;
-    // height: 1000px;
     .el-dialog__header{
       padding: 0;
     }
@@ -776,6 +783,29 @@ export default {
     .btn-box{
       margin-top: 10px;
       text-align: center;
+    }
+  }
+  .confirm-msg{
+    .el-dialog{
+      width: 450px!important;
+      .el-dialog__body{
+        padding: 0 20px;
+        font-size: 16PX;
+        .tip{
+          text-align: center;
+          color: #EB5528;
+        }
+        .edit-content{
+          margin: 0;
+          span{
+            color: #4daedb;
+            line-height: 30px;
+          }
+        }
+      }
+    }
+    .el-button+.el-button {
+      margin-left: 50px;
     }
   }
   .Mask{
