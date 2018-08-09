@@ -426,10 +426,6 @@ export default {
     margin-top: 15px;
     margin-left: 100px;
   }
-  // .el-pagination{
-  //   text-align:center;
-  //   margin:20px 0;
-  // }
   // 禁用的颜色
   .el-table .disabled-row {
     background: #eeeeee;
@@ -437,10 +433,6 @@ export default {
   .orderNum-popover{
     margin-top: 0 !important;
     margin-bottom: 0;
-    // width: 700px !important;
-    // top: 315px !important;
-    // left: 575px!important;
-    // height: 1000px;
     .el-dialog__header{
       padding: 0;
     }
