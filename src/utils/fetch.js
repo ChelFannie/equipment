@@ -36,6 +36,7 @@ instance.interceptors.response.use((response) => {
     store.commit('token', '')
     localStorage.removeItem('token')
     router.push({name: '登录', query: {redirect: router.currentRoute.fullPath}})
+    // localStorage.setItem('lastRouter', '/')
   }
   return response.data
 }, (error) => {

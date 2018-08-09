@@ -1,8 +1,9 @@
 <template>
-  <div class="account-order">
+  <div class="examine-order">
     <div class="detail">
       <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
       <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span>
+      <span>提交时间：无 </span>
     </div>
     <div class="count-order">
       <p class="count-all">审核统计：&nbsp;</p>
@@ -78,9 +79,13 @@
         </el-table-column>
       </el-table>
       <div class="uploadImg">
-        <img class="img" :src="orderInfo.printResult" alt="">
+        <img class="img" :src="imgStr" alt="" @click="enlarge">
       </div>
     </el-dialog>
+    <div class="Mask" v-if="Mask" @click="maskClick"></div>
+    <div class="enlarge" v-if="enlargeImg">
+      <img :src="imgStr" alt="" @click="narrow">
+    </div>
     {{operationAccounts}}
   </div>
 </template>
@@ -125,7 +130,10 @@ export default {
         accountList: []
       },
       timer: null,
-      scanTicket: ''
+      scanTicket: '',
+      imgStr: '',
+      Mask: false,
+      enlargeImg: false
     }
   },
   watch: {
@@ -169,7 +177,7 @@ export default {
         page: this.pageIndex,
         pageSize: this.pageSize
       }
-      req('getOrderList', memberParams)
+      req('getAuditingList', memberParams)
         .then(res => {
           if (res.code === '00000') {
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
@@ -354,6 +362,23 @@ export default {
           }, 200)
         }
       }
+    },
+    // 图片放大
+    enlarge () {
+      if (this.imgStr === '') {
+        return
+      }
+      this.Mask = true
+      this.enlargeImg = true
+    },
+    // 图片缩小
+    narrow (event) {
+      event.stopPropagation()
+      this.Mask = false
+      this.enlargeImg = false
+    },
+    maskClick (event) {
+      event.stopPropagation()
     }
   },
   destroyed () {
@@ -368,7 +393,7 @@ export default {
 </script>
 
 <style lang="less">
-.account-order{
+.examine-order{
   .detail{
     font-weight: 400;
     color: #1f2f3d;
@@ -410,10 +435,15 @@ export default {
     background: #eeeeee;
   }
   .orderNum-popover{
+    margin-top: 0 !important;
+    margin-bottom: 0;
     // width: 700px !important;
     // top: 315px !important;
     // left: 575px!important;
     // height: 1000px;
+    .el-dialog__header{
+      padding: 0;
+    }
     .el-dialog__header{
       padding: 0;
     }
@@ -446,13 +476,16 @@ export default {
       .no-image{
         margin: 0 auto;
         width: 200px;
-        height: 300px;
+        height: 250px;
+        line-height: 250px;
+        text-align: center;
         border: 1px solid #cccccc;
       }
       .img{
         margin: 10px auto;
-        // margin-top: 10px;
-        width: 500px;
+        width: 250px;
+        height: 380px;
+        display: block;
       }
     }
   }
@@ -464,6 +497,27 @@ export default {
     color: #fff;
     letter-spacing: 6px;
     cursor:pointer;
+  }
+  .Mask{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: .5;
+    background: #000;
+    z-index: 9999;
+  }
+  .enlarge{
+    width: 300px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    margin-left: -150px;
+    z-index: 99999;
+    img{
+      width: 100%;
+    }
   }
 }
 </style>

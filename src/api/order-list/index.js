@@ -44,6 +44,16 @@ const config = {
   limitSale: {
     url: '/ticket/limitSaleByStoreUser.json',
     method: 'post'
+  },
+  // 得到审核数据
+  getAuditingList: {
+    url: '/settle/auditingListByPage.json',
+    method: 'get'
+  },
+  // 提交审核数据
+  submitToAudit: {
+    url: '/settle/submitToAudit.json',
+    method: 'get'
   }
 }
 

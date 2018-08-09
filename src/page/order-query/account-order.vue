@@ -86,7 +86,8 @@
         </el-table-column>
       </el-table>
       <div class="uploadImg">
-        <img class="img" :src="orderInfo.printResult" alt="">
+        <!-- <img class="img" :src="orderInfo.printResult" alt=""> -->
+        <img class="img" :src="imgStr" alt="" @click="enlarge">
       </div>
     </el-dialog>
     <el-dialog
@@ -100,7 +101,7 @@
           <el-input v-model="managerForm.userAccount" auto-complete="off" maxlength="15"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="managerForm.password" auto-complete="off" maxlength="15"></el-input>
+          <el-input type="password" v-model="managerForm.password" auto-complete="off" maxlength="15"></el-input>
         </el-form-item>
         <el-form-item label="验证码" prop="inputCode">
           <el-input class="code" v-model="managerForm.inputCode" auto-complete="off" maxlength="4"></el-input>
@@ -112,6 +113,10 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+    <div class="Mask" v-if="Mask" @click="maskClick"></div>
+    <div class="enlarge" v-if="enlargeImg">
+      <img :src="imgStr" alt="" @click="narrow">
+    </div>
     {{operationAccounts}}
   </div>
 </template>
@@ -175,7 +180,10 @@ export default {
         inputCode: [
           { required: true, message: '请输入验证码', trigger: 'blur' }
         ]
-      }
+      },
+      imgStr: '',
+      Mask: false,
+      enlargeImg: false
     }
   },
   watch: {
@@ -308,11 +316,12 @@ export default {
             orderInfo.amount = (orderInfo.amount / 100).toFixed(2)
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
-            if (!this.orderInfo.printResult || this.orderInfo.printResult.indexOf('data:image/bmp;base64,MTIzNDU2IG5vIGNvbW1pdGUgaW1hZ2U=') > -1) {
-              this.printResultFlag = true
-            } else {
-              this.printResultFlag = false
-            }
+            this.imgStr = this.orderInfo.printResult
+            // if (!this.orderInfo.printResult || this.orderInfo.printResult.indexOf('data:image/bmp;base64,MTIzNDU2IG5vIGNvbW1pdGUgaW1hZ2U=') > -1) {
+            //   this.printResultFlag = true
+            // } else {
+            //   this.printResultFlag = false
+            // }
             // 投注项
             let betContextList = res.data.betContextList
             betContextList.map(val => {
@@ -333,11 +342,11 @@ export default {
               val.subPlayTypeWord = ChangeBetContext.subPlayType(val.subPlayType)
             })
             this.hoverData = betContextList
-            this.tableData.map(item => {
-              if (this.orderInfo.serialNumber === item.serialNumber) {
-                this.$set(item, 'flag', false)
-              }
-            })
+            // this.tableData.map(item => {
+            //   if (this.orderInfo.serialNumber === item.serialNumber) {
+            //     this.$set(item, 'flag', false)
+            //   }
+            // })
             this.showOutPopover = true
           } else {
             this.$message({
@@ -345,6 +354,11 @@ export default {
               message: res.msg
             })
           }
+          this.tableData.map(item => {
+            if (this.orderInfo.serialNumber === item.serialNumber) {
+              this.$set(item, 'flag', false)
+            }
+          })
         })
     },
     submitToSettle () {
@@ -395,7 +409,7 @@ export default {
           type: 'warning'
         })
         // 刷新验证码
-        loginValidate.createCode()
+        this.validateCode = loginValidate.createCode()
         // 清空文本框
         this.managerForm.inputCode = ''
       } else {
@@ -440,6 +454,23 @@ export default {
           })
         }
       })
+    },
+    // 图片放大
+    enlarge () {
+      if (this.imgStr === '') {
+        return
+      }
+      this.Mask = true
+      this.enlargeImg = true
+    },
+    // 图片缩小
+    narrow (event) {
+      event.stopPropagation()
+      this.Mask = false
+      this.enlargeImg = false
+    },
+    maskClick (event) {
+      event.stopPropagation()
     }
   }
 }
@@ -520,20 +551,8 @@ export default {
     }
   }
   .el-dialog{
-    .popper__arrow{
-      top: 2% !important;
-    }
-    // .hoverInput{
-    //   display: flex;
-    //   align-items: center;
-    //   span{
-    //     width: 100px;
-    //   }
-    //   .el-input__inner{
-    //     width: 545px;
-    //     height: 33px;
-    //   }
-    // }
+    margin-top: 0 !important;
+    margin-bottom: 0;
     .hoverItem{
       display: inline-block;
       margin: 10px 40px 0 0;
@@ -546,17 +565,41 @@ export default {
     }
     .uploadImg{
       margin-top: 10px;
-      text-align: center;
       .no-image{
         margin: 0 auto;
         width: 200px;
-        height: 300px;
+        height: 250px;
+        line-height: 250px;
+        text-align: center;
         border: 1px solid #cccccc;
       }
       .img{
         margin: 10px auto;
-        max-width: 400px;
+        width: 250px;
+        height: 380px;
+        display: block;
       }
+    }
+  }
+  .Mask{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: .5;
+    background: #000;
+    z-index: 9999;
+  }
+  .enlarge{
+    width: 300px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    margin-left: -150px;
+    z-index: 99999;
+    img{
+      width: 100%;
     }
   }
 }

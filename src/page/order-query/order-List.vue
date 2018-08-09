@@ -124,10 +124,9 @@
       </el-table>
       <div class="btn-box">
         <div v-if="printFlag===1">
-          <el-button v-if="printFlag===1" class="submit-btn" type="primary" size="medium" @click="submitRealTicket" :disabled="confirmDisabled">出票完成</el-button>
+          <el-button class="submit-btn" type="primary" size="medium" @click="submitRealTicket" :disabled="confirmDisabled">出票完成</el-button>
           <el-button type="danger" size="medium" @click="limitSale(orderInfo.ticketInfoNumber)">限售</el-button>
         </div>
-        <!-- <el-button v-if="printFlag!==1" class="submit-btn" type="primary" size="medium" disabled>出票完成</el-button> -->
       </div>
       <div class="uploadImg">
         <img class="img" :src="imgStr" alt="" @click="enlarge">
@@ -159,6 +158,7 @@
 <script>
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import req from '../../api/order-list/index.js'
+import getResultStr from '../../utils/combine.js'
 export default {
   data () {
     return {
@@ -360,7 +360,11 @@ export default {
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
             if (rows.printFlag === 1) { // 未出票状态才能读票
+              let obj = JSON.parse(JSON.stringify(this.orderInfo))
+              obj['betContext'] = JSON.parse(obj['betContext'])
+              let resultObj = getResultStr(obj)
               try {
+                this.printTicket(resultObj)
                 this.readTicket()
               } catch (error) {
                 console.log('打印机')
@@ -467,6 +471,15 @@ export default {
         }
       })
     },
+    printTicket (obj) {
+      // latech.printInit() // eslint-disable-line
+      if (obj.status === '1') {
+        console.log(12322)
+        latech.printBMPFromJS(obj.resultStr) // eslint-disable-line
+      } else {
+        latech.printStringFormJS(obj.resultStr) // eslint-disable-line
+      }
+    },
     readTicket () {
       // 读票机初始化
       if (latech.ScannerInit() === 0) { // eslint-disable-line
@@ -482,6 +495,7 @@ export default {
               let size = latech.ScannerGetOriginImageSize() // eslint-disable-line
               //  获取图片
               _this.imgStr = latech.ScannerGetOriginImage(size) // eslint-disable-line
+              this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
               //  退票
               latech.ScannerRollBackFromJS() // eslint-disable-line
               _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
@@ -534,13 +548,13 @@ export default {
       //   })
       //   return
       // }
-      // if (!this.realTicketNumber || !this.imgStr) {
-      //   this.$message({
-      //     type: 'error',
-      //     message: '请正常读票！'
-      //   })
-      //   return
-      // }
+      if (!this.realTicketNumber || !this.imgStr) {
+        this.$message({
+          type: 'error',
+          message: '请正常读票！'
+        })
+        return
+      }
       this.confirmDisabled = true
       this.betContextOdds = []
       this.hoverData.map(item => {
@@ -577,7 +591,7 @@ export default {
         subPlayType: this.orderInfo.subPlayType,
         betContextOdds: JSON.stringify(this.betContextOdds)
       }
-      // console.log(params)
+      console.log(params)
       this.validateOdds = ''
       req('validateTicketOdds', params)
         .then(res => {
@@ -614,7 +628,6 @@ export default {
         betContextOdds: JSON.stringify(this.betContextOdds),
         printResult: this.imgsrc
       }
-      console.log(params)
       req('editTicket', params)
         .then(res => {
           if (res.code === '00000') {

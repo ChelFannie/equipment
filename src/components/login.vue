@@ -40,6 +40,9 @@ export default {
     this.createCode()
     localStorage.setItem('activeIndex', '/')
     this.$store.commit('setMenuDisabled', false)
+    if (localStorage.getItem('lastRouter') !== '/') {
+      localStorage.setItem('lastRouter', '/')
+    }
   },
   methods: {
     login () {
