@@ -141,15 +141,15 @@ export default {
     },
     scanTicket (val) {
       console.log(val, '落地票号')
-      this.tableData.map(item => {
-        if (item.realTicketNumber === val) {
-          this.$set(item, 'changeSettleStatus', 5)// 审核成功
-        }
-      })
-      console.log(this.tableData[0].realTicketNumber, '数组落地票号')
-      this.tableData.sort((a, b) => {
-        return a.changeSettleStatus - b.changeSettleStatus
-      })
+      // this.tableData.map(item => {
+      //   if (item.realTicketNumber === val) {
+      //     this.$set(item, 'changeSettleStatus', 5)// 审核成功
+      //   }
+      // })
+      // console.log(this.tableData[0].realTicketNumber, '数组落地票号')
+      // this.tableData.sort((a, b) => {
+      //   return a.changeSettleStatus - b.changeSettleStatus
+      // })
     }
   },
   created () {

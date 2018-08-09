@@ -154,6 +154,19 @@
     <div class="enlarge" v-if="enlargeImg">
       <img :src="imgStr" alt="" @click="narrow">
     </div>
+    <el-dialog
+      title="提示"
+      :visible.sync="limitSaleData.limitSaleFlag"
+      width="30%"
+      center
+      id="limitSaleDialog">
+      <p>是否确定限售此票？</p>
+      <span>系统票号：{{limitSaleData.ticketInfoNumber}}</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="confirmLimitSale" :disabled="limitSaleData.limitDisabled">确 定</el-button>
+        <el-button @click="cancelLimitSale">取 消</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -194,7 +207,12 @@ export default {
       showClose: false,
       validateOdds: '',
       confirmDisabled: false,
-      fullscreenLoading: false
+      fullscreenLoading: false,
+      limitSaleData: {
+        limitSaleFlag: false,
+        ticketInfoNumber: '',
+        limitDisabled: false
+      }
     }
   },
   watch: {
@@ -271,6 +289,9 @@ export default {
       event.stopPropagation()
     })
     document.getElementById('innerDialog').addEventListener('click', (event) => {
+      event.stopPropagation()
+    })
+    document.getElementById('limitSaleDialog').addEventListener('click', (event) => {
       event.stopPropagation()
     })
     this.spans = document.querySelector('.timer').children
@@ -536,21 +557,7 @@ export default {
       this.spans[6].innerHTML = seconds1
       this.spans[7].innerHTML = seconds2
     },
-    limitSale (ticketInfoNumber) {
-      req('limitSale', {'ticketInfoNumber': ticketInfoNumber})
-        .then(res => {
-          console.log(res)
-        })
-    },
     submitRealTicket () {
-      // if (this.printFlag !== 1) {
-      //   let msg = this.printFlag === 2 ? '已出票' : '出票失败'
-      //   this.$message({
-      //     type: 'error',
-      //     message: `改票状态为${msg}，禁止读票！`
-      //   })
-      //   return
-      // }
       console.log(1, this.realTicketNumber)
       if (!this.realTicketNumber || !this.imgStr) {
         this.$message({
@@ -651,6 +658,36 @@ export default {
           }
           this.fullscreenLoading = false
         })
+    },
+    cancelLimitSale () {
+      this.limitSaleData.limitSaleFlag = false
+    },
+    confirmLimitSale () {
+      this.limitSaleData.limitDisabled = true
+      req('limitSale', {'ticketInfoNumber': this.limitSaleData.ticketInfoNumber})
+        .then(res => {
+          if (res.code === '00000') {
+            this.limitSaleData.limitSaleFlag = false
+            this.limitSaleData.limitDisabled = false
+            this.showOutPopover = false
+            this.$message({
+              type: 'success',
+              message: '限售成功'
+            })
+            this.getData()
+          } else {
+            this.$message({
+              type: 'error',
+              message: res.msg
+            })
+          }
+        })
+    },
+    limitSale (ticketInfoNumber) {
+      this.limitSaleData = {
+        'limitSaleFlag': true,
+        'ticketInfoNumber': ticketInfoNumber
+      }
     }
   },
   destroyed () {
