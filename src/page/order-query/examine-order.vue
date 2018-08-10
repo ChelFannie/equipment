@@ -130,7 +130,8 @@ export default {
       scanTicket: '',
       imgStr: '',
       Mask: false,
-      enlargeImg: false
+      enlargeImg: false,
+      serialNumbersArr: []
     }
   },
   watch: {
@@ -141,15 +142,23 @@ export default {
     },
     scanTicket (val) {
       console.log(val, '落地票号')
-      // this.tableData.map(item => {
-      //   if (item.realTicketNumber === val) {
-      //     this.$set(item, 'changeSettleStatus', 5)// 审核成功
-      //   }
-      // })
-      // console.log(this.tableData[0].realTicketNumber, '数组落地票号')
-      // this.tableData.sort((a, b) => {
-      //   return a.changeSettleStatus - b.changeSettleStatus
-      // })
+      this.serialNumbersArr = []
+      this.tableData.map(item => {
+        if (item.ticketInfoVoList[0].qrInfo === val) {
+          this.$set(item, 'changeSettleStatus', 5)// 审核成功
+          this.serialNumbersArr.push(item.serialNumber)
+        }
+      })
+      // console.log(this.tableData[0].ticketInfoVoList[0].qrInfo, '数组落地票号')
+      this.tableData.sort((a, b) => {
+        return a.changeSettleStatus - b.changeSettleStatus
+      })
+    },
+    serialNumbersArr (val) {
+      if (val.length === 3) {
+        console.log('3张全部扫码完成')
+        this.submitToAudit()
+      }
     }
   },
   created () {
@@ -167,6 +176,23 @@ export default {
     })
   },
   methods: {
+    // 扫码完成后提交
+    submitToAudit () {
+      req('submitToAudit', {serialNumbers: JSON.stringify(this.serialNumbersArr)})
+        .then(res => {
+          if (res.code === '00000') {
+            this.$message({
+              type: 'error',
+              message: '全部扫码完成，提交成功'
+            })
+          } else {
+            this.$message({
+              type: 'error',
+              message: res.msg
+            })
+          }
+        })
+    },
     getData () {
       let memberParams = {
         page: this.pageIndex,
@@ -238,7 +264,7 @@ export default {
     //   return row.settleStatus === 1
     // },
     tableRowClassName ({row, rowIndex}) {
-      if (row.changeSettleStatus !== 2) {
+      if (row.changeSettleStatus === 5) {
         return 'disabled-row'
       }
       return ''

@@ -500,8 +500,8 @@ export default {
       } else {
         console.log(123)
         latech.printStringFormJS(obj.resultStr) // eslint-disable-line
-        // latech.printFeedLineFromJS(1) // eslint-disable-line
-        // latech.printCutPaperFromJS() // eslint-disable-line
+        latech.printFeedLineFromJS(10) // eslint-disable-line
+        latech.printCutPaperFromJS() // eslint-disable-line
       }
     },
     readTicket () {

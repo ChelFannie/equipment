@@ -53,7 +53,7 @@ const config = {
   // 提交审核数据
   submitToAudit: {
     url: '/settle/submitToAudit.json',
-    method: 'get'
+    method: 'post'
   }
 }
 
