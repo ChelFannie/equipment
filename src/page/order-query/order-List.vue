@@ -4,14 +4,7 @@
       <div>今日销售：{{statisticData.printedOrderCount || 0}} 张</div>
       <div>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</div>
       <div class="timer">订单剩余时间：
-        <span class="remaining-time">0</span>
-        <span class="remaining-time">0</span>
-        <span class="remaining-time">:</span>
-        <span class="remaining-time">0</span>
-        <span class="remaining-time">0</span>
-        <span class="remaining-time">:</span>
-        <span class="remaining-time">0</span>
-        <span class="remaining-time">0</span>
+        <span class="remaining-time" v-for="(item, index) in spans" :key="index">{{item}}</span>
       </div>
     </div>
     <div class="count-order">
@@ -20,7 +13,7 @@
       <span>获取时间： {{statisticData.assginTime ? statisticData.assginTime : '无'}}</span>
     </div>
     <el-table
-      height="450"
+      height="350"
       style="width: 100%"
       ref="multipleTable"
       :data="tableData"
@@ -198,7 +191,7 @@ export default {
       imgStr: '',
       Mask: false,
       enlargeImg: false,
-      spans: [],
+      spans: ['0', '0', ':', '0', '0', ':', '0', '0'],
       reaminingTime: 0,
       printFlag: null,
       // 落地票号
@@ -294,7 +287,6 @@ export default {
     document.getElementById('limitSaleDialog').addEventListener('click', (event) => {
       event.stopPropagation()
     })
-    this.spans = document.querySelector('.timer').children
   },
   methods: {
     getData () {
@@ -499,9 +491,10 @@ export default {
         latech.printBMPFromJS(obj.resultStr) // eslint-disable-line
       } else {
         console.log(123)
+        // latech.printInit() // eslint-disable-line
         latech.printStringFormJS(obj.resultStr) // eslint-disable-line
-        latech.printFeedLineFromJS(10) // eslint-disable-line
-        latech.printCutPaperFromJS() // eslint-disable-line
+        // latech.printFeedLineFromJS(10) // eslint-disable-line
+        // latech.printCutPaperFromJS() // eslint-disable-line
       }
     },
     readTicket () {
@@ -520,6 +513,7 @@ export default {
               //  获取图片
               _this.imgStr = latech.ScannerGetOriginImage(size) // eslint-disable-line
               _this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
+              console.log(_this.realTicketNumber)
               //  退票
               latech.ScannerRollBackFromJS() // eslint-disable-line
               _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
@@ -645,10 +639,11 @@ export default {
             // this.fullscreenLoading = false
             this.$message({
               type: 'success',
-              message: '成功'
+              message: '读票成功'
             })
             this.confirmFlag = false
             this.showOutPopover = false
+            this.getData()
           } else {
             this.$message({
               type: 'error',
@@ -717,14 +712,16 @@ export default {
     left: 30px;
     z-index: 998;
     background: #ffffff;
+    overflow: hidden;
     div{
       display: inline-block;
-      margin-right: 50px;
+      width: 300px;
     }
     .timer{
       span{
         color: #FE4C40!important;
         font-size: 22px!important;
+        margin-right: 5px;
       }
     }
   }
@@ -740,8 +737,10 @@ export default {
     left: 30px;
     z-index: 998;
     border-bottom: 1px solid #4dafdb;
+    overflow: hidden;
     span{
-      margin-right: 50px;
+      display: inline-block;
+      width: 300px;
     }
   }
   .orderlist-table{
@@ -899,8 +898,11 @@ export default {
   }
   .orderNum-popover{
     .el-button.is-disabled{
-      color: #D9D6CF!important;
+      color: #FE4C40!important;
     }
+  }
+  .el-button+.el-button {
+    margin-left: 50px!important;
   }
 }
 </style>

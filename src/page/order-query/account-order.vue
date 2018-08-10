@@ -16,7 +16,7 @@
       <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
     </div>
     <el-table
-      height="450"
+      height="350"
       ref="multipleTable"
       :data="tableData"
       tooltip-effect="dark"
@@ -184,7 +184,8 @@ export default {
       },
       imgStr: '',
       Mask: false,
-      enlargeImg: false
+      enlargeImg: false,
+      auditLoginFlag: false
     }
   },
   watch: {
@@ -223,6 +224,7 @@ export default {
       req('getSettleList', memberParams)
         .then(res => {
           if (res.code === '00000') {
+            this.auditLoginFlag = res.data.auditLoginFlag
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
             this.statisticData = res.data.statistic
             res.data.orderList.result.map(val => {
@@ -391,8 +393,15 @@ export default {
         })
     },
     managerLogin () {
-      this.managerDialogVisible = true
-      this.validateCode = loginValidate.createCode()
+      if (this.auditLoginFlag) {
+        this.managerDialogVisible = true
+        this.validateCode = loginValidate.createCode()
+      } else {
+        this.$message({
+          message: '没有待审核的订单',
+          type: 'warning'
+        })
+      }
     },
     createCodeWord () {
       this.validateCode = loginValidate.createCode()
@@ -435,8 +444,10 @@ export default {
           req1('toggleLogin', form).then(res => {
             if (res.code === '00000') {
               sessionStorage.setItem('lastToken', sessionStorage.getItem('token'))
-              sessionStorage.setItem('token', res.data)
-              this.$store.commit('token', res.data)
+              sessionStorage.setItem('token', res.data.token)
+              this.$store.commit('token', res.data.token)
+              this.$store.commit('setActiveIndex', '/order-query/examine-order')
+              localStorage.setItem('setActiveIndex', '/order-query/examine-order')
               this.managerDialogVisible = false
               this.$router.push({name: '审核订单'})
               this.$message({
@@ -479,7 +490,7 @@ export default {
 
 <style lang="less">
 .account-order{
-  margin-top: 90px;
+  margin-top: 100px;
   .detail{
     box-sizing: border-box;
     width: calc(100% - 60px);
@@ -492,9 +503,9 @@ export default {
     z-index: 998;
     background: #ffffff;
     padding: 20px 20px 0;
-    span{
+    >span{
       display: inline-block;
-      // width: 180px;
+      width: 250px;
     }
     .btn{
       float: right;
@@ -504,7 +515,7 @@ export default {
     box-sizing: border-box;
     width: calc(100% - 60px);
     padding:0 20px 10px;
-    height: 30px;
+    height: 40px;
     font-size: 16px;
     background: #ffffff;
     position: fixed;
@@ -515,7 +526,8 @@ export default {
     .count-all{
       display: inline-block;
       margin: 0;
-      width: 180px;
+      font-size: 20px;
+      width: 250px;
     }
     span{
       display: inline-block;
@@ -622,6 +634,9 @@ export default {
     img{
       width: 100%;
     }
+  }
+  .el-button+.el-button {
+    margin-left: 50px!important;
   }
 }
 </style>

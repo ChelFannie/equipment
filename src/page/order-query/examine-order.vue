@@ -35,17 +35,6 @@
         align="center">
       </el-table-column>
     </el-table>
-    <!-- <el-pagination
-      class="page"
-      background
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="pageIndex"
-      :page-size="pageSize"
-      :page-sizes="[10, 50, 100, 150, 200, 300, 500]"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="totalCount">
-    </el-pagination> -->
     <el-dialog
       :visible.sync="showOutPopover"
       width="60%"
@@ -142,26 +131,33 @@ export default {
     },
     scanTicket (val) {
       console.log(val, '落地票号')
-      this.serialNumbersArr = []
       this.tableData.map(item => {
         if (item.ticketInfoVoList[0].qrInfo === val) {
           this.$set(item, 'changeSettleStatus', 5)// 审核成功
           this.serialNumbersArr.push(item.serialNumber)
+          this.$message({
+            message: '扫描成功',
+            type: 'success',
+            duration: 1000
+          })
         }
       })
-      // console.log(this.tableData[0].ticketInfoVoList[0].qrInfo, '数组落地票号')
       this.tableData.sort((a, b) => {
         return a.changeSettleStatus - b.changeSettleStatus
       })
     },
     serialNumbersArr (val) {
-      if (val.length === 3) {
-        console.log('3张全部扫码完成')
+      // if (val.length === 3) {
+      if (val.length > 0 && (val.length === this.tableData.length)) {
         this.submitToAudit()
       }
     }
   },
   created () {
+    if (!this.$store.state.setActiveIndex) {
+      this.$store.commit('setActiveIndex', localStorage.getItem('setActiveIndex'))
+    }
+    this.serialNumbersArr = []
     if (localStorage.getItem('setMenuDisabled')) {
       this.$store.commit('setMenuDisabled', true)
     }
@@ -182,8 +178,8 @@ export default {
         .then(res => {
           if (res.code === '00000') {
             this.$message({
-              type: 'error',
-              message: '全部扫码完成，提交成功'
+              type: 'success',
+              message: '全部扫码完成，提交成功!'
             })
           } else {
             this.$message({
@@ -238,31 +234,6 @@ export default {
           }
         })
     },
-    // handleSizeChange (val) {
-    //   this.pageSize = val
-    //   this.getData()
-    // },
-    // handleCurrentChange (val) {
-    //   this.pageIndex = val
-    //   this.getData()
-    // },
-    // handleSelectionChange (val) {
-    //   // 得到被选中的所有的值
-    //   this.accountData.amounts = 0
-    //   this.accountData.awardAmounts = 0
-    //   this.accountData.pages = val.length
-    //   this.accountData.accountList = val
-    //   this.accountData.accountList.map(item1 => {
-    //     this.accountData.amounts += item1.amount
-    //     this.accountData.awardAmounts += item1.awardAmount
-    //   })
-    // },
-    // operationAccount () {
-    //   this.accountData.operateMoney = this.accountData.amounts - (this.accountData.awardAmounts + this.accountData.amounts * this.accountData.rebatePoint)
-    // },
-    // selectable (row, index) {
-    //   return row.settleStatus === 1
-    // },
     tableRowClassName ({row, rowIndex}) {
       if (row.changeSettleStatus === 5) {
         return 'disabled-row'
@@ -382,7 +353,7 @@ export default {
             if (flag === true) { // 判断读票机是否读完票
               // clearInterval(_this.timer)
               _this.scanTicket = latech.BCRGetTicketInfoFromJS() // eslint-disable-line
-              // latech.BCRStopScan()
+              // latech.BCRStopScan() // eslint-disable-line
             }
           }, 200)
         }
@@ -453,7 +424,7 @@ export default {
   }
   // 禁用的颜色
   .el-table .disabled-row {
-    background: #eeeeee;
+    background: #D3D3D3;
   }
   .orderNum-popover{
     .el-dialog{

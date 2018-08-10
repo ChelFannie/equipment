@@ -58,8 +58,13 @@ export default {
       // if (this.validateFlag) {
       req('login', this.form).then(res => {
         if (res.code === '00000') {
-          sessionStorage.setItem('token', res.data)
-          this.$store.commit('token', res.data)
+          sessionStorage.setItem('token', res.data.token)
+          this.$store.commit('token', res.data.token)
+          let storeInfo = {
+            storeAddress: res.data.storeAddress,
+            storeName: res.data.storeName
+          }
+          sessionStorage.setItem('storeInfo', JSON.stringify(storeInfo))
           this.$router.push({path: '/'})
         } else {
           this.$message({

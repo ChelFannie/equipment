@@ -2,8 +2,8 @@
   <div class="nav">
     <div class="top">
         <div class="top-left">
-            <p>店铺名：乐盈盈XXXX店</p>
-            <p>地址：天河区棠石路38号</p>
+            <p>店铺名：{{storeInfo.storeName}}</p>
+            <p>地址：{{storeInfo.storeAddress}}</p>
         </div>
         <div class="top-right">
             <el-menu
@@ -18,12 +18,18 @@
                         <span slot="title" class="icon-name">获取订单</span>
                     </span>
                 </el-menu-item>
-                <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="!$store.state.menuDisabled">
+                <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="!$store.state.menuDisabled ||$store.state.activeIndex==='/order-query/examine-order'">
                     <span class="icon-box">
                         <i class="el-icon-printer  i-color"></i>
                         <span slot="title" class="icon-name">订单结算</span>
                     </span>
                 </el-menu-item>
+                <button class="flex-item loginOut" v-if="$store.state.activeIndex==='/order-query/examine-order'">
+                    <span class="icon-box" @click="quit">
+                        <i class="el-icon-upload2  i-color"></i>
+                        <span class="icon-name">登出</span>
+                    </span>
+                </button>
             </el-menu>
         </div>
     </div>
@@ -38,7 +44,8 @@
 export default {
   data () {
     return {
-      activeIndex: this.$store.state.activeIndex
+      activeIndex: this.$store.state.activeIndex,
+      storeInfo: {}
     }
   },
   created () {
@@ -47,6 +54,7 @@ export default {
       this.$store.commit('setMenuDisabled', false)
       localStorage.setItem('setMenuDisabled', false)
     }
+    this.storeInfo = JSON.parse(sessionStorage.getItem('storeInfo'))
   },
   mounted () {
   },
@@ -60,6 +68,12 @@ export default {
     },
     handleClose () {
 
+    },
+    quit () {
+      let lastToken = sessionStorage.getItem('lastToken')
+      sessionStorage.setItem('token', lastToken)
+      this.$store.commit('token', lastToken)
+      this.$router.push({path: '/'})
     }
   }
 }
@@ -131,6 +145,11 @@ export default {
                             font-size: 16px;
                             color: #fff;
                         }
+                    }
+                    &.loginOut{
+                        border: none;
+                        outline: none;
+                        background: #4dafdb;
                     }
                 }
             }
