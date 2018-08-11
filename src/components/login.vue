@@ -2,8 +2,8 @@
   <div class="login">
       <div class="content">
           <div class="loginCon">
-            <p class="title">设备界面登录</p>
-            <!-- <img src="../assets/image/logo.png" alt=""> -->
+            <!-- <p class="title">设备界面登录</p> -->
+            <img class="logo" src="../assets/image/logo.png" alt="">
             <el-form ref="form" :model="form" label-width="80px" class="form">
                 <el-form-item>
                     <el-input class="user" v-model="form.userAccount" placeholder="用户名"></el-input>
@@ -39,11 +39,13 @@ export default {
   },
   created () {
     this.createCode()
-    localStorage.setItem('activeIndex', '/')
-    this.$store.commit('setMenuDisabled', false)
-    // if (localStorage.getItem('lastRouter') !== '/') {
-    //   localStorage.setItem('lastRouter', '/')
-    // }
+    localStorage.setItem('setActiveIndex', '')
+    let setMenuDisabled = {
+      orderList: false,
+      accountOrder: true
+    }
+    this.$store.commit('setMenuDisabled', setMenuDisabled)
+    localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
   },
   methods: {
     login () {
@@ -134,15 +136,24 @@ export default {
             bottom: 0;
             margin: auto;
             text-align: center;
-            .title{
-              font-size: 36px;
-              letter-spacing: 3px;
-              color: #ffffff;
+            // .title{
+            //   font-size: 36px;
+            //   letter-spacing: 3px;
+            //   color: #ffffff;
+            //   text-align: center;
+            //   position: absolute;
+            //   left: 0;
+            //   right: 0;
+            //   top: -70px;
+            //   margin: auto;
+            // }
+            .logo{
+              width: 300px;
               text-align: center;
               position: absolute;
               left: 0;
               right: 0;
-              top: -70px;
+              top: -150px;
               margin: auto;
             }
             .form{

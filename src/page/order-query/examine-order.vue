@@ -6,19 +6,23 @@
       <span>提交时间：{{submitSettleTime}}</span>
     </div>
     <div class="count-order">
-      <p class="count-all">审核统计：&nbsp;</p>
+      <span class="count-all">审核统计：&nbsp;</span>
       <span>张数：{{accountData.pages || 0}}张</span>
       <span>销售总额： {{(accountData.amounts).toFixed(2) || 0}}元</span>
       <span>奖金： {{(accountData.awardAmounts).toFixed(2) || 0}}元</span>
       <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
     </div>
     <el-table
+      height="350"
       ref="multipleTable"
       :data="tableData"
       tooltip-effect="dark"
       border
       style="width: 100%"
-      :row-class-name="tableRowClassName">
+      :row-class-name="tableRowClassName"
+      v-loading="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading">
       <el-table-column
         prop="serialNumber"
         label="系统编号"
@@ -120,7 +124,8 @@ export default {
       imgStr: '',
       Mask: false,
       enlargeImg: false,
-      serialNumbersArr: []
+      serialNumbersArr: [],
+      loading: false
     }
   },
   watch: {
@@ -134,6 +139,7 @@ export default {
       this.tableData.map(item => {
         if (item.ticketInfoVoList[0].qrInfo === val) {
           this.$set(item, 'changeSettleStatus', 5)// 审核成功
+          this.$set(item, 'settleStatusWord', '审核成功')
           this.serialNumbersArr.push(item.serialNumber)
           this.$message({
             message: '扫描成功',
@@ -158,9 +164,12 @@ export default {
       this.$store.commit('setActiveIndex', localStorage.getItem('setActiveIndex'))
     }
     this.serialNumbersArr = []
-    if (localStorage.getItem('setMenuDisabled')) {
-      this.$store.commit('setMenuDisabled', true)
-    }
+    // let setMenuDisabled = {
+    //   orderList: true,
+    //   accountOrder: true
+    // }
+    // this.$store.commit('setMenuDisabled', setMenuDisabled)
+    // localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
     this.getData()
     document.addEventListener('click', () => {
       this.showOutPopover = false
@@ -177,10 +186,17 @@ export default {
       req('submitToAudit', {serialNumbers: JSON.stringify(this.serialNumbersArr)})
         .then(res => {
           if (res.code === '00000') {
+            try {
+              clearInterval(this.timer)
+              latech.BCRDisableFromJS() // eslint-disable-line  
+            } catch (error) {
+              console.log('条码枪')
+            }
             this.$message({
               type: 'success',
               message: '全部扫码完成，提交成功!'
             })
+            this.getData()
           } else {
             this.$message({
               type: 'error',
@@ -194,6 +210,7 @@ export default {
         page: this.pageIndex,
         pageSize: this.pageSize
       }
+      this.loading = true
       req('getAuditingList', memberParams)
         .then(res => {
           if (res.code === '00000') {
@@ -202,6 +219,7 @@ export default {
             } catch (error) {
               console.log('条码枪')
             }
+            this.loading = false
             this.submitSettleTime = res.data.submitSettleTime ? res.data.submitSettleTime : '无'
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
             this.statisticData = res.data.statistic
@@ -211,7 +229,7 @@ export default {
               val.lotteryTypeWord = ChangeBetContext.lotteryType(val.lotteryType)
               val.changeSettleStatus = val.settleStatus
               val.subPlayTypeWord = ChangeBetContext.subPlayType(val.subPlayType)
-              val.settleStatusWord = ChangeBetContext.settleStatus(val.settleStatus)
+              val.settleStatusWord = ChangeBetContext.settleStatus(val.changeSettleStatus)
               val.amount = val.amount / 100
               val.awardAmount = val.awardAmount / 100
               val.amountWord = (val.amount).toFixed(2)
@@ -380,7 +398,7 @@ export default {
   destroyed () {
     try {
       clearInterval(this.timer)
-      latech.BCRStopScan() // eslint-disable-line  
+      latech.BCRDisableFromJS() // eslint-disable-line  
     } catch (error) {
       console.log('条码枪')
     }
@@ -391,31 +409,42 @@ export default {
 <style lang="less">
 .examine-order{
   .detail{
-    font-weight: 400;
+    box-sizing: border-box;
+    width: calc(100% - 60px);
+    line-height: 40px;
     color: #1f2f3d;
     font-size: 20px;
+    position: fixed;
+    top: 100px;
+    left: 30px;
+    z-index: 998;
+    background: #ffffff;
+    padding: 10px 20px 0;
     >span{
-      display: inline-block;
-      width: 180px;
+      margin-right: 60px;
     }
     .btn{
       float: right;
     }
   }
   .count-order{
-    width: 100%;
+    box-sizing: border-box;
+    width: calc(100% - 60px);
+    padding:0 20px 10px;
+    height: 35px;
+    font-size: 16px;
+    background: #ffffff;
+    position: fixed;
+    top: 150px;
+    left: 30px;
+    z-index: 998;
     border-bottom: 1px solid #4dafdb;
-    overflow: hidden;
-    padding-bottom: 20px;
-    margin-bottom: 20px;
     .count-all{
       display: inline-block;
-      margin: 0;
-      width: 180px;
+      margin-right: 10px;
     }
     span{
-      display: inline-block;
-      width: 180px;
+      margin-right: 60px;
     }
   }
   .page{

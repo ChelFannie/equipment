@@ -9,7 +9,7 @@
       </div>
     </div>
     <div class="count-order">
-      <p class="count-all">结算统计：&nbsp;</p>
+      <!-- <p class="count-all">结算统计：&nbsp;</p> -->
       <span>张数：{{accountData.pages || 0}}张</span>
       <span>销售总额： {{(accountData.amounts).toFixed(2) || 0}}元</span>
       <span>奖金： {{(accountData.awardAmounts).toFixed(2) || 0}}元</span>
@@ -23,7 +23,10 @@
       border
       style="width: 100%"
       @selection-change="handleSelectionChange"
-      :row-class-name="tableRowClassName">
+      :row-class-name="tableRowClassName"
+      v-loading="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading">
       <el-table-column
         type="selection"
         :selectable="selectable">
@@ -185,12 +188,19 @@ export default {
       imgStr: '',
       Mask: false,
       enlargeImg: false,
-      auditLoginFlag: false
+      auditLoginFlag: false,
+      loading: false
     }
   },
   watch: {
     '$store.state.activeIndex' (val) {
       if (val === '/order-query/account-order') {
+        let setMenuDisabled = {
+          orderList: true,
+          accountOrder: false
+        }
+        this.$store.commit('setMenuDisabled', setMenuDisabled)
+        localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
         this.getData()
       }
     }
@@ -202,8 +212,12 @@ export default {
     }
   },
   created () {
-    if (localStorage.getItem('setMenuDisabled')) {
-      this.$store.commit('setMenuDisabled', true)
+    if (JSON.parse(localStorage.getItem('setMenuDisabled')).orderList) {
+      let setMenuDisabled = {
+        orderList: true,
+        accountOrder: false
+      }
+      this.$store.commit('setMenuDisabled', setMenuDisabled)
     }
     this.getData()
     document.addEventListener('click', () => {
@@ -221,9 +235,11 @@ export default {
         page: this.pageIndex,
         pageSize: this.pageSize
       }
+      this.loading = true
       req('getSettleList', memberParams)
         .then(res => {
           if (res.code === '00000') {
+            this.loading = false
             this.auditLoginFlag = res.data.auditLoginFlag
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
             this.statisticData = res.data.statistic
@@ -320,11 +336,6 @@ export default {
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
             this.imgStr = this.orderInfo.printResult
-            // if (!this.orderInfo.printResult || this.orderInfo.printResult.indexOf('data:image/bmp;base64,MTIzNDU2IG5vIGNvbW1pdGUgaW1hZ2U=') > -1) {
-            //   this.printResultFlag = true
-            // } else {
-            //   this.printResultFlag = false
-            // }
             // 投注项
             let betContextList = res.data.betContextList
             betContextList.map(val => {
@@ -365,32 +376,45 @@ export default {
         })
     },
     submitToSettle () {
-      if (!this.accountData.accountList.length) {
+      let flag = false
+      this.tableData.map(item => {
+        if (item.settleStatus === 2) {
+          flag = true
+        }
+      })
+      if (flag) {
         this.$message({
           type: 'error',
-          message: '请选择可结算订单！'
+          message: '已经有待审核的订单，不可再次结算！'
         })
-        return
+      } else {
+        if (!this.accountData.accountList.length) {
+          this.$message({
+            type: 'error',
+            message: '请选择可结算订单！'
+          })
+          return
+        }
+        let serialNumberArr = []
+        this.accountData.accountList.map(item => {
+          serialNumberArr.push(item.serialNumber)
+        })
+        req('submitToSettle', {'serialNumbers': JSON.stringify(serialNumberArr)})
+          .then(res => {
+            if (res.code === '00000') {
+              this.$message({
+                type: 'success',
+                message: '结算成功！'
+              })
+              this.getData()
+            } else {
+              this.$message({
+                type: 'error',
+                message: res.msg
+              })
+            }
+          })
       }
-      let serialNumberArr = []
-      this.accountData.accountList.map(item => {
-        serialNumberArr.push(item.serialNumber)
-      })
-      req('submitToSettle', {'serialNumbers': JSON.stringify(serialNumberArr)})
-        .then(res => {
-          if (res.code === '00000') {
-            this.$message({
-              type: 'success',
-              message: '结算成功！'
-            })
-            this.getData()
-          } else {
-            this.$message({
-              type: 'error',
-              message: res.msg
-            })
-          }
-        })
     },
     managerLogin () {
       if (this.auditLoginFlag) {
@@ -436,6 +460,7 @@ export default {
           return
         }
         this.validate()
+        this.validateFlag = true
         if (this.validateFlag) {
           let form = {
             userAccount: this.managerForm.userAccount,
@@ -448,6 +473,12 @@ export default {
               this.$store.commit('token', res.data.token)
               this.$store.commit('setActiveIndex', '/order-query/examine-order')
               localStorage.setItem('setActiveIndex', '/order-query/examine-order')
+              let setMenuDisabled = {
+                orderList: true,
+                accountOrder: true
+              }
+              this.$store.commit('setMenuDisabled', setMenuDisabled)
+              localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
               this.managerDialogVisible = false
               this.$router.push({name: '审核订单'})
               this.$message({
@@ -490,7 +521,6 @@ export default {
 
 <style lang="less">
 .account-order{
-  margin-top: 100px;
   .detail{
     box-sizing: border-box;
     width: calc(100% - 60px);
@@ -498,11 +528,11 @@ export default {
     color: #1f2f3d;
     font-size: 20px;
     position: fixed;
-    top: 90px;
+    top: 100px;
     left: 30px;
     z-index: 998;
     background: #ffffff;
-    padding: 20px 20px 0;
+    padding: 10px 20px 0;
     >span{
       display: inline-block;
       width: 250px;
@@ -515,7 +545,7 @@ export default {
     box-sizing: border-box;
     width: calc(100% - 60px);
     padding:0 20px 10px;
-    height: 40px;
+    height: 35px;
     font-size: 16px;
     background: #ffffff;
     position: fixed;
@@ -523,15 +553,9 @@ export default {
     left: 30px;
     z-index: 998;
     border-bottom: 1px solid #4dafdb;
-    .count-all{
-      display: inline-block;
-      margin: 0;
-      font-size: 20px;
-      width: 250px;
-    }
     span{
       display: inline-block;
-      width: 180px;
+      width: 250px;
     }
   }
   .page{

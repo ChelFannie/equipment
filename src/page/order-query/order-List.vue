@@ -4,7 +4,14 @@
       <div>今日销售：{{statisticData.printedOrderCount || 0}} 张</div>
       <div>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</div>
       <div class="timer">订单剩余时间：
-        <span class="remaining-time" v-for="(item, index) in spans" :key="index">{{item}}</span>
+        <span class="remaining-time">0</span>
+        <span class="remaining-time">0</span>
+        <span class="remaining-time">:</span>
+        <span class="remaining-time">0</span>
+        <span class="remaining-time">0</span>
+        <span class="remaining-time">:</span>
+        <span class="remaining-time">0</span>
+        <span class="remaining-time">0</span>
       </div>
     </div>
     <div class="count-order">
@@ -19,7 +26,10 @@
       :data="tableData"
       tooltip-effect="dark"
       border
-      class="orderlist-table">
+      class="orderlist-table"
+      v-loading="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading">
       <el-table-column
         prop="serialNumber"
         label="系统编号"
@@ -191,7 +201,7 @@ export default {
       imgStr: '',
       Mask: false,
       enlargeImg: false,
-      spans: ['0', '0', ':', '0', '0', ':', '0', '0'],
+      spans: [],
       reaminingTime: 0,
       printFlag: null,
       // 落地票号
@@ -205,13 +215,22 @@ export default {
         limitSaleFlag: false,
         ticketInfoNumber: '',
         limitDisabled: false
-      }
+      },
+      latechFlag: false,
+      loading: false
     }
   },
   watch: {
     '$store.state.activeIndex' (val) {
       if (val === '/order-query/order-List') {
         this.getData()
+        // this.$store.commit('setActiveIndex', '')
+        // let setMenuDisabled = {
+        //   orderList: true,
+        //   accountOrder: false
+        // }
+        // this.$store.commit('setMenuDisabled', setMenuDisabled)
+        // localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
         this.timerId = setInterval(() => {
           if (this.reaminingTime) {
             this.reaminingTime--
@@ -226,7 +245,7 @@ export default {
       if (!val) {
         try {
           this.timer !== null && clearInterval(this.timer)
-          latech.ScannerStopFromJS() // eslint-disable-line
+          this.latechFlag && latech.ScannerStopFromJS() // eslint-disable-line
         } catch (error) {
           console.log('打印机')
         }
@@ -245,6 +264,7 @@ export default {
     })
   },
   mounted () {
+    this.spans = document.getElementsByClassName('timer')[0].children
     if (this.$store.state.activeIndex) {
       this.getData()
       this.timerId = setInterval(() => {
@@ -294,13 +314,13 @@ export default {
         page: this.pageIndex,
         pageSize: this.pageSize
       }
+      this.loading = true
       req('getOrderList', memberParams)
         .then(res => {
           if (res.code === '00000') {
-            this.$store.commit('setMenuDisabled', true)
-            localStorage.setItem('setMenuDisabled', true)
-            this.reaminingTime = res.data.reaminingTime ? parseInt(res.data.reaminingTime / 1000) : 0
-            // this.reaminingTime = 30
+            this.loading = false
+            // this.reaminingTime = res.data.reaminingTime ? parseInt(res.data.reaminingTime / 1000) : 0
+            this.reaminingTime = 30
             this.statisticData = res.data.statistic
             res.data.orderList.result.map(val => {
               val.lotteryType = ChangeBetContext.lotteryType(val.lotteryType)
@@ -313,17 +333,32 @@ export default {
             })
             this.tableData = res.data.orderList.result
             this.totalCount = res.data.orderList.totalCount
+            this.$store.commit('setActiveIndex', '')
+            let setMenuDisabled = {
+              orderList: true,
+              accountOrder: false
+            }
+            this.$store.commit('setMenuDisabled', setMenuDisabled)
+            localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
           } else {
             this.$message({
               type: 'error',
               message: res.msg
             })
+            let setMenuDisabled = {
+              orderList: false,
+              accountOrder: true
+            }
+            this.$store.commit('setMenuDisabled', setMenuDisabled)
+            localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
           }
         })
     },
     handleSizeChange (val) {
       this.pageSize = val
-      this.getData()
+      if (this.$store.state.activeIndex === '/order-query/order-List') {
+        this.getData()
+      }
     },
     handleCurrentChange (val) {
       this.pageIndex = val
@@ -377,6 +412,7 @@ export default {
               let obj = JSON.parse(JSON.stringify(this.orderInfo))
               obj['betContext'] = JSON.parse(obj['betContext'])
               let resultObj = getResultStr(obj)
+              this.latechFlag = true
               try {
                 this.printTicket(resultObj)
                 this.readTicket()
@@ -384,6 +420,7 @@ export default {
                 console.log('打印机')
               }
             } else {
+              this.latechFlag = false
               this.orderInfo.printResult && (this.imgStr = this.orderInfo.printResult)
             }
             // 投注项
@@ -513,7 +550,6 @@ export default {
               //  获取图片
               _this.imgStr = latech.ScannerGetOriginImage(size) // eslint-disable-line
               _this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
-              console.log(_this.realTicketNumber)
               //  退票
               latech.ScannerRollBackFromJS() // eslint-disable-line
               _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
@@ -552,7 +588,6 @@ export default {
       this.spans[7].innerHTML = seconds2
     },
     submitRealTicket () {
-      console.log(1, this.realTicketNumber)
       if (!this.realTicketNumber || !this.imgStr) {
         this.$message({
           type: 'error',
@@ -596,7 +631,6 @@ export default {
         subPlayType: this.orderInfo.subPlayType,
         betContextOdds: JSON.stringify(this.betContextOdds)
       }
-      console.log(params)
       this.validateOdds = ''
       req('validateTicketOdds', params)
         .then(res => {
@@ -608,7 +642,6 @@ export default {
             })
             this.validateOdds = this.validateOdds.substring(0, this.validateOdds.length - 1)
             this.confirmFlag = true
-            // this.confirmDisabled = false
           } else if (res.code === '00000') {
             this.confirmSumbit()
           } else {
@@ -688,7 +721,7 @@ export default {
   destroyed () {
     try {
       clearInterval(this.timer)
-      latech.ScannerStopFromJS() // eslint-disable-line  
+      this.latechFlag && latech.ScannerStopFromJS() // eslint-disable-line
     } catch (error) {
       console.log('打印机')
     }
@@ -706,9 +739,9 @@ export default {
     line-height: 40px;
     color: #1f2f3d;
     font-size: 20px;
-    padding: 20px 20px 0;
+    padding: 10px 20px 0;
     position: fixed;
-    top: 90px;
+    top: 100px;
     left: 30px;
     z-index: 998;
     background: #ffffff;
@@ -721,7 +754,6 @@ export default {
       span{
         color: #FE4C40!important;
         font-size: 22px!important;
-        margin-right: 5px;
       }
     }
   }
@@ -729,7 +761,7 @@ export default {
     box-sizing: border-box;
     width: calc(100% - 60px);
     padding:0 20px 10px;
-    height: 30px;
+    height: 35px;
     font-size: 16px;
     background: #ffffff;
     position: fixed;
@@ -745,7 +777,7 @@ export default {
   }
   .orderlist-table{
     font-size: 14px!important;
-    margin-top: 90px;
+    // margin-top: 90px;
     .el-table__header-wrapper{
       th{
         padding: 5px 0;

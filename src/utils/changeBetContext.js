@@ -365,6 +365,9 @@ class changeBetContext {
       case 3:
         settleStatus = '审核通过'
         break
+      case 5:
+        settleStatus = '审核成功'
+        break
       default:
         break
     }

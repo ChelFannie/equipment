@@ -5,21 +5,23 @@ Vue.use(Vuex)
 const state = {
   token: sessionStorage.getItem('token'),
   activeIndex: '',
-  menuDisabled: false
+  menuDisabled: {
+    orderList: false,
+    accountOrder: true
+  }
 }
 
 const mutations = {
-  // editFootBallScrollId (state, param) {
-  //   state.footBallScrollId = param
-  // },
   token (state, param) {
     state.token = param
   },
   setActiveIndex (state, param) {
     state.activeIndex = param
   },
-  setMenuDisabled (state, param) {
-    state.menuDisabled = param
+  setMenuDisabled (state, obj) {
+    Object.keys(obj).map(key => {
+      state.menuDisabled[key] = obj[key]
+    })
   }
 }
 
