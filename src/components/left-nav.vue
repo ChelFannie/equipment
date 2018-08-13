@@ -20,7 +20,7 @@
                 </el-menu-item>
                 <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
                     <span class="icon-box">
-                        <i class="el-icon-printer  i-color"></i>
+                        <i class="el-icon-printer i-color"></i>
                         <span slot="title" class="icon-name">订单结算</span>
                     </span>
                 </el-menu-item>
@@ -70,7 +70,6 @@ export default {
       let lastToken = sessionStorage.getItem('lastToken')
       sessionStorage.setItem('token', lastToken)
       this.$store.commit('token', lastToken)
-      this.$router.push({path: '/'})
       this.$store.commit('setActiveIndex', '')
       let setMenuDisabled = {
         orderList: false,
@@ -78,6 +77,7 @@ export default {
       }
       this.$store.commit('setMenuDisabled', setMenuDisabled)
       localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
+      this.$router.push({path: '/'})
     }
   }
 }

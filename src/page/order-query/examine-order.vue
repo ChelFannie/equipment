@@ -66,7 +66,7 @@
         <el-table-column prop="assumption" label="投注项" width="240" align="center">
           <template slot-scope="scope">
             <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span>
-            <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}({{item1.odds}})]</span>
+            <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}&nbsp;({{item1.odds}})]</span>
           </template>
         </el-table-column>
       </el-table>
@@ -118,6 +118,7 @@ export default {
         rebatePoint: 0,
         accountList: []
       },
+      // 提交时间
       submitSettleTime: '',
       timer: null,
       scanTicket: '',
@@ -129,31 +130,66 @@ export default {
     }
   },
   watch: {
-    '$store.state.activeIndex' (val) {
-      if (val === '/order-query/account-order') {
-        this.getData()
-      }
-    },
+    // '$store.state.activeIndex' (val) {
+    //   if (val === '/order-query/account-order') {
+    //     this.getData()
+    //   }
+    // },
     scanTicket (val) {
       console.log(val, '落地票号')
+      let flag = true
       this.tableData.map(item => {
+        console.log(1)
         if (item.ticketInfoVoList[0].qrInfo === val) {
-          this.$set(item, 'changeSettleStatus', 5)// 审核成功
-          this.$set(item, 'settleStatusWord', '审核成功')
-          this.serialNumbersArr.push(item.serialNumber)
+          if (this.serialNumbersArr.length) {
+            for (let i = 0; i < this.serialNumbersArr.length; i++) {
+              if (this.serialNumbersArr[i] === item.serialNumber) {
+                flag = false
+                this.$message({
+                  message: '此单已经扫码完成',
+                  type: 'error',
+                  duration: 1000
+                })
+                break
+              }
+            }
+            if (flag) {
+              // 审核成功后需要改变状态和颜色
+              this.$set(item, 'changeSettleStatus', 5)// 审核成功
+              this.$set(item, 'settleStatusWord', '审核成功')
+              this.serialNumbersArr.push(item.serialNumber)
+              this.$message({
+                message: '扫描成功',
+                type: 'success',
+                duration: 1000
+              })
+            }
+          } else {
+            this.$set(item, 'changeSettleStatus', 5)// 审核成功
+            this.$set(item, 'settleStatusWord', '审核成功')
+            this.serialNumbersArr.push(item.serialNumber)
+            this.$message({
+              message: '扫描成功',
+              type: 'success',
+              duration: 1000
+            })
+          }
+        } else {
+          console.log(2)
           this.$message({
-            message: '扫描成功',
-            type: 'success',
+            message: '该订单不在待审核列表里',
+            type: 'error',
             duration: 1000
           })
         }
       })
+      // 排序
       this.tableData.sort((a, b) => {
         return a.changeSettleStatus - b.changeSettleStatus
       })
     },
+    // 扫码列表的所有订单号
     serialNumbersArr (val) {
-      // if (val.length === 3) {
       if (val.length > 0 && (val.length === this.tableData.length)) {
         this.submitToAudit()
       }
@@ -162,14 +198,14 @@ export default {
   created () {
     if (!this.$store.state.setActiveIndex) {
       this.$store.commit('setActiveIndex', localStorage.getItem('setActiveIndex'))
+      let setMenuDisabled = {
+        orderList: true,
+        accountOrder: true
+      }
+      this.$store.commit('setMenuDisabled', setMenuDisabled)
+      localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
     }
     this.serialNumbersArr = []
-    // let setMenuDisabled = {
-    //   orderList: true,
-    //   accountOrder: true
-    // }
-    // this.$store.commit('setMenuDisabled', setMenuDisabled)
-    // localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
     this.getData()
     document.addEventListener('click', () => {
       this.showOutPopover = false
@@ -181,7 +217,7 @@ export default {
     })
   },
   methods: {
-    // 扫码完成后提交
+    // 扫码完成后自动提交
     submitToAudit () {
       req('submitToAudit', {serialNumbers: JSON.stringify(this.serialNumbersArr)})
         .then(res => {
@@ -205,6 +241,7 @@ export default {
           }
         })
     },
+    // 获取待审核列表
     getData () {
       let memberParams = {
         page: this.pageIndex,
@@ -252,12 +289,14 @@ export default {
           }
         })
     },
+    // 添加扫码成功后的颜色
     tableRowClassName ({row, rowIndex}) {
       if (row.changeSettleStatus === 5) {
         return 'disabled-row'
       }
       return ''
     },
+    // 获取订单信息
     getOutPopover (rows) {
       this.tableData.map(item => {
         if (item.serialNumber === rows.serialNumber) {
@@ -285,6 +324,7 @@ export default {
           }
         })
     },
+    // 获取票面信息
     getPopoverData () {
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
@@ -330,34 +370,6 @@ export default {
           }
         })
     },
-    submitToSettle () {
-      if (!this.accountData.accountList.length) {
-        this.$message({
-          type: 'error',
-          message: '请选择可结算订单！'
-        })
-        return
-      }
-      let serialNumberArr = []
-      this.accountData.accountList.map(item => {
-        serialNumberArr.push(item.serialNumber)
-      })
-      req('submitToSettle', {'serialNumbers': JSON.stringify(serialNumberArr)})
-        .then(res => {
-          if (res.code === '00000') {
-            this.$message({
-              type: 'success',
-              message: '结算成功！'
-            })
-            this.getData()
-          } else {
-            this.$message({
-              type: 'error',
-              message: res.msg
-            })
-          }
-        })
-    },
     scan () {
       // 条码枪初始化
       if (latech.BCRInitFromJS() === 0) { // eslint-disable-line
@@ -368,10 +380,12 @@ export default {
           const _this = this
           _this.timer = setInterval(function () {
             let flag = latech.BCRScanIsCompleteFromJS() // eslint-disable-line
+            // let flag = latech.BCRIsReadlyFromJS() // eslint-disable-line
+            // console.log(flag) // eslint-disable-line
             if (flag === true) { // 判断读票机是否读完票
               // clearInterval(_this.timer)
               _this.scanTicket = latech.BCRGetTicketInfoFromJS() // eslint-disable-line
-              // latech.BCRStopScan() // eslint-disable-line
+              latech.BCRStopScan() // eslint-disable-line
             }
           }, 200)
         }

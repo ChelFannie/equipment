@@ -37,7 +37,7 @@ const config = {
   },
   // 提交结算数据
   submitToSettle: {
-    url: '/order/submitToSettle.json',
+    url: '/settle/submitToSettle.json',
     method: 'post'
   },
   // 限售

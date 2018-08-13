@@ -48,6 +48,7 @@
       </el-table-column>
     </el-table>
     <el-pagination
+      v-if="tableData.length"
       class="page"
       background
       @size-change="handleSizeChange"
@@ -85,7 +86,7 @@
         <el-table-column prop="assumption" label="投注项" width="240" align="center">
           <template slot-scope="scope">
             <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span>
-            <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}({{item1.odds}})]</span>
+            <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}&nbsp;({{item1.odds}})]</span>
           </template>
         </el-table-column>
       </el-table>
@@ -126,14 +127,12 @@
 </template>
 
 <script>
-// import iPopover from '../../components/common/i-popover'
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import loginValidate from '../../utils/loginValidate.js'
 import req from '../../api/order-list/index.js'
 import req1 from '../../api/login/login.js'
 export default {
   components: {
-    // iPopover
   },
   data () {
     return {
@@ -155,15 +154,25 @@ export default {
         {prop: 'guest', label: '客队'},
         {prop: 'assumption', label: '预设'}
       ],
+      // 票面的投注信息
       hoverData: [],
+      // 票面信息
       orderInfo: {},
+      // 销售与订单信息
       statisticData: {},
+      // 审核信息
       accountData: {
+        // 销售张数
         pages: 0,
+        // 销售金额
         amounts: 0,
+        // 奖金
         awardAmounts: 0,
+        // 结算金额
         operateMoney: 0,
+        // 比例
         rebatePoint: 0,
+        // 可结算列表
         accountList: []
       },
       managerDialogVisible: false,
@@ -172,6 +181,7 @@ export default {
         password: '',
         inputCode: ''
       },
+      // 验证码
       validateCode: '',
       validateFlag: false,
       rules: {
@@ -185,25 +195,27 @@ export default {
           { required: true, message: '请输入验证码', trigger: 'blur' }
         ]
       },
+      // 图片
       imgStr: '',
       Mask: false,
       enlargeImg: false,
+      // 是否可结算的标志
       auditLoginFlag: false,
       loading: false
     }
   },
   watch: {
-    '$store.state.activeIndex' (val) {
-      if (val === '/order-query/account-order') {
-        let setMenuDisabled = {
-          orderList: true,
-          accountOrder: false
-        }
-        this.$store.commit('setMenuDisabled', setMenuDisabled)
-        localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
-        this.getData()
-      }
-    }
+    // '$store.state.activeIndex' (val) {
+    //   if (val === '/order-query/account-order') {
+    //     let setMenuDisabled = {
+    //       orderList: true,
+    //       accountOrder: false
+    //     }
+    //     this.$store.commit('setMenuDisabled', setMenuDisabled)
+    //     localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
+    //     this.getData()
+    //   }
+    // }
   },
   computed: {
     operationAccounts () {
@@ -230,6 +242,7 @@ export default {
     })
   },
   methods: {
+    // 获取列表数据
     getData () {
       let memberParams = {
         page: this.pageIndex,
@@ -272,8 +285,8 @@ export default {
       this.pageIndex = val
       this.getData()
     },
+    // 得到被选中的所有的值
     handleSelectionChange (val) {
-      // 得到被选中的所有的值
       this.accountData.amounts = 0
       this.accountData.awardAmounts = 0
       this.accountData.pages = val.length
@@ -283,18 +296,22 @@ export default {
         this.accountData.awardAmounts += item1.awardAmount
       })
     },
+    // 计算结算金额
     operationAccount () {
       this.accountData.operateMoney = this.accountData.amounts - (this.accountData.awardAmounts + this.accountData.amounts * this.accountData.rebatePoint)
     },
+    // 只要不是可结算状态就被禁用，不计入结算金额里
     selectable (row, index) {
       return row.settleStatus === 1
     },
+    // 给不可结算的数据添加禁用颜色
     tableRowClassName ({row, rowIndex}) {
       if (row.settleStatus !== 1) {
         return 'disabled-row'
       }
       return ''
     },
+    // 获取订单信息
     getOutPopover (rows) {
       this.tableData.map(item => {
         if (item.serialNumber === rows.serialNumber) {
@@ -314,8 +331,6 @@ export default {
               return
             }
             this.getPopoverData(rows)
-            // res.data.ticketInfoVoPage.result && (this.ticketInfoNumber = res.data.ticketInfoVoPage.result[0].ticketInfoNumber)
-            // this.getPopoverData()
           } else {
             this.$message({
               type: 'error',
@@ -324,11 +339,11 @@ export default {
           }
         })
     },
+    // 获取票面信息
     getPopoverData () {
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
-            // console.log(res.data)
             let orderInfo = res.data.orderInfo
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
             orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
@@ -356,11 +371,6 @@ export default {
               val.subPlayTypeWord = ChangeBetContext.subPlayType(val.subPlayType)
             })
             this.hoverData = betContextList
-            // this.tableData.map(item => {
-            //   if (this.orderInfo.serialNumber === item.serialNumber) {
-            //     this.$set(item, 'flag', false)
-            //   }
-            // })
             this.showOutPopover = true
           } else {
             this.$message({
@@ -375,6 +385,7 @@ export default {
           })
         })
     },
+    // 结算
     submitToSettle () {
       let flag = false
       this.tableData.map(item => {
@@ -382,6 +393,7 @@ export default {
           flag = true
         }
       })
+      // 列表中如果有审核包（即有待审核），则不能再次点击结算
       if (flag) {
         this.$message({
           type: 'error',
@@ -416,9 +428,15 @@ export default {
           })
       }
     },
+    // 检验管理员是否可以登陆
     managerLogin () {
       if (this.auditLoginFlag) {
         this.managerDialogVisible = true
+        this.managerForm = {
+          userAccount: this.managerForm.userAccount,
+          password: '',
+          inputCode: ''
+        }
         this.validateCode = loginValidate.createCode()
       } else {
         this.$message({
@@ -427,9 +445,11 @@ export default {
         })
       }
     },
+    // 生成验证码
     createCodeWord () {
       this.validateCode = loginValidate.createCode()
     },
+    // 检验验证码
     validate () {
       this.managerForm.inputCode = this.managerForm.inputCode.toUpperCase()
       if (this.managerForm.inputCode.length <= 0) {
@@ -450,6 +470,7 @@ export default {
         this.validateFlag = true
       }
     },
+    // 管理员登陆
     sumbitManagerLogin (ruleForm) {
       this.$refs[ruleForm].validate(valid => {
         if (!valid) {
@@ -473,6 +494,7 @@ export default {
               this.$store.commit('token', res.data.token)
               this.$store.commit('setActiveIndex', '/order-query/examine-order')
               localStorage.setItem('setActiveIndex', '/order-query/examine-order')
+              this.$router.push({name: '审核订单'})
               let setMenuDisabled = {
                 orderList: true,
                 accountOrder: true
@@ -480,7 +502,6 @@ export default {
               this.$store.commit('setMenuDisabled', setMenuDisabled)
               localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
               this.managerDialogVisible = false
-              this.$router.push({name: '审核订单'})
               this.$message({
                 message: res.msg,
                 type: 'success'

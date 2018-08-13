@@ -360,7 +360,8 @@ class changeBetContext {
         settleStatus = '可结算'
         break
       case 2:
-        settleStatus = '审核中'
+        // settleStatus = '审核中'
+        settleStatus = '待审核'
         break
       case 3:
         settleStatus = '审核通过'
