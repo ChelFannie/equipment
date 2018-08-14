@@ -19,6 +19,7 @@
       <span>订单总额： {{(statisticData.unPrintOrderAmount / 100) || 0}} 元</span>
       <span>获取时间： {{statisticData.assginTime ? statisticData.assginTime : '无'}}</span>
     </div>
+
     <el-table
       height="350"
       style="width: 100%"
@@ -28,7 +29,7 @@
       border
       class="orderlist-table"
       v-loading="loading"
-      element-loading-text="拼命加载中"
+      element-loading-text="拼命加载中..."
       element-loading-spinner="el-icon-loading">
       <el-table-column
         prop="serialNumber"
@@ -757,6 +758,11 @@ export default {
               type: 'success',
               message: '读票成功'
             })
+            try {
+              latech.saveImageFromJS(this.ticketInfoNumber, this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
+            } catch (error) {
+              console.log('保存图片')
+            }
             this.confirmFlag = false
             this.showOutPopover = false
             this.getData()

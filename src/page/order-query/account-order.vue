@@ -8,6 +8,7 @@
         <el-button type="success" size="medium" @click="managerLogin">登陆</el-button>
       </div>
     </div>
+
     <div class="count-order">
       <!-- <p class="count-all">结算统计：&nbsp;</p> -->
       <span>张数：{{accountData.pages || 0}}张</span>
@@ -15,6 +16,7 @@
       <span>奖金： {{(accountData.awardAmounts).toFixed(2) || 0}}元</span>
       <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
     </div>
+
     <el-table
       height="350"
       ref="multipleTable"
@@ -47,6 +49,7 @@
         align="center">
       </el-table-column>
     </el-table>
+
     <el-pagination
       v-if="tableData.length"
       class="page"
@@ -59,6 +62,7 @@
       layout="total, sizes, prev, pager, next, jumper"
       :total="totalCount">
     </el-pagination>
+
     <el-dialog
       :visible.sync="showOutPopover"
       width="60%"
@@ -95,6 +99,7 @@
         <img class="img" :src="imgStr" alt="" @click="enlarge">
       </div>
     </el-dialog>
+
     <el-dialog
       title="登陆"
       :visible.sync="managerDialogVisible"
@@ -118,10 +123,12 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+
     <div class="Mask" v-if="Mask" @click="maskClick"></div>
     <div class="enlarge" v-if="enlargeImg">
       <img :src="imgStr" alt="" @click="narrow">
     </div>
+
     {{operationAccounts}}
   </div>
 </template>

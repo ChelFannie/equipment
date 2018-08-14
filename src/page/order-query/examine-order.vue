@@ -5,6 +5,7 @@
       <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span>
       <span>提交时间：{{submitSettleTime}}</span>
     </div>
+
     <div class="count-order">
       <span class="count-all">审核统计：&nbsp;</span>
       <span>张数：{{accountData.pages || 0}}张</span>
@@ -12,6 +13,7 @@
       <span>奖金： {{(accountData.awardAmounts).toFixed(2) || 0}}元</span>
       <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
     </div>
+
     <el-table
       height="350"
       ref="multipleTable"
@@ -39,6 +41,7 @@
         align="center">
       </el-table-column>
     </el-table>
+
     <el-dialog
       :visible.sync="showOutPopover"
       width="60%"
@@ -74,6 +77,7 @@
         <img class="img" :src="imgStr" alt="" @click="enlarge">
       </div>
     </el-dialog>
+
     <div class="Mask" v-if="Mask" @click="maskClick"></div>
     <div class="enlarge" v-if="enlargeImg">
       <img :src="imgStr" alt="" @click="narrow">
@@ -138,9 +142,11 @@ export default {
     scanTicket (val) {
       console.log(val, '落地票号')
       let flag = true
+      // 判断扫描的票据是否存于待审核列表
+      let exitFlag = true
       this.tableData.map(item => {
-        console.log(1)
         if (item.ticketInfoVoList[0].qrInfo === val) {
+          exitFlag = false
           if (this.serialNumbersArr.length) {
             for (let i = 0; i < this.serialNumbersArr.length; i++) {
               if (this.serialNumbersArr[i] === item.serialNumber) {
@@ -174,15 +180,15 @@ export default {
               duration: 1000
             })
           }
-        } else {
-          console.log(2)
-          this.$message({
-            message: '该订单不在待审核列表里',
-            type: 'error',
-            duration: 1000
-          })
         }
       })
+      if (exitFlag) {
+        this.$message({
+          message: '该订单不在待审核列表里',
+          type: 'error',
+          duration: 1000
+        })
+      }
       // 排序
       this.tableData.sort((a, b) => {
         return a.changeSettleStatus - b.changeSettleStatus
