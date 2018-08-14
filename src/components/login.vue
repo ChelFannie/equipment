@@ -39,6 +39,7 @@ export default {
   },
   created () {
     this.createCode()
+    localStorage.setItem('winHeight', document.body.scrollHeight)
   },
   methods: {
     login () {
@@ -62,12 +63,13 @@ export default {
           sessionStorage.setItem('storeInfo', JSON.stringify(storeInfo))
           this.$store.commit('setActiveIndex', '')
           localStorage.setItem('setActiveIndex', '')
-          let setMenuDisabled = {
-            orderList: false,
-            accountOrder: true
-          }
-          this.$store.commit('setMenuDisabled', setMenuDisabled)
-          localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
+          // let setMenuDisabled = {
+          //   orderList: false,
+          //   accountOrder: true,
+          //   queryOrder: true
+          // }
+          // this.$store.commit('setMenuDisabled', setMenuDisabled)
+          // localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
           this.$router.push({path: '/'})
         } else {
           this.$message({

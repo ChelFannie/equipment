@@ -1,8 +1,8 @@
 <template>
-  <div class="examine-order">
+  <div class="query-order">
     <div class="detail">
-      <!-- <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
-      <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span> -->
+      <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
+      <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span>
       <span>提交时间：{{submitSettleTime}}</span>
     </div>
 
@@ -15,13 +15,12 @@
     </div>
 
     <el-table
-      :height="winHeight"
+      height="350"
       ref="multipleTable"
       :data="tableData"
       tooltip-effect="dark"
       border
       style="width: 100%"
-      :row-class-name="tableRowClassName"
       v-loading="loading"
       element-loading-text="拼命加载中"
       element-loading-spinner="el-icon-loading">
@@ -41,6 +40,19 @@
         align="center">
       </el-table-column>
     </el-table>
+
+    <el-pagination
+      v-if="tableData.length"
+      class="page"
+      background
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="pageIndex"
+      :page-size="pageSize"
+      :page-sizes="[10, 50, 100, 200, 300, 500]"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="totalCount">
+    </el-pagination>
 
     <el-dialog
       :visible.sync="showOutPopover"
@@ -102,7 +114,7 @@ export default {
       ],
       tableData: [],
       pageIndex: 1,
-      pageSize: 150,
+      pageSize: 10,
       totalCount: 0,
       showOutPopover: false,
       hoverTableColumn: [
@@ -124,112 +136,37 @@ export default {
       },
       // 提交时间
       submitSettleTime: '',
-      timer: null,
       scanTicket: '',
       imgStr: '',
       Mask: false,
       enlargeImg: false,
-      serialNumbersArr: [],
-      loading: false,
-      winHeight: 0
+      loading: false
     }
   },
   watch: {
-    // '$store.state.activeIndex' (val) {
-    //   if (val === '/order-query/account-order') {
-    //     this.getData()
-    //   }
-    // },
-    scanTicket (val) {
-      console.log(val, '落地票号')
-      // 判断当前扫描的票是否已经审核完成
-      let flag = true
-      // 判断扫描的票据是否存于待审核列表
-      let exitFlag = true
-      this.tableData.map(item => {
-        if (item.ticketInfoVoList[0].qrInfo === val) {
-          exitFlag = false
-          if (this.serialNumbersArr.length) {
-            for (let i = 0; i < this.serialNumbersArr.length; i++) {
-              if (this.serialNumbersArr[i] === item.serialNumber) {
-                flag = false
-                this.$message({
-                  message: '此单已经扫码完成',
-                  type: 'error',
-                  duration: 1000
-                })
-                break
-              }
-            }
-            if (flag) {
-              // 审核成功后需要改变状态和颜色
-              this.$set(item, 'changeSettleStatus', 5)// 审核成功
-              this.$set(item, 'settleStatusWord', '审核成功')
-              this.serialNumbersArr.push(item.serialNumber)
-              this.$message({
-                message: '扫描成功',
-                type: 'success',
-                duration: 1000
-              })
-            }
-          } else {
-            this.$set(item, 'changeSettleStatus', 5)// 审核成功
-            this.$set(item, 'settleStatusWord', '审核成功')
-            this.serialNumbersArr.push(item.serialNumber)
-            this.$message({
-              message: '扫描成功',
-              type: 'success',
-              duration: 1000
-            })
-          }
-        }
-        // else {
-        //   console.log(2)
-        //   this.$message({
-        //     message: '该订单不在待审核列表里',
-        //     type: 'error',
-        //     duration: 1000
-        //   })
-        // }
-      })
-      if (exitFlag) {
-        this.$message({
-          message: '该订单不在待审核列表里',
-          type: 'error',
-          duration: 1000
-        })
-      }
-      // 排序
-      this.tableData.sort((a, b) => {
-        return a.changeSettleStatus - b.changeSettleStatus
-      })
-    },
-    // 扫码列表的所有订单号
-    serialNumbersArr (val) {
-      console.log(val.length, '已扫的数组长度')
-      console.log(this.tableData.length, '已扫的数组长度')
-      if (val.length > 0 && (val.length === this.tableData.length)) {
-        this.submitToAudit()
-      }
-    }
   },
   created () {
-    if (!this.$store.state.setActiveIndex) {
-      this.$store.commit('setActiveIndex', localStorage.getItem('setActiveIndex'))
-      let setMenuDisabled = {
-        orderList: false,
-        accountOrder: false,
-        queryOrder: false
-      }
-      this.$store.commit('setMenuDisabled', setMenuDisabled)
-      localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
+    // if (!this.$store.state.setActiveIndex) {
+    //   this.$store.commit('setActiveIndex', localStorage.getItem('setActiveIndex'))
+    //   let setMenuDisabled = {
+    //     orderList: true,
+    //     accountOrder: true,
+    //     queryOrder: false
+    //   }
+    //   this.$store.commit('setMenuDisabled', setMenuDisabled)
+    //   localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
+    // }
+    let setMenuDisabled = {
+      orderList: false,
+      accountOrder: false,
+      queryOrder: false
     }
-    this.serialNumbersArr = []
+    this.$store.commit('setMenuDisabled', setMenuDisabled)
+    localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
     this.getData()
     document.addEventListener('click', () => {
       this.showOutPopover = false
     })
-    this.winHeight = localStorage.getItem('winHeight') - 285
   },
   mounted () {
     document.getElementById('outPopover').addEventListener('click', (event) => {
@@ -237,45 +174,17 @@ export default {
     })
   },
   methods: {
-    // 扫码完成后自动提交
-    submitToAudit () {
-      req('submitToAudit', {serialNumbers: JSON.stringify(this.serialNumbersArr)})
-        .then(res => {
-          if (res.code === '00000') {
-            try {
-              clearInterval(this.timer)
-              latech.BCRDisableFromJS() // eslint-disable-line  
-            } catch (error) {
-              console.log('条码枪')
-            }
-            this.$message({
-              type: 'success',
-              message: '全部扫码完成，提交成功!'
-            })
-            this.getData()
-          } else {
-            this.$message({
-              type: 'error',
-              message: res.msg
-            })
-          }
-        })
-    },
     // 获取待审核列表
     getData () {
       let memberParams = {
         page: this.pageIndex,
-        pageSize: this.pageSize
+        pageSize: this.pageSize,
+        printFlags: '1,2,3'
       }
       this.loading = true
-      req('getAuditingList', memberParams)
+      req('getOrderList', memberParams)
         .then(res => {
           if (res.code === '00000') {
-            try {
-              this.scan()
-            } catch (error) {
-              console.log('条码枪')
-            }
             this.loading = false
             this.submitSettleTime = res.data.submitSettleTime ? res.data.submitSettleTime : '无'
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
@@ -308,13 +217,6 @@ export default {
             })
           }
         })
-    },
-    // 添加扫码成功后的颜色
-    tableRowClassName ({row, rowIndex}) {
-      if (row.changeSettleStatus === 5) {
-        return 'disabled-row'
-      }
-      return ''
     },
     // 获取订单信息
     getOutPopover (rows) {
@@ -390,27 +292,6 @@ export default {
           }
         })
     },
-    scan () {
-      // 条码枪初始化
-      if (latech.BCRInitFromJS() === 0) { // eslint-disable-line
-        // 条码枪设置扫描模式 参数： 1 手动模式， 2 自动模式
-        if (latech.BCRSetScanModeFromJS(1) === true) { // eslint-disable-line
-          // 条码枪开始扫描
-          // latech.BCRStartScanFromJS() // eslint-disable-line
-          const _this = this
-          _this.timer = setInterval(function () {
-            let flag = latech.BCRScanIsCompleteFromJS() // eslint-disable-line
-            // let flag = latech.BCRIsReadlyFromJS() // eslint-disable-line
-            // console.log(flag) // eslint-disable-line
-            if (flag === true) { // 判断读票机是否读完票
-              // clearInterval(_this.timer)
-              _this.scanTicket = latech.BCRGetTicketInfoFromJS() // eslint-disable-line
-              latech.BCRStopScan() // eslint-disable-line
-            }
-          }, 200)
-        }
-      }
-    },
     // 图片放大
     enlarge () {
       if (this.imgStr === '') {
@@ -427,21 +308,21 @@ export default {
     },
     maskClick (event) {
       event.stopPropagation()
-    }
-  },
-  destroyed () {
-    try {
-      clearInterval(this.timer)
-      latech.BCRDisableFromJS() // eslint-disable-line  
-    } catch (error) {
-      console.log('条码枪')
+    },
+    handleSizeChange (val) {
+      this.pageSize = val
+      this.getData()
+    },
+    handleCurrentChange (val) {
+      this.pageIndex = val
+      this.getData()
     }
   }
 }
 </script>
 
 <style lang="less">
-.examine-order{
+.query-order{
   .detail{
     box-sizing: border-box;
     width: calc(100% - 60px);
@@ -487,13 +368,7 @@ export default {
   }
   // 禁用的颜色
   .el-table .disabled-row {
-    background: #FE4C40;
-    color: #fff;
-    .el-button{
-      background: #FE4C40;
-      color: #fff;
-      border: none;
-    }
+    background: #D3D3D3;
   }
   .orderNum-popover{
     .el-dialog{

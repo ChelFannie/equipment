@@ -1,8 +1,8 @@
 <template>
   <div class="account-order">
     <div class="detail">
-      <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
-      <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span>
+      <!-- <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
+      <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span> -->
       <div class="btn">
         <el-button type="primary" size="medium" @click="submitToSettle">结算</el-button>
         <el-button type="success" size="medium" @click="managerLogin">登陆</el-button>
@@ -18,7 +18,7 @@
     </div>
 
     <el-table
-      height="350"
+      :height="winHeight"
       ref="multipleTable"
       :data="tableData"
       tooltip-effect="dark"
@@ -208,7 +208,8 @@ export default {
       enlargeImg: false,
       // 是否可结算的标志
       auditLoginFlag: false,
-      loading: false
+      loading: false,
+      winHeight: 0
     }
   },
   watch: {
@@ -233,8 +234,9 @@ export default {
   created () {
     if (JSON.parse(localStorage.getItem('setMenuDisabled')).orderList) {
       let setMenuDisabled = {
-        orderList: true,
-        accountOrder: false
+        orderList: false,
+        accountOrder: false,
+        queryOrder: false
       }
       this.$store.commit('setMenuDisabled', setMenuDisabled)
     }
@@ -242,6 +244,7 @@ export default {
     document.addEventListener('click', () => {
       this.showOutPopover = false
     })
+    this.winHeight = localStorage.getItem('winHeight') - 285
   },
   mounted () {
     document.getElementById('outPopover').addEventListener('click', (event) => {
@@ -503,8 +506,9 @@ export default {
               localStorage.setItem('setActiveIndex', '/order-query/examine-order')
               this.$router.push({name: '审核订单'})
               let setMenuDisabled = {
-                orderList: true,
-                accountOrder: true
+                orderList: false,
+                accountOrder: false,
+                queryOrder: false
               }
               this.$store.commit('setMenuDisabled', setMenuDisabled)
               localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))

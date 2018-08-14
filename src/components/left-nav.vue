@@ -27,7 +27,19 @@
                 <el-menu-item index="" class="flex-item"  v-if="$store.state.activeIndex==='/order-query/examine-order'">
                     <span class="icon-box" @click="quit">
                         <i class="el-icon-sold-out  i-color"></i>
-                        <span slot="title" class="icon-name is-active">登出</span>
+                        <span slot="title" class="icon-name is-active">管理员登出</span>
+                    </span>
+                </el-menu-item>
+                <el-menu-item :disabled="$store.state.menuDisabled.queryOrder" index="/order-query/query-order" class="flex-item">
+                    <span class="icon-box">
+                        <i class="el-icon-sold-out  i-color"></i>
+                        <span slot="title" class="icon-name is-active">查询</span>
+                    </span>
+                </el-menu-item>
+                <el-menu-item index="" class="flex-item last-item">
+                    <span class="icon-box" @click="exitSystem">
+                        <i class="el-icon-sold-out  i-color"></i>
+                        <span slot="title" class="icon-name is-active">退出系统</span>
                     </span>
                 </el-menu-item>
             </el-menu>
@@ -48,6 +60,11 @@ export default {
       activeIndex: this.$store.state.activeIndex,
       storeInfo: {}
     }
+  },
+  watch: {
+    // '$route.path': function (newVal, oldVal) {
+    //   console.log(newVal, '路由的变化')
+    // }
   },
   created () {
     this.storeInfo = JSON.parse(sessionStorage.getItem('storeInfo'))
@@ -73,11 +90,17 @@ export default {
       this.$store.commit('setActiveIndex', '')
       let setMenuDisabled = {
         orderList: false,
-        accountOrder: true
+        accountOrder: true,
+        queryOrder: true
       }
       this.$store.commit('setMenuDisabled', setMenuDisabled)
       localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
       this.$router.push({path: '/'})
+    },
+    exitSystem () {
+      sessionStorage.removeItem('token')
+      this.$store.commit('token', '')
+      this.$router.push({name: '登录'})
     }
   }
 }
@@ -165,6 +188,10 @@ export default {
                         outline: none;
                         background: #4dafdb;
                     }
+                }
+                .last-item{
+                    position: absolute;
+                    right: 200px;
                 }
             }
         }

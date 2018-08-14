@@ -2,6 +2,7 @@ const Blank = () => import('../components/blank')
 const OrderList = () => import('../page/order-query/order-List')
 const AccountOrder = () => import('../page/order-query/account-order')
 const ExamineOrder = () => import('../page/order-query/examine-order')
+const QueryOrder = () => import('../page/order-query/query-order')
 
 export default [{
   path: '/order-query',
@@ -18,5 +19,9 @@ export default [{
     path: 'examine-order',
     name: '审核订单',
     component: ExamineOrder
+  }, {
+    path: 'query-order',
+    name: '查询订单',
+    component: QueryOrder
   }]
 }]

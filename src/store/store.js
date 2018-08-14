@@ -7,7 +7,8 @@ const state = {
   activeIndex: '',
   menuDisabled: {
     orderList: false,
-    accountOrder: true
+    accountOrder: false,
+    queryOrder: false
   }
 }
 

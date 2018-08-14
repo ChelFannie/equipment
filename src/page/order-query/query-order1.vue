@@ -1,5 +1,5 @@
 <template>
-  <div class="order-List">
+  <div class="query-order">
     <div class="detail">
       <div>今日销售：{{statisticData.printedOrderCount || 0}} 张</div>
       <div>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</div>
@@ -21,9 +21,9 @@
     </div>
 
     <el-table
-      :height="winHeight"
+      height="350"
       style="width: 100%"
-      ref="multipleTable8"
+      ref="multipleTable"
       :data="tableData"
       tooltip-effect="dark"
       border
@@ -49,7 +49,7 @@
       </el-table-column>
     </el-table>
 
-    <!-- <el-pagination
+    <el-pagination
       v-if="tableData.length"
       class="page"
       background
@@ -60,7 +60,7 @@
       :page-sizes="[10, 50, 100, 200, 300, 500]"
       layout="total, sizes, prev, pager, next, jumper"
       :total="totalCount">
-    </el-pagination> -->
+    </el-pagination>
 
     <el-dialog
       :visible.sync="showOutPopover"
@@ -178,7 +178,7 @@
       </span>
     </el-dialog>
 
-    <el-dialog
+    <!-- <el-dialog
       title="空间不足提示"
       :visible.sync="spaceVisible"
       width="30%"
@@ -188,22 +188,22 @@
         <el-button @click="spaceVisible = false">取 消</el-button>
         <el-button type="primary" @click="exportClick">导出</el-button>
       </span>
-    </el-dialog>
+    </el-dialog> -->
 
-    <el-dialog :title="fileTitle" :visible.sync="fileVisible" width="585px" class="file">
+    <!-- <el-dialog :title="fileTitle" :visible.sync="fileVisible" width="585px" class="file">
       <export-file @fileCancel="fileCancel" @getFileName="getFileName"></export-file>
-    </el-dialog>
+    </el-dialog> -->
   </div>
 </template>
 <script>
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import req from '../../api/order-list/index.js'
 import getResultStr from '../../utils/combine.js'
-import exportFile from '../../components/order-query/exportFile'
+// import exportFile from '../../components/order-query/exportFile'
 export default {
-  components: {
-    exportFile
-  },
+  // components: {
+  //   exportFile
+  // },
   data () {
     return {
       tableColumn: [
@@ -216,7 +216,7 @@ export default {
       // 订单列表
       tableData: [],
       pageIndex: 1,
-      pageSize: 100,
+      pageSize: 10,
       // 列表总条数
       totalCount: 0,
       // 系统票号：
@@ -267,32 +267,35 @@ export default {
       // 文件夹弹框标题
       fileTitle: '文件: /',
       // 空间不足标志
-      spaceFlag: false,
-      // 屏幕高度
-      winHeight: 0,
-      // 是否存在未出票
-      exitNoOutTicketFlag: false,
-      openTimerId: false,
-      tableDataLen: 0
+      spaceFlag: false
     }
   },
   watch: {
     '$store.state.activeIndex' (val) {
       this.getSpaceSize()
-      if (this.spaceFlag) {
-        this.$store.commit('setActiveIndex', '')
-        localStorage.setItem('setActiveIndex', '')
-        let setMenuDisabled = {
-          orderList: false,
-          accountOrder: true,
-          queryOrder: true
-        }
-        this.$store.commit('setMenuDisabled', setMenuDisabled)
-        localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
-        return
-      }
-      if (val === '/order-query/order-List' && !this.exitNoOutTicketFlag) {
-        this.takeOrderToPrint()
+      // if (this.spaceFlag) {
+      //   this.$store.commit('setActiveIndex', '')
+      //   localStorage.setItem('setActiveIndex', '')
+      //   let setMenuDisabled = {
+      //     orderList: false,
+      //     accountOrder: true,
+      //     queryOrder: false
+      //   }
+      //   this.$store.commit('setMenuDisabled', setMenuDisabled)
+      //   localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
+      //   return
+      // }
+      if (this.$store.state.activeIndex && (val === '/order-query/query-order')) {
+        this.getData()
+        // this.takeOrderToPrint()
+        // this.timerId = setInterval(() => {
+        //   if (this.reaminingTime) {
+        //     this.reaminingTime--
+        //     this.timeGo()
+        //   } else {
+        //     clearInterval(this.timerId)
+        //   }
+        // }, 1000)
       }
     },
     showOutPopover (val) {
@@ -306,43 +309,9 @@ export default {
       }
     },
     reaminingTime (val) {
+      // console.log(val)
       if (val === 0) {
         clearInterval(this.timerId)
-        this.reaminingTime = 0
-        setTimeout(() => {
-          this.getData()
-        }, 1000)
-        // console.log(this.tableData, 2222222)
-        let setMenuDisabled = {
-          orderList: false,
-          accountOrder: false,
-          queryOrder: false
-        }
-        this.$store.commit('setMenuDisabled', setMenuDisabled)
-        localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
-      } else {
-        this.openTimerId = true
-      }
-    },
-    openTimerId (val) {
-      this.timerId = setInterval(() => {
-        if (this.reaminingTime) {
-          this.reaminingTime--
-          this.timeGo()
-        } else {
-          clearInterval(this.timerId)
-        }
-      }, 1000)
-    },
-    tableData (val) {
-      if (this.tableDataLen !== val.length && val.length === 0 && this.reaminingTime >= 0) {
-        let setMenuDisabled = {
-          orderList: true,
-          accountOrder: false,
-          queryOrder: false
-        }
-        this.$store.commit('setMenuDisabled', setMenuDisabled)
-        localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
       }
     }
   },
@@ -351,12 +320,22 @@ export default {
     document.addEventListener('click', () => {
       this.showOutPopover = false
     })
-    this.winHeight = localStorage.getItem('winHeight') - 285
-    this.getData()
   },
   mounted () {
     // 倒计时定时器
     this.spans = document.getElementsByClassName('timer')[0].children
+    if (this.$store.state.activeIndex) {
+      // this.getData()
+      this.takeOrderToPrint()
+      this.timerId = setInterval(() => {
+        if (this.reaminingTime) {
+          this.reaminingTime--
+          this.timeGo()
+        } else {
+          clearInterval(this.timerId)
+        }
+      }, 1000)
+    }
     document.getElementById('outPopover').addEventListener('click', (event) => {
       let assumptionFlag = false
       this.hoverData.map(item => {
@@ -388,7 +367,6 @@ export default {
     document.getElementById('limitSaleDialog').addEventListener('click', (event) => {
       event.stopPropagation()
     })
-    // this.$refs.multipleTable8.height = this.winHeight
   },
   methods: {
     takeOrderToPrint () {
@@ -396,22 +374,11 @@ export default {
         .then(res => {
           if (res.code === '00000') {
             this.getData()
-          } else if (res.code === '20039') {
-            // 已经存在未出票单据
-            this.exitNoOutTicketFlag = true
-            // this.getData()
           } else {
             this.$message({
               type: 'error',
               message: res.msg
             })
-            let setMenuDisabled = {
-              orderList: false,
-              accountOrder: false,
-              queryOrder: false
-            }
-            this.$store.commit('setMenuDisabled', setMenuDisabled)
-            localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
           }
         })
     },
@@ -419,8 +386,7 @@ export default {
     getData () {
       let memberParams = {
         page: this.pageIndex,
-        pageSize: this.pageSize,
-        printFlag: 1
+        pageSize: this.pageSize
       }
       this.loading = true
       req('getOrderList', memberParams)
@@ -428,44 +394,26 @@ export default {
           if (res.code === '00000') {
             this.loading = false
             this.reaminingTime = res.data.reaminingTime ? parseInt(res.data.reaminingTime / 1000) : 0
-            // console.log(this.reaminingTime, '获取的倒计时')
-            if (res.data.orderList.result.length) {
-              this.exitNoOutTicketFlag = true
-              let setMenuDisabled = {
-                orderList: true,
-                accountOrder: true,
-                queryOrder: true
-              }
-              this.$store.commit('setMenuDisabled', setMenuDisabled)
-              localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
-              // this.reaminingTime = res.data.reaminingTime ? parseInt(res.data.reaminingTime / 1000) : 0
-              this.statisticData = res.data.statistic
-              res.data.orderList.result.map(val => {
-                val.lotteryType = ChangeBetContext.lotteryType(val.lotteryType)
-                val.printFlagWord = ChangeBetContext.printFlag(val.printFlag)
-                val.subPlayType = ChangeBetContext.subPlayType(val.subPlayType)
-                val.amount = (val.amount / 100).toFixed(2)
-                val.awardAmount = (val.awardAmount / 100).toFixed(2)
-                val.flag = false
-                val.lotteryTypeWord = `${val.lotteryType}${val.subPlayType}`
-              })
-              this.tableData = res.data.orderList.result
-              this.totalCount = res.data.orderList.totalCount
-            } else {
-              // 不存在票
-              // console.log('不存在票')
-              this.exitNoOutTicketFlag = false
-              this.reaminingTime = 0
-              this.statisticData = {}
-              this.tableData = []
-              let setMenuDisabled = {
-                orderList: false,
-                accountOrder: false,
-                queryOrder: false
-              }
-              this.$store.commit('setMenuDisabled', setMenuDisabled)
-              localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
+            // this.reaminingTime = 2 * 28 * 54
+            this.statisticData = res.data.statistic
+            res.data.orderList.result.map(val => {
+              val.lotteryType = ChangeBetContext.lotteryType(val.lotteryType)
+              val.printFlagWord = ChangeBetContext.printFlag(val.printFlag)
+              val.subPlayType = ChangeBetContext.subPlayType(val.subPlayType)
+              val.amount = (val.amount / 100).toFixed(2)
+              val.awardAmount = (val.awardAmount / 100).toFixed(2)
+              val.flag = false
+              val.lotteryTypeWord = `${val.lotteryType}${val.subPlayType}`
+            })
+            this.tableData = res.data.orderList.result
+            this.totalCount = res.data.orderList.totalCount
+            let setMenuDisabled = {
+              orderList: true,
+              accountOrder: false,
+              queryOrder: true
             }
+            this.$store.commit('setMenuDisabled', setMenuDisabled)
+            localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
           } else {
             this.$message({
               type: 'error',
@@ -475,23 +423,22 @@ export default {
             localStorage.setItem('setActiveIndex', '')
             let setMenuDisabled = {
               orderList: false,
-              accountOrder: false,
-              queryOrder: false
+              accountOrder: true,
+              queryOrder: true
             }
             this.$store.commit('setMenuDisabled', setMenuDisabled)
             localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
           }
-          this.tableDataLen = this.tableData.length
         })
     },
-    // handleSizeChange (val) {
-    //   this.pageSize = val
-    //   this.getData()
-    // },
-    // handleCurrentChange (val) {
-    //   this.pageIndex = val
-    //   this.getData()
-    // },
+    handleSizeChange (val) {
+      this.pageSize = val
+      this.getData()
+    },
+    handleCurrentChange (val) {
+      this.pageIndex = val
+      this.getData()
+    },
     // 获取订单信息
     getOutPopover (rows) {
       // 出票状态
@@ -827,7 +774,7 @@ export default {
           if (res.code === '00000') {
             this.$message({
               type: 'success',
-              message: '出票成功'
+              message: '读票成功'
             })
             try {
               latech.saveImageFromJS(this.ticketInfoNumber, this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
@@ -836,13 +783,7 @@ export default {
             }
             this.confirmFlag = false
             this.showOutPopover = false
-            this.tableData.map((item, index) => {
-              if (item.serialNumber === this.orderInfo.serialNumber) {
-                this.$delete(this.tableData, index)
-                this.getData()
-              }
-            })
-            // this.getData()
+            this.getData()
           } else {
             this.$message({
               type: 'error',
@@ -870,13 +811,7 @@ export default {
               type: 'success',
               message: '限售成功'
             })
-            this.tableData.map((item, index) => {
-              if (item.serialNumber === this.orderInfo.serialNumber) {
-                this.$delete(this.tableData, index)
-                this.getData()
-              }
-            })
-            // this.getData()
+            this.getData()
           } else {
             this.$message({
               type: 'error',
@@ -927,12 +862,12 @@ export default {
     }
   },
   beforeDestroy () {
-    clearInterval(this.timerId)
+    // clearInterval(this.timerId)
   }
 }
 </script>
 <style lang="less">
-.order-List{
+.query-order{
   .detail{
     box-sizing: border-box;
     width: calc(100% - 60px);

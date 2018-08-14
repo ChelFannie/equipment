@@ -1,6 +1,6 @@
 import request from '../index'
 const config = {
-  // 得到订单列表数据
+  // 获取订单列表数据
   getOrderList: {
     url: '/order/orderListByPage.json',
     method: 'post'
@@ -10,8 +10,8 @@ const config = {
     url: '/ticket/queryTicketListPage.json',
     method: 'post'
   },
-  // 取票
-  getImages: {
+  // 抢票（获取订单）
+  takeOrderToPrint: {
     url: '/order/takeOrderToPrint.json',
     method: 'get'
   },
