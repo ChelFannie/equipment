@@ -8,7 +8,8 @@ const state = {
   menuDisabled: {
     orderList: false,
     accountOrder: false,
-    queryOrder: false
+    queryOrder: false,
+    quitSystem: false
   }
 }
 

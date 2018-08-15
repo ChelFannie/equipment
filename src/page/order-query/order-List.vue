@@ -152,9 +152,7 @@
       <p class="tip">确认后将推送到客户，并且不能修改！</p>
       <p class="edit-content">赔率数据异常有：<span>{{validateOdds}}</span></p>
       <span slot="footer" class="dialog-footer">
-        <el-button size="medium" type="primary" @click.stop="confirmSumbit"
-        v-loading.fullscreen.lock="fullscreenLoading"
-        element-loading-text="数据提交中...">确 定</el-button>
+        <el-button size="medium" type="primary" @click.stop="confirmSumbit">确 定</el-button>
         <el-button size="medium" @click.stop="cancelSumbit">取 消</el-button>
       </span>
     </el-dialog>
@@ -250,7 +248,7 @@ export default {
       // 后端返回的异常赔率值
       validateOdds: '',
       confirmDisabled: false,
-      fullscreenLoading: false,
+      // fullscreenLoading: false,
       // 限售信息
       limitSaleData: {
         limitSaleFlag: false,
@@ -278,6 +276,7 @@ export default {
   },
   watch: {
     '$store.state.activeIndex' (val) {
+      console.log('点击获取到路由')
       this.getSpaceSize()
       if (this.spaceFlag) {
         this.$store.commit('setActiveIndex', '')
@@ -285,7 +284,8 @@ export default {
         let setMenuDisabled = {
           orderList: false,
           accountOrder: true,
-          queryOrder: true
+          queryOrder: true,
+          quitSystem: true
         }
         this.$store.commit('setMenuDisabled', setMenuDisabled)
         localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
@@ -307,20 +307,23 @@ export default {
     },
     reaminingTime (val) {
       if (val === 0) {
-        clearInterval(this.timerId)
-        this.reaminingTime = 0
-        setTimeout(() => {
-          this.getData()
-        }, 1000)
-        // console.log(this.tableData, 2222222)
+        this.$nextTick(() => {
+          this.reaminingTime = 0
+          this.timeGo()
+        })
+        this.getData()
+        this.exitNoOutTicketFlag = false
+        this.$store.commit('setActiveIndex', '')
+        localStorage.setItem('setActiveIndex', '')
         let setMenuDisabled = {
           orderList: false,
           accountOrder: false,
-          queryOrder: false
+          queryOrder: false,
+          quitSystem: false
         }
         this.$store.commit('setMenuDisabled', setMenuDisabled)
         localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
-      } else {
+      } else if (val > 0) {
         this.openTimerId = true
       }
     },
@@ -329,20 +332,16 @@ export default {
         if (this.reaminingTime) {
           this.reaminingTime--
           this.timeGo()
-        } else {
-          clearInterval(this.timerId)
         }
       }, 1000)
     },
     tableData (val) {
       if (this.tableDataLen !== val.length && val.length === 0 && this.reaminingTime >= 0) {
-        let setMenuDisabled = {
-          orderList: true,
-          accountOrder: false,
-          queryOrder: false
-        }
-        this.$store.commit('setMenuDisabled', setMenuDisabled)
-        localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
+        console.log('扫码完成')
+        this.$nextTick(() => {
+          this.reaminingTime = 0
+          this.timeGo()
+        })
       }
     }
   },
@@ -352,9 +351,17 @@ export default {
       this.showOutPopover = false
     })
     this.winHeight = localStorage.getItem('winHeight') - 285
-    this.getData()
   },
   mounted () {
+    if (this.$store.state.activeIndex === '/order-query/order-List') {
+      // 已经有路由的切换
+      this.takeOrderToPrint()
+      // console.log('已经有路由的切换')
+    } else if (!this.$store.state.activeIndex) {
+      // 默认路由跳转到当前页面，初始化
+      this.getData()
+      // console.log('初始化')
+    }
     // 倒计时定时器
     this.spans = document.getElementsByClassName('timer')[0].children
     document.getElementById('outPopover').addEventListener('click', (event) => {
@@ -408,7 +415,8 @@ export default {
             let setMenuDisabled = {
               orderList: false,
               accountOrder: false,
-              queryOrder: false
+              queryOrder: false,
+              quitSystem: false
             }
             this.$store.commit('setMenuDisabled', setMenuDisabled)
             localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
@@ -427,19 +435,19 @@ export default {
         .then(res => {
           if (res.code === '00000') {
             this.loading = false
-            this.reaminingTime = res.data.reaminingTime ? parseInt(res.data.reaminingTime / 1000) : 0
-            // console.log(this.reaminingTime, '获取的倒计时')
+            this.statisticData = res.data.statistic
             if (res.data.orderList.result.length) {
               this.exitNoOutTicketFlag = true
               let setMenuDisabled = {
                 orderList: true,
                 accountOrder: true,
-                queryOrder: true
+                queryOrder: true,
+                quitSystem: true
               }
               this.$store.commit('setMenuDisabled', setMenuDisabled)
               localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
-              // this.reaminingTime = res.data.reaminingTime ? parseInt(res.data.reaminingTime / 1000) : 0
-              this.statisticData = res.data.statistic
+              console.log(res.data.reaminingTime, '存在票，倒计时')
+              this.reaminingTime = Math.ceil(res.data.reaminingTime / 1000)
               res.data.orderList.result.map(val => {
                 val.lotteryType = ChangeBetContext.lotteryType(val.lotteryType)
                 val.printFlagWord = ChangeBetContext.printFlag(val.printFlag)
@@ -453,19 +461,22 @@ export default {
               this.totalCount = res.data.orderList.totalCount
             } else {
               // 不存在票
-              // console.log('不存在票')
+              console.log('不存在票')
               this.exitNoOutTicketFlag = false
-              this.reaminingTime = 0
-              this.statisticData = {}
-              this.tableData = []
+              this.reaminingTime = res.data.reaminingTime ? Math.ceil(res.data.reaminingTime) : 0
+              this.tableData = res.data.orderList.result
+              this.totalCount = res.data.orderList.totalCount
               let setMenuDisabled = {
                 orderList: false,
                 accountOrder: false,
-                queryOrder: false
+                queryOrder: false,
+                quitSystem: false
               }
               this.$store.commit('setMenuDisabled', setMenuDisabled)
               localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
             }
+            var timestamp = (new Date())
+            console.log(timestamp, '本地时间')
           } else {
             this.$message({
               type: 'error',
@@ -484,14 +495,6 @@ export default {
           this.tableDataLen = this.tableData.length
         })
     },
-    // handleSizeChange (val) {
-    //   this.pageSize = val
-    //   this.getData()
-    // },
-    // handleCurrentChange (val) {
-    //   this.pageIndex = val
-    //   this.getData()
-    // },
     // 获取订单信息
     getOutPopover (rows) {
       // 出票状态
@@ -814,11 +817,12 @@ export default {
     // 提交数据，出票完成
     confirmSumbit () {
       this.confirmFlag = false
-      this.fullscreenLoading = true
+      // this.fullscreenLoading = true
       this.showOutPopover = false
       let params = {
         ticketInfoNumber: this.ticketInfoNumber,
-        realTicketNumber: this.realTicketNumber,
+        // realTicketNumber: this.realTicketNumber,
+        qrInfo: this.realTicketNumber,
         betContextOdds: JSON.stringify(this.betContextOdds),
         printResult: this.imgStr
       }
@@ -829,20 +833,20 @@ export default {
               type: 'success',
               message: '出票成功'
             })
+            // this.reaminingTime = 0
             try {
               latech.saveImageFromJS(this.ticketInfoNumber, this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
             } catch (error) {
               console.log('保存图片')
             }
-            this.confirmFlag = false
-            this.showOutPopover = false
             this.tableData.map((item, index) => {
               if (item.serialNumber === this.orderInfo.serialNumber) {
                 this.$delete(this.tableData, index)
-                this.getData()
               }
             })
-            // this.getData()
+            this.getData()
+            this.confirmFlag = false
+            this.showOutPopover = false
           } else {
             this.$message({
               type: 'error',
@@ -850,7 +854,7 @@ export default {
             })
             this.showOutPopover = true
           }
-          this.fullscreenLoading = false
+          // this.fullscreenLoading = false
         })
     },
     // 取消限售
@@ -919,15 +923,13 @@ export default {
     }
   },
   destroyed () {
+    clearInterval(this.timerId)
     try {
       clearInterval(this.timer)
       this.latechFlag && latech.ScannerStopFromJS() // eslint-disable-line
     } catch (error) {
       console.log('打印机')
     }
-  },
-  beforeDestroy () {
-    clearInterval(this.timerId)
   }
 }
 </script>

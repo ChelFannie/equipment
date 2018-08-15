@@ -1,10 +1,81 @@
 <template>
   <div class="query-order">
-    <div class="detail">
+    <div class="search-condition">
+      <el-form ref="form" label-width="100px" size="mini">
+        <el-form-item label="订单号">
+          <el-input v-model="form.serialNumber" maxlength="30"></el-input>
+        </el-form-item>
+        <el-form-item label="落地票号">
+          <el-input v-model="form.qrInfo" maxlength="30"></el-input>
+        </el-form-item>
+        <el-form-item label="彩种">
+          <el-select v-model="form.subPlayType" placeholder="请选择">
+            <el-option
+              v-for="item in subPlayTypeSelect"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="出票状态">
+          <el-select v-model="form.printFlag" placeholder="请选择">
+            <el-option
+              v-for="item in printFlagSelect"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="中奖状态">
+          <el-select v-model="form.awardFlag" placeholder="请选择">
+            <el-option
+              v-for="item in awardFlagSelect"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="结算状态">
+          <el-select v-model="form.settleFlag" placeholder="请选择">
+            <el-option
+              v-for="item in settleFlagSelect"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="日期">
+          <el-date-picker
+            v-model="form.beginCreateDate"
+            type="datetime"
+            placeholder="选择开始时间"
+            format="yyyy-MM-dd HH:mm:ss"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            default-time="00:00:00">
+          </el-date-picker>
+          <span> 至 </span>
+          <el-date-picker
+            v-model="form.endCreateDate"
+            type="datetime"
+            placeholder="选择结束时间"
+            format="yyyy-MM-dd HH:mm:ss"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            default-time="23:59:59">
+          </el-date-picker>
+        </el-form-item>
+      </el-form>
+      <el-button @click="queryOrder">查询</el-button>
+      <el-button @click="empty">清空</el-button>
+    </div>
+    <!-- <div class="detail">
       <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
       <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span>
       <span>提交时间：{{submitSettleTime}}</span>
-    </div>
+    </div> -->
 
     <div class="count-order">
       <span class="count-all">审核统计：&nbsp;</span>
@@ -106,10 +177,12 @@ export default {
   data () {
     return {
       tableColumn: [
-        {prop: 'lotteryTypeWord', label: '彩种类型', 'min-width': '100'},
+        {prop: 'typeWords', label: '彩种类型', 'min-width': '100'},
         {prop: 'multiple', label: '倍数', 'min-width': '50'},
         {prop: 'amountWord', label: '金额', 'min-width': '100'},
         {prop: 'awardAmountWord', label: '奖金', 'min-width': '100'},
+        {prop: 'awardFlagWord', label: '中奖', 'min-width': '100'},
+        {prop: 'printFlagWord', label: '出票', 'min-width': '100'},
         {prop: 'settleStatusWord', label: '结算', 'min-width': '100'}
       ],
       tableData: [],
@@ -140,26 +213,60 @@ export default {
       imgStr: '',
       Mask: false,
       enlargeImg: false,
-      loading: false
+      loading: false,
+      form: {
+        serialNumber: '',
+        qrInfo: '',
+        subPlayType: '',
+        printFlag: '',
+        awardFlag: '',
+        settleStatus: '',
+        beginCreateDate: '',
+        endCreateDate: ''
+      },
+      // 彩种
+      subPlayTypeSelect: [
+        {value: '51', label: '足球胜平负'},
+        {value: '52', label: '足球比分'},
+        {value: '53', label: '足球总进球'},
+        {value: '54', label: '足球半全场'},
+        {value: '56', label: '足球让球胜平负'},
+        {value: '59', label: '足球混合过关'},
+        {value: '61', label: '篮球让分胜负'},
+        {value: '62', label: '篮球胜负'},
+        {value: '63', label: '篮球胜分差'},
+        {value: '64', label: '篮球大小分'},
+        {value: '69', label: '篮球混合过关'}
+      ],
+      // 出票状态
+      printFlagSelect: [
+        // {value: 1, label: '未出票'},
+        {value: 2, label: '已出票'},
+        {value: 3, label: '出票失败'}
+      ],
+      // 中奖状态
+      awardFlagSelect: [
+        {value: 1, label: '未中奖'},
+        {value: 2, label: '已中奖'}
+      ],
+      // 结算状态
+      settleFlagSelect: [
+        {value: 0, label: '未可结算'},
+        {value: 1, label: '可结算'},
+        {value: 2, label: '待审核'},
+        {value: 3, label: '审核通过'}
+      ],
+      searchFlag: false
     }
   },
   watch: {
   },
   created () {
-    // if (!this.$store.state.setActiveIndex) {
-    //   this.$store.commit('setActiveIndex', localStorage.getItem('setActiveIndex'))
-    //   let setMenuDisabled = {
-    //     orderList: true,
-    //     accountOrder: true,
-    //     queryOrder: false
-    //   }
-    //   this.$store.commit('setMenuDisabled', setMenuDisabled)
-    //   localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
-    // }
     let setMenuDisabled = {
       orderList: false,
       accountOrder: false,
-      queryOrder: false
+      queryOrder: false,
+      uitSystem: false
     }
     this.$store.commit('setMenuDisabled', setMenuDisabled)
     localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
@@ -174,9 +281,18 @@ export default {
     })
   },
   methods: {
-    // 获取待审核列表
+    // 获取列表
     getData () {
+      this.searchFlag || Object.keys(this.form).map(key => {
+        this.form[key] = ''
+      })
+      let nullFlag = false
+      Object.keys(this.form).map(key => {
+        this.form[key] !== '' && (nullFlag = true)
+      })
+      nullFlag || (this.searchFlag = false)
       let memberParams = {
+        ...this.form,
         page: this.pageIndex,
         pageSize: this.pageSize,
         printFlags: '1,2,3'
@@ -196,13 +312,16 @@ export default {
               val.changeSettleStatus = val.settleStatus
               val.subPlayTypeWord = ChangeBetContext.subPlayType(val.subPlayType)
               val.settleStatusWord = ChangeBetContext.settleStatus(val.changeSettleStatus)
+              val.printFlagWord = ChangeBetContext.printFlag(val.printFlag)
               val.amount = val.amount / 100
               val.awardAmount = val.awardAmount / 100
+              val.awardFlagWord = val.awardAmount > 0 ? '已中奖' : '未中奖'
               val.amountWord = (val.amount).toFixed(2)
               val.awardAmountWord = (val.awardAmount).toFixed(2)
               val.flag = false
               amounts += val.amount
               awardAmounts += val.awardAmount
+              val.typeWords = `${val.lotteryTypeWord}${val.subPlayTypeWord}`
             })
             this.tableData = res.data.orderList.result
             this.totalCount = res.data.orderList.totalCount
@@ -217,6 +336,20 @@ export default {
             })
           }
         })
+    },
+    // 查询列表
+    queryOrder () {
+      this.pageIndex = 1
+      this.searchFlag = true
+      this.getData()
+    },
+    empty () {
+      Object.keys(this.form).map(key => {
+        this.form[key] = ''
+      })
+      this.searchFlag = false
+      this.pageIndex = 1
+      this.getData()
     },
     // 获取订单信息
     getOutPopover (rows) {
@@ -342,6 +475,15 @@ export default {
       float: right;
     }
   }
+  .search-condition{
+    .el-form-item{
+      float: left;
+      margin-left: 10px;
+      .el-input{
+        width: 180px!important;
+      }
+    }
+  }
   .count-order{
     box-sizing: border-box;
     width: calc(100% - 60px);
@@ -353,7 +495,7 @@ export default {
     top: 150px;
     left: 30px;
     z-index: 998;
-    border-bottom: 1px solid #4dafdb;
+    // border-bottom: 1px solid #4dafdb;
     .count-all{
       display: inline-block;
       margin-right: 10px;
