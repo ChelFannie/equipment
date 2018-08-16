@@ -406,7 +406,7 @@ export default {
           } else if (res.code === '20039') {
             // 已经存在未出票单据
             this.exitNoOutTicketFlag = true
-            // this.getData()
+            this.getData()
           } else {
             this.$message({
               type: 'error',
@@ -447,7 +447,8 @@ export default {
               this.$store.commit('setMenuDisabled', setMenuDisabled)
               localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
               console.log(res.data.reaminingTime, '存在票，倒计时')
-              this.reaminingTime = Math.ceil(res.data.reaminingTime / 1000)
+              // 暂定解决前后台倒计时差异为1秒
+              this.reaminingTime = Math.ceil((res.data.reaminingTime + 1000) / 1000)
               res.data.orderList.result.map(val => {
                 val.lotteryType = ChangeBetContext.lotteryType(val.lotteryType)
                 val.printFlagWord = ChangeBetContext.printFlag(val.printFlag)
@@ -475,8 +476,6 @@ export default {
               this.$store.commit('setMenuDisabled', setMenuDisabled)
               localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
             }
-            var timestamp = (new Date())
-            console.log(timestamp, '本地时间')
           } else {
             this.$message({
               type: 'error',
@@ -821,7 +820,6 @@ export default {
       this.showOutPopover = false
       let params = {
         ticketInfoNumber: this.ticketInfoNumber,
-        // realTicketNumber: this.realTicketNumber,
         qrInfo: this.realTicketNumber,
         betContextOdds: JSON.stringify(this.betContextOdds),
         printResult: this.imgStr

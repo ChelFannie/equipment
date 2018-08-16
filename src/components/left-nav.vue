@@ -57,14 +57,61 @@
             <router-view></router-view>
         </div>
     </div>
+
+    <el-dialog
+      title="登陆"
+      :visible.sync="managerDialogVisible"
+      width="500px"
+      center
+      class="login">
+      <el-form :model="managerForm" label-width="80px" :rules="rules" ref="ruleForm">
+        <el-form-item label="用户名" prop="userAccount">
+          <el-input v-model="managerForm.userAccount" auto-complete="off" maxlength="15"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input type="password" v-model="managerForm.password" auto-complete="off" maxlength="15"></el-input>
+        </el-form-item>
+        <el-form-item label="验证码" prop="inputCode">
+          <el-input class="code" v-model="managerForm.inputCode" auto-complete="off" maxlength="4"></el-input>
+          <div @click="createCodeWord" class="managerLogin-right">{{validateCode}}</div>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="sumbitManagerLogin('ruleForm')">登 陆</el-button>
+          <el-button @click="managerDialogVisible = false">取 消</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 <script>
+import req1 from '../api/login/login.js'
+import loginValidate from '../utils/loginValidate.js'
 export default {
   data () {
     return {
       activeIndex: this.$store.state.activeIndex,
-      storeInfo: {}
+      storeInfo: {},
+      // 管理员登陆弹出框
+      managerDialogVisible: false,
+      managerForm: {
+        userAccount: '',
+        password: '',
+        inputCode: ''
+      },
+      // 验证码
+      validateCode: '',
+      validateFlag: false,
+      rules: {
+        userAccount: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' }
+        ],
+        inputCode: [
+          { required: true, message: '请输入验证码', trigger: 'blur' }
+        ]
+      }
     }
   },
   watch: {
@@ -86,7 +133,85 @@ export default {
       this.activeIndex = index
       this.$store.commit('setActiveIndex', index)
       localStorage.setItem('setActiveIndex', index)
+      if (index === '/order-query/account-order') {
+        this.managerDialogVisible = true
+        this.validateCode = loginValidate.createCode()
+        this.managerForm = {
+          userAccount: this.managerForm.userAccount,
+          password: '',
+          inputCode: ''
+        }
+        return
+      }
       this.$router.push({path: index})
+    },
+    // 生成验证码
+    createCodeWord () {
+      this.validateCode = loginValidate.createCode()
+    },
+    // 检验验证码
+    validate () {
+      this.managerForm.inputCode = this.managerForm.inputCode.toUpperCase()
+      if (this.managerForm.inputCode.length <= 0) {
+        this.$message({
+          message: '请输入验证码！',
+          type: 'warning'
+        })
+      } else if (this.managerForm.inputCode !== this.validateCode) {
+        this.$message({
+          message: '验证码输入错误！',
+          type: 'warning'
+        })
+        // 刷新验证码
+        this.validateCode = loginValidate.createCode()
+        // 清空文本框
+        this.managerForm.inputCode = ''
+      } else {
+        this.validateFlag = true
+      }
+    },
+    // 管理员登陆
+    sumbitManagerLogin (ruleForm) {
+      this.$refs[ruleForm].validate(valid => {
+        if (!valid) {
+          this.$message({
+            message: '请填写完整信息!',
+            type: 'warning'
+          })
+          return
+        }
+        this.validate()
+        this.validateFlag = true
+        if (this.validateFlag) {
+          let form = {
+            userAccount: this.managerForm.userAccount,
+            password: this.managerForm.password
+          }
+          req1('toggleLogin', form).then(res => {
+            if (res.code === '00000') {
+              sessionStorage.setItem('lastToken', sessionStorage.getItem('token'))
+              sessionStorage.setItem('token', res.data.token)
+              this.$store.commit('token', res.data.token)
+              this.$store.commit('setActiveIndex', '/order-query/examine-order')
+              localStorage.setItem('setActiveIndex', '/order-query/examine-order')
+              this.$router.push({name: '审核订单'})
+              this.managerDialogVisible = false
+              this.$message({
+                message: res.msg,
+                type: 'success'
+              })
+            } else {
+              this.$message({
+                message: res.msg,
+                type: 'warning'
+              })
+              // 刷新验证码
+              this.validateCode = loginValidate.createCode()
+              this.managerForm.inputCode = ''
+            }
+          })
+        }
+      })
     },
     handleOpen (val) {
     },
@@ -101,7 +226,8 @@ export default {
       let setMenuDisabled = {
         orderList: false,
         accountOrder: true,
-        queryOrder: true
+        queryOrder: true,
+        quitSystem: true
       }
       this.$store.commit('setMenuDisabled', setMenuDisabled)
       localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
@@ -250,5 +376,41 @@ export default {
         //     color: #909399!important;
         // }
     }
+  .login{
+    .el-dialog__header{
+      padding: 20px 0 0;
+    }
+    .el-dialog__body{
+      text-align: center;
+      .el-form-item__label{
+        display: inline-block;
+        float: none;
+      }
+      .el-form-item__content{
+        width: 300px!important;
+        display: inline-block;
+        margin: 0!important;
+        margin-left: 0!important;
+        .code{
+          width: 180px!important;
+          margin-right: 20px;
+        }
+        .managerLogin-right{
+          text-align: center;
+          float: right;
+          width: 100px;
+          height: 40px;
+          line-height: 40px;
+          background: #409EFF;
+          color: #fff;
+          letter-spacing: 6px;
+          cursor:pointer;
+        }
+      }
+      .el-button+.el-button {
+        margin-left: 50px;
+      }
+    }
+  }
 }
 </style>

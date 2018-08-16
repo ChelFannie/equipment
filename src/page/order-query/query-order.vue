@@ -39,7 +39,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="结算状态">
-          <el-select v-model="form.settleFlag" placeholder="请选择">
+          <el-select v-model="form.settleStatus" placeholder="请选择">
             <el-option
               v-for="item in settleFlagSelect"
               :key="item.value"
@@ -48,14 +48,15 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="日期">
+        <el-form-item label="创建时间">
           <el-date-picker
             v-model="form.beginCreateDate"
             type="datetime"
             placeholder="选择开始时间"
             format="yyyy-MM-dd HH:mm:ss"
             value-format="yyyy-MM-dd HH:mm:ss"
-            default-time="00:00:00">
+            default-time="00:00:00"
+            @change="getTime">
           </el-date-picker>
           <span> 至 </span>
           <el-date-picker
@@ -68,8 +69,8 @@
           </el-date-picker>
         </el-form-item>
       </el-form>
-      <el-button @click="queryOrder">查询</el-button>
-      <el-button @click="empty">清空</el-button>
+      <el-button @click="queryOrder" type="primary">查询</el-button>
+      <el-button @click="empty" type="primary">清空</el-button>
     </div>
     <!-- <div class="detail">
       <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
@@ -140,6 +141,7 @@
         <p class="hoverItem">出票店铺: <span class="substance">{{orderInfo.storeName}}</span></p>
         <p class="hoverItem">最迟出票时间: <span class="substance">{{orderInfo.lastPrintDate}}</span></p>
         <p class="hoverItem">出票时间: <span class="substance">{{orderInfo.uploadTime}}</span></p>
+        <p class="hoverItem">创建时间: <span class="substance">{{orderInfo.createDate}}</span></p>
       </div>
       <el-table :data="hoverData" border class="noright" style="width: 100%">
         <el-table-column v-for="(item, index) in hoverTableColumn"
@@ -210,6 +212,7 @@ export default {
       // 提交时间
       submitSettleTime: '',
       scanTicket: '',
+      timer: null,
       imgStr: '',
       Mask: false,
       enlargeImg: false,
@@ -246,8 +249,8 @@ export default {
       ],
       // 中奖状态
       awardFlagSelect: [
-        {value: 1, label: '未中奖'},
-        {value: 2, label: '已中奖'}
+        {value: 1, label: '已中奖'},
+        {value: 2, label: '未中奖'}
       ],
       // 结算状态
       settleFlagSelect: [
@@ -260,8 +263,18 @@ export default {
     }
   },
   watch: {
+    scanTicket (val) {
+      console.log(val, '落地票号')
+      this.$nextTick(() => {
+        this.$set(this.form, 'qrInfo', val)
+        this.queryOrder()
+      })
+    }
   },
   created () {
+    if (!this.$store.state.setActiveIndex) {
+      this.$store.commit('setActiveIndex', localStorage.getItem('setActiveIndex'))
+    }
     let setMenuDisabled = {
       orderList: false,
       accountOrder: false,
@@ -276,11 +289,21 @@ export default {
     })
   },
   mounted () {
+    try {
+      this.scan()
+    } catch (error) {
+      console.log('条码枪')
+    }
     document.getElementById('outPopover').addEventListener('click', (event) => {
       event.stopPropagation()
     })
   },
   methods: {
+    getTime () {
+      console.log(this.form.beginCreateDate)
+      // console.log(this.form.beginCreateDate.split(' '))
+      // 转为二进制
+    },
     // 获取列表
     getData () {
       this.searchFlag || Object.keys(this.form).map(key => {
@@ -315,7 +338,7 @@ export default {
               val.printFlagWord = ChangeBetContext.printFlag(val.printFlag)
               val.amount = val.amount / 100
               val.awardAmount = val.awardAmount / 100
-              val.awardFlagWord = val.awardAmount > 0 ? '已中奖' : '未中奖'
+              val.awardFlagWord = val.awardFlag === 1 ? '已中奖' : '未中奖'
               val.amountWord = (val.amount).toFixed(2)
               val.awardAmountWord = (val.awardAmount).toFixed(2)
               val.flag = false
@@ -442,13 +465,44 @@ export default {
     maskClick (event) {
       event.stopPropagation()
     },
+    // 更改查询条数
     handleSizeChange (val) {
       this.pageSize = val
       this.getData()
     },
+    // 分页查询
     handleCurrentChange (val) {
       this.pageIndex = val
       this.getData()
+    },
+    scan () {
+      // 条码枪初始化
+      if (latech.BCRInitFromJS() === 0) { // eslint-disable-line
+        // 条码枪设置扫描模式 参数： 1 手动模式， 2 自动模式
+        if (latech.BCRSetScanModeFromJS(1) === true) { // eslint-disable-line
+          // 条码枪开始扫描
+          // latech.BCRStartScanFromJS() // eslint-disable-line
+          const _this = this
+          _this.timer = setInterval(function () {
+            let flag = latech.BCRScanIsCompleteFromJS() // eslint-disable-line
+            // let flag = latech.BCRIsReadlyFromJS() // eslint-disable-line
+            // console.log(flag) // eslint-disable-line
+            if (flag === true) { // 判断读票机是否读完票
+              // clearInterval(_this.timer)
+              _this.scanTicket = latech.BCRGetTicketInfoFromJS() // eslint-disable-line
+              latech.BCRStopScan() // eslint-disable-line
+            }
+          }, 200)
+        }
+      }
+    }
+  },
+  destroyed () {
+    try {
+      clearInterval(this.timer)
+      latech.BCRDisableFromJS() // eslint-disable-line  
+    } catch (error) {
+      console.log('条码枪')
     }
   }
 }

@@ -183,14 +183,6 @@ export default {
             })
           }
         }
-        // else {
-        //   console.log(2)
-        //   this.$message({
-        //     message: '该订单不在待审核列表里',
-        //     type: 'error',
-        //     duration: 1000
-        //   })
-        // }
       })
       if (exitFlag) {
         this.$message({
@@ -206,8 +198,8 @@ export default {
     },
     // 扫码列表的所有订单号
     serialNumbersArr (val) {
-      console.log(val.length, '已扫的数组长度')
-      console.log(this.tableData.length, '已扫的数组长度')
+      console.log(val.length, '已扫成功的数组长度1')
+      console.log(this.tableData.length, 'tableData长度2')
       if (val.length > 0 && (val.length === this.tableData.length)) {
         this.submitToAudit()
       }
@@ -217,9 +209,10 @@ export default {
     if (!this.$store.state.setActiveIndex) {
       this.$store.commit('setActiveIndex', localStorage.getItem('setActiveIndex'))
       let setMenuDisabled = {
-        orderList: false,
-        accountOrder: false,
-        queryOrder: false
+        orderList: true,
+        accountOrder: true,
+        queryOrder: true,
+        quitSystem: true
       }
       this.$store.commit('setMenuDisabled', setMenuDisabled)
       localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
