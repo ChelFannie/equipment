@@ -32,6 +32,12 @@
       element-loading-text="拼命加载中..."
       element-loading-spinner="el-icon-loading">
       <el-table-column
+        prop="sequenceNumber"
+        label="序号"
+        width="70"
+        align="center">
+      </el-table-column>
+      <el-table-column
         prop="serialNumber"
         label="系统编号"
         width="250"
@@ -48,19 +54,6 @@
         align="center">
       </el-table-column>
     </el-table>
-
-    <!-- <el-pagination
-      v-if="tableData.length"
-      class="page"
-      background
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="pageIndex"
-      :page-size="pageSize"
-      :page-sizes="[10, 50, 100, 200, 300, 500]"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="totalCount">
-    </el-pagination> -->
 
     <el-dialog
       :visible.sync="showOutPopover"
@@ -148,7 +141,6 @@
       center
       id="innerDialog"
       class="confirm-msg">
-      <!-- <p>是否确认票信息的内容？</p> -->
       <p class="tip">确认后将推送到客户，并且不能修改！</p>
       <p class="edit-content">赔率数据异常有：<span>{{validateOdds}}</span></p>
       <span slot="footer" class="dialog-footer">
@@ -197,8 +189,10 @@
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import req from '../../api/order-list/index.js'
 import getResultStr from '../../utils/combine.js'
+import formatDateTime from '../../utils/format.js'
 import exportFile from '../../components/order-query/exportFile'
 export default {
+  inject: ['reload'],
   components: {
     exportFile
   },
@@ -270,6 +264,8 @@ export default {
       winHeight: 0,
       // 是否存在未出票
       exitNoOutTicketFlag: false,
+      timerId: null,
+      // 开启定时器
       openTimerId: false,
       tableDataLen: 0
     }
@@ -308,8 +304,10 @@ export default {
     reaminingTime (val) {
       if (val === 0) {
         this.$nextTick(() => {
+          // console.log('倒计为0')
           this.reaminingTime = 0
-          this.timeGo()
+          this.openTimerId = false
+          clearInterval(this.timerId)
         })
         this.getData()
         this.exitNoOutTicketFlag = false
@@ -324,23 +322,27 @@ export default {
         this.$store.commit('setMenuDisabled', setMenuDisabled)
         localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
       } else if (val > 0) {
+        // console.log('重新开启')
         this.openTimerId = true
       }
     },
     openTimerId (val) {
-      this.timerId = setInterval(() => {
-        if (this.reaminingTime) {
-          this.reaminingTime--
-          this.timeGo()
-        }
-      }, 1000)
+      if (this.reaminingTime > 0) {
+        this.timerId = setInterval(() => {
+          if (this.reaminingTime) {
+            this.reaminingTime--
+            this.timeGo()
+          }
+        }, 1000)
+      }
     },
     tableData (val) {
       if (this.tableDataLen !== val.length && val.length === 0 && this.reaminingTime >= 0) {
-        console.log('扫码完成')
+        // console.log('扫码完成')
         this.$nextTick(() => {
           this.reaminingTime = 0
-          this.timeGo()
+          this.openTimerId = false
+          clearInterval(this.timerId)
         })
       }
     }
@@ -460,6 +462,39 @@ export default {
               })
               this.tableData = res.data.orderList.result
               this.totalCount = res.data.orderList.totalCount
+              // 序号
+              let sequenceNumberObj = JSON.parse(localStorage.getItem('sequenceNumber'))
+              if (sequenceNumberObj === null) {
+                sequenceNumberObj = {
+                  value: 0,
+                  date: new Date(new Date().getTime()).toDateString()
+                  // count: 0
+                }
+              } else {
+                if (sequenceNumberObj['date'] !== new Date(new Date().getTime()).toDateString()) {
+                  if (parseInt(formatDateTime(new Date().getTime()).substr(11, 2)) >= 7) {
+                    sequenceNumberObj['value'] = 0
+                    sequenceNumberObj['date'] = new Date(new Date().getTime()).toDateString()
+                  }
+                }
+              }
+              // sequenceNumberObj['count'] = parseInt(sequenceNumberObj['count']) + 1
+              let lastData = JSON.parse(localStorage.getItem('lastData'))
+              let lastFlag = true
+              lastData !== null && lastData.map(val => {
+                this.tableData.map(val1 => {
+                  if (val.serialNumber === val1.serialNumber) {
+                    lastFlag = false
+                    val1['sequenceNumber'] = val['sequenceNumber']
+                  }
+                })
+              })
+              lastFlag && this.tableData.map(val => {
+                sequenceNumberObj['value'] = sequenceNumberObj['value'] + 1
+                val['sequenceNumber'] = sequenceNumberObj['value']
+              })
+              localStorage.setItem('lastData', JSON.stringify(this.tableData))
+              localStorage.setItem('sequenceNumber', JSON.stringify({value: sequenceNumberObj['value'], date: sequenceNumberObj['date']}))
             } else {
               // 不存在票
               console.log('不存在票')
@@ -540,6 +575,8 @@ export default {
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
+            this.showOutPopover = true
+            this.confirmDisabled = false
             let orderInfo = res.data.orderInfo
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
             orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
@@ -586,8 +623,6 @@ export default {
                 this.$set(item, 'flag', false)
               }
             })
-            this.showOutPopover = true
-            this.confirmDisabled = false
           } else {
             this.$message({
               type: 'error',
@@ -665,8 +700,10 @@ export default {
         }
       })
     },
+    // 打印机
     printTicket (obj) {
-      // latech.printInit() // eslint-disable-line
+      // let printStatus = latech.printStatusFromJS() // eslint-disable-line
+      // console.log(1, printStatus)
       if (obj.status === '1') {
         latech.printBMPFromJS(obj.resultStr) // eslint-disable-line
       } else {
@@ -697,8 +734,29 @@ export default {
               _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
             }
           }, 200)
+        } else {
+          this.getTicketError()
         }
+      } else {
+        this.getTicketError()
       }
+    },
+    // 获取读票机错误信息
+    getTicketError () {
+      this.showOutPopover = false
+      let errCode = latech.ScannerGetLastErrorCodeFromJS() // eslint-disable-line
+      this.reload()
+      this.$confirm(`读票机异常，代码:${errCode}`, '错误', {
+        confirmButtonText: '确定',
+        showCancelButton: false,
+        type: 'error',
+        closeOnClickModal: false,
+        callback: action => {
+          sessionStorage.removeItem('token')
+          this.$store.commit('token', '')
+          this.$router.push({path: '/login'})
+        }
+      })
     },
     // 图片放大
     enlarge () {

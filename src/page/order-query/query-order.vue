@@ -50,6 +50,16 @@
         </el-form-item>
         <el-form-item label="创建时间">
           <el-date-picker
+            v-model="createDate"
+            type="datetimerange"
+            range-separator="至"
+            start-placeholder="选择开始时间"
+            end-placeholder="选择结束时间"
+            :default-time="defaultTime"
+            format="yyyy-MM-dd HH:mm:ss"
+            value-format="yyyy-MM-dd HH:mm:ss">
+          </el-date-picker>
+          <!-- <el-date-picker
             v-model="form.beginCreateDate"
             type="datetime"
             placeholder="选择开始时间"
@@ -65,8 +75,9 @@
             placeholder="选择结束时间"
             format="yyyy-MM-dd HH:mm:ss"
             value-format="yyyy-MM-dd HH:mm:ss"
-            default-time="23:59:59">
-          </el-date-picker>
+            default-time="23:59:59"
+            :picker-options="pickerOptions1">
+          </el-date-picker> -->
         </el-form-item>
       </el-form>
       <el-button @click="queryOrder" type="primary">查询</el-button>
@@ -259,7 +270,11 @@ export default {
         {value: 2, label: '待审核'},
         {value: 3, label: '审核通过'}
       ],
-      searchFlag: false
+      searchFlag: false,
+      // 创建时间
+      createDate: [],
+      // 默认时间
+      defaultTime: ['00:00:00', '23:59:59']
     }
   },
   watch: {
@@ -269,6 +284,10 @@ export default {
         this.$set(this.form, 'qrInfo', val)
         this.queryOrder()
       })
+    },
+    createDate (val) {
+      this.form.beginCreateDate = val[0]
+      this.form.endCreateDate = val[1]
     }
   },
   created () {
@@ -299,11 +318,6 @@ export default {
     })
   },
   methods: {
-    getTime () {
-      console.log(this.form.beginCreateDate)
-      // console.log(this.form.beginCreateDate.split(' '))
-      // 转为二进制
-    },
     // 获取列表
     getData () {
       this.searchFlag || Object.keys(this.form).map(key => {
@@ -370,6 +384,7 @@ export default {
       Object.keys(this.form).map(key => {
         this.form[key] = ''
       })
+      this.createDate = []
       this.searchFlag = false
       this.pageIndex = 1
       this.getData()

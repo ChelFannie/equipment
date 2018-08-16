@@ -34,6 +34,7 @@ Vue.component('i-form', IForm)
 
 Vue.prototype.$message = Message
 Vue.prototype.$confirm = MessageBox.confirm
+Vue.prototype.$alert = MessageBox.alert
 // 路由全局守卫
 router.beforeEach((to, from, next) => {
   // localStorage.setItem('lastRouter', from.path)

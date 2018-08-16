@@ -4,11 +4,11 @@
           <div class="loginCon">
             <!-- <p class="title">设备界面登录</p> -->
             <img class="logo" src="../assets/image/logo.png" alt="">
-            <el-form ref="form" :model="form" label-width="80px" class="form">
-                <el-form-item>
+            <el-form ref="form" :model="form" label-width="100px" class="form">
+                <el-form-item label="用户名：">
                     <el-input class="user" v-model="form.userAccount" placeholder="用户名"></el-input>
                 </el-form-item>
-                <el-form-item>
+                <el-form-item  label="密   码：">
                     <el-input class="pass" type="password" v-model="form.password" placeholder="密码"></el-input>
                 </el-form-item>
                 <!-- <div class="code">
@@ -124,14 +124,15 @@ export default {
         width: 100%;
         height: 100%;
         margin: 0 auto;
-        background-image: url('../assets/image/login.png');
+        background-image: url('../assets/image/login2.jpg');
         background-size:100% 100%;
-        color: red;
         position: relative;
+        font-size: 20px;
+        color: #000000;
         .loginCon{
             width: 500px;
             height: 300px;
-            background:rgba(255, 255, 255, .3);
+            background:#ffffff;
             position: absolute;
             left: 0;
             right: 0;
@@ -139,20 +140,9 @@ export default {
             bottom: 0;
             margin: auto;
             text-align: center;
-            // .title{
-            //   font-size: 36px;
-            //   letter-spacing: 3px;
-            //   color: #ffffff;
-            //   text-align: center;
-            //   position: absolute;
-            //   left: 0;
-            //   right: 0;
-            //   top: -70px;
-            //   margin: auto;
-            // }
+            border-radius: 10px;
             .logo{
               width: 300px;
-              text-align: center;
               position: absolute;
               left: 0;
               right: 0;
@@ -160,43 +150,50 @@ export default {
               margin: auto;
             }
             .form{
-              margin: 40px auto;
-              .el-form-item__content{
-                margin: 0!important;
-                text-align: center;
-                .el-input{
-                  input{
-                    width: 320px;
-                    height: 50px;
-                    padding-left: 50px;
-                    background: transparent;
-                    color: #ffffff;
-                  }
-                  &.user:before{
-                    content:'';
-                    display:inline-block;
-                    width:25px;
-                    height:25px;
-                    background:url('../assets/image/user.png');
-                    background-size:100% 100%;
-                    position: absolute;
-                    top: 0;
-                    bottom: 0;
-                    margin: auto;
-                    margin-left:10px;
-                  }
-                  &.pass:before{
-                    content:'';
-                    display:inline-block;
-                    width:20px;
-                    height:25px;
-                    background:url('../assets/image/pass.png');
-                    background-size:100% 100%;
-                    position: absolute;
-                    top: 0;
-                    bottom: 0;
-                    margin: auto;
-                    margin-left:10px;
+              margin: 40px auto 20px;
+              text-align: center;
+              .el-form-item{
+                display: inline-block;
+                .el-form-item__label{
+                  font-size: 20px;
+                }
+                .el-form-item__content{
+                  margin-left: 0;
+                  .el-input{
+                    font-size: 20px;
+                    input{
+                      width: 320px;
+                      height: 50px;
+                      padding-left: 50px;
+                      background: #ffffff;
+                      color: #000000;
+                    }
+                    &.user:before{
+                      content:'';
+                      display:inline-block;
+                      width:25px;
+                      height:25px;
+                      background:url('../assets/image/user.png');
+                      background-size:100% 100%;
+                      position: absolute;
+                      top: 0;
+                      bottom: 0;
+                      margin: auto;
+                      margin-left:10px;
+                    }
+                    &.pass:before{
+                      content:'';
+                      display:inline-block;
+                      width:20px;
+                      height:25px;
+                      background:url('../assets/image/pass.png');
+                      background-size:100% 100%;
+                      position: absolute;
+                      top: 0;
+                      bottom: 0;
+                      margin: auto;
+                      margin-left:10px;
+                    }
                   }
                 }
               }
@@ -229,7 +226,8 @@ export default {
             }
             .btn{
               width: 200px;
-              height: 40px;
+              height: 60px;
+              font-size: 22px;
             }
         }
     }

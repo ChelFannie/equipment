@@ -30,18 +30,18 @@
                         <span slot="title" class="icon-name is-active">管理员登出</span>
                     </span>
                 </el-menu-item>
-                <!-- <el-menu-item :disabled="$store.state.menuDisabled.queryOrder" index="/order-query/query-order" class="flex-item">
-                    <span class="icon-box">
-                        <i class="el-icon-sold-out  i-color"></i>
-                        <span slot="title" class="icon-name is-active">查询</span>
-                    </span>
-                </el-menu-item> -->
-                <el-menu-item index="/order-query/query-order" class="flex-item">
+                <el-menu-item :disabled="$store.state.menuDisabled.queryOrder" index="/order-query/query-order" class="flex-item">
                     <span class="icon-box">
                         <i class="el-icon-sold-out  i-color"></i>
                         <span slot="title" class="icon-name is-active">查询</span>
                     </span>
                 </el-menu-item>
+                <!-- <el-menu-item index="/order-query/query-order" class="flex-item">
+                    <span class="icon-box">
+                        <i class="el-icon-sold-out  i-color"></i>
+                        <span slot="title" class="icon-name is-active">查询</span>
+                    </span>
+                </el-menu-item> -->
                 <el-menu-item index="" class="flex-item last-item" :disabled="$store.state.menuDisabled.quitSystem">
                     <span class="icon-box" @click="exitSystem">
                         <i class="el-icon-sold-out  i-color"></i>
