@@ -4,10 +4,10 @@ class changeBetContext {
     let lotteryType = ''
     switch (val) {
       case '51':
-        lotteryType = '竞彩足球'
+        lotteryType = '足球'
         break
       case '61':
-        lotteryType = '竞彩篮球'
+        lotteryType = '篮球'
         break
       case '01':
         lotteryType = '超级大乐透'

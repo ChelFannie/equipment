@@ -1,7 +1,14 @@
 <template>
   <div class="query-order">
-    <div class="search-condition">
-      <el-form ref="form" label-width="100px" size="mini">
+
+    <div class="count-order">
+      <span class="count-all">审核统计：&nbsp;</span>
+      <span>张数：{{accountData.pages || 0}}张</span>
+      <span>销售总额： {{(accountData.amounts).toFixed(2) || 0}}元</span>
+      <span>奖金： {{(accountData.awardAmounts).toFixed(2) || 0}}元</span>
+      <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
+          <div class="search-condition">
+      <el-form ref="form" labelPosition="left" label-width="85px" size="large">
         <el-form-item label="订单号">
           <el-input v-model="form.serialNumber" maxlength="30"></el-input>
         </el-form-item>
@@ -48,14 +55,14 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="创建时间">
+        <el-form-item label="出票时间" class="creatTime">
           <el-date-picker
             v-model="createDate"
             type="datetimerange"
             range-separator="至"
             start-placeholder="选择开始时间"
             end-placeholder="选择结束时间"
-            :default-time="defaultTime"
+            :default-time="['00:00:00', '23:59:59']"
             format="yyyy-MM-dd HH:mm:ss"
             value-format="yyyy-MM-dd HH:mm:ss">
           </el-date-picker>
@@ -68,7 +75,7 @@
             default-time="00:00:00"
             @change="getTime">
           </el-date-picker>
-          <span> 至 </span>
+          <span>至</span>
           <el-date-picker
             v-model="form.endCreateDate"
             type="datetime"
@@ -79,22 +86,10 @@
             :picker-options="pickerOptions1">
           </el-date-picker> -->
         </el-form-item>
+        <el-button @click="empty" type="success">清空</el-button>
+        <el-button @click="queryOrder" type="primary">查询</el-button>
       </el-form>
-      <el-button @click="queryOrder" type="primary">查询</el-button>
-      <el-button @click="empty" type="primary">清空</el-button>
     </div>
-    <!-- <div class="detail">
-      <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
-      <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span>
-      <span>提交时间：{{submitSettleTime}}</span>
-    </div> -->
-
-    <div class="count-order">
-      <span class="count-all">审核统计：&nbsp;</span>
-      <span>张数：{{accountData.pages || 0}}张</span>
-      <span>销售总额： {{(accountData.amounts).toFixed(2) || 0}}元</span>
-      <span>奖金： {{(accountData.awardAmounts).toFixed(2) || 0}}元</span>
-      <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
     </div>
 
     <el-table
@@ -105,7 +100,7 @@
       border
       style="width: 100%"
       v-loading="loading"
-      element-loading-text="拼命加载中"
+      element-loading-text="拼命加载中..."
       element-loading-spinner="el-icon-loading">
       <el-table-column
         prop="serialNumber"
@@ -152,7 +147,7 @@
         <p class="hoverItem">出票店铺: <span class="substance">{{orderInfo.storeName}}</span></p>
         <p class="hoverItem">最迟出票时间: <span class="substance">{{orderInfo.lastPrintDate}}</span></p>
         <p class="hoverItem">出票时间: <span class="substance">{{orderInfo.uploadTime}}</span></p>
-        <p class="hoverItem">创建时间: <span class="substance">{{orderInfo.createDate}}</span></p>
+        <!-- <p class="hoverItem">创建时间: <span class="substance">{{orderInfo.createDate}}</span></p> -->
       </div>
       <el-table :data="hoverData" border class="noright" style="width: 100%">
         <el-table-column v-for="(item, index) in hoverTableColumn"
@@ -211,7 +206,6 @@ export default {
       ],
       hoverData: [],
       orderInfo: {},
-      statisticData: {},
       accountData: {
         pages: 0,
         amounts: 0,
@@ -273,8 +267,7 @@ export default {
       searchFlag: false,
       // 创建时间
       createDate: [],
-      // 默认时间
-      defaultTime: ['00:00:00', '23:59:59']
+      lastqrInfo: ''
     }
   },
   watch: {
@@ -298,7 +291,7 @@ export default {
       orderList: false,
       accountOrder: false,
       queryOrder: false,
-      uitSystem: false
+      quitSystem: false
     }
     this.$store.commit('setMenuDisabled', setMenuDisabled)
     localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
@@ -341,7 +334,6 @@ export default {
             this.loading = false
             this.submitSettleTime = res.data.submitSettleTime ? res.data.submitSettleTime : '无'
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
-            this.statisticData = res.data.statistic
             let amounts = 0
             let awardAmounts = 0
             res.data.orderList.result.map(val => {
@@ -506,6 +498,14 @@ export default {
               // clearInterval(_this.timer)
               _this.scanTicket = latech.BCRGetTicketInfoFromJS() // eslint-disable-line
               latech.BCRStopScan() // eslint-disable-line
+              if (_this.lastqrInfo === _this.scanTicket) {
+                _this.$message({
+                  type: 'error',
+                  message: '此单已扫码，请扫码新的单据！'
+                })
+              } else {
+                _this.lastqrInfo = _this.scanTicket
+              }
             }
           }, 200)
         }
@@ -525,57 +525,83 @@ export default {
 
 <style lang="less">
 .query-order{
-  .detail{
-    box-sizing: border-box;
-    width: calc(100% - 60px);
-    line-height: 40px;
-    color: #1f2f3d;
-    font-size: 20px;
-    position: fixed;
-    top: 100px;
-    left: 30px;
-    z-index: 998;
-    background: #ffffff;
-    padding: 10px 20px 0;
-    >span{
-      margin-right: 60px;
-    }
-    .btn{
-      float: right;
-    }
-  }
-  .search-condition{
-    .el-form-item{
-      float: left;
-      margin-left: 10px;
-      .el-input{
-        width: 180px!important;
-      }
-    }
-  }
+   margin-top: 145px!important;
   .count-order{
     box-sizing: border-box;
     width: calc(100% - 60px);
-    padding:0 20px 10px;
-    height: 35px;
-    font-size: 16px;
+    padding:15px 20px 5px;
+    font-size: 20px;
     background: #ffffff;
     position: fixed;
-    top: 150px;
+    top: 110px;
     left: 30px;
     z-index: 998;
-    // border-bottom: 1px solid #4dafdb;
+    border-bottom: 1px solid #4dafdb;
     .count-all{
       display: inline-block;
       margin-right: 10px;
     }
-    span{
-      margin-right: 60px;
+    >span{
+      margin-right: 80px;
+    }
+    .search-condition{
+      padding: 15px 0 0;
+      .el-form{
+        overflow: hidden;
+        .el-form-item{
+          // display: inline-block;
+          float: left;
+          margin-bottom: 10px;
+          width: 33.33%;
+          padding-right: 30px;
+          box-sizing: border-box;
+          .el-form-item__label{
+            font-size: 20px;
+            padding: 0;
+          }
+          .el-input{
+            font-size: 20px;
+            .el-input__inner{
+              // width: 100%;
+            }
+          }
+        }
+        .creatTime{
+          width: 60%;
+          overflow: hidden;
+          span{
+            float: left;
+            width: 6%;
+            font-size: 20px;
+            text-align: center;
+          }
+          input { pointer-events: none; }
+          .el-input{
+            float: left;
+            width: 47%;
+          }
+        }
+      }
+      .el-button{
+        float: right;
+        padding: 15px 35px;
+        font-size: 20px;
+        &.el-button--success{
+          margin-left: 50px;
+        }
+      }
     }
   }
   .page{
     margin-top: 15px;
     margin-left: 100px;
+  }
+  .el-pagination{
+    text-align:center;
+    margin:20px 0;
+  }
+  .el-table{
+    font-size: 20px;
   }
   // 禁用的颜色
   .el-table .disabled-row {

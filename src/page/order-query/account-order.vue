@@ -1,20 +1,15 @@
 <template>
   <div class="account-order">
-    <div class="detail">
-      <!-- <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
-      <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span> -->
-      <div class="btn">
-        <el-button type="primary" size="medium" @click="submitToSettle">结算</el-button>
-        <el-button type="success" size="medium" @click="managerLogin">登陆</el-button>
-      </div>
-    </div>
-
     <div class="count-order">
-      <!-- <p class="count-all">结算统计：&nbsp;</p> -->
+      <p class="count-all">结算统计：&nbsp;</p>
       <span>张数：{{accountData.pages || 0}}张</span>
       <span>销售总额： {{(accountData.amounts).toFixed(2) || 0}}元</span>
       <span>奖金： {{(accountData.awardAmounts).toFixed(2) || 0}}元</span>
       <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
+      <div class="btn">
+        <el-button type="success" size="medium" @click="managerLogin">登陆</el-button>
+        <el-button type="primary" size="medium" @click="submitToSettle">结算</el-button>
+      </div>
     </div>
 
     <el-table
@@ -553,41 +548,34 @@ export default {
 
 <style lang="less">
 .account-order{
-  .detail{
-    box-sizing: border-box;
-    width: calc(100% - 60px);
-    line-height: 40px;
-    color: #1f2f3d;
-    font-size: 20px;
-    position: fixed;
-    top: 100px;
-    left: 30px;
-    z-index: 998;
-    background: #ffffff;
-    padding: 10px 20px 0;
-    >span{
-      display: inline-block;
-      width: 250px;
-    }
-    .btn{
-      float: right;
-    }
-  }
   .count-order{
     box-sizing: border-box;
     width: calc(100% - 60px);
-    padding:0 20px 10px;
-    height: 35px;
-    font-size: 16px;
+    height: 80px;
+    line-height: 50px;
+    font-size: 18px;
     background: #ffffff;
     position: fixed;
-    top: 150px;
+    top: 110px;
     left: 30px;
     z-index: 998;
     border-bottom: 1px solid #4dafdb;
-    span{
+    padding: 20px 20px 10px;
+    .count-all{
       display: inline-block;
-      width: 250px;
+      margin: 0;
+    }
+    >span{
+      display: inline-block;
+      width: 180px;
+    }
+    .btn{
+      float: right;
+      .el-button--medium{
+        padding: 15px 40px;
+        font-size: 18px;
+        border-radius: 10px;
+      }
     }
   }
   .page{

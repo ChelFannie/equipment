@@ -125,7 +125,7 @@
       </el-table>
       <div class="btn-box">
         <div v-if="printFlag===1">
-          <el-button class="submit-btn" type="primary" size="medium" @click="submitRealTicket" :disabled="confirmDisabled">出票完成</el-button>
+          <el-button class="submit-btn" type="primary" size="medium" @click="submitRealTicket" :disabled="confirmDisabled" v-loading="confirmDisabled">出票完成</el-button>
           <el-button type="danger" size="medium" @click="limitSale(orderInfo.ticketInfoNumber)">限售</el-button>
         </div>
       </div>
@@ -144,7 +144,7 @@
       <p class="tip">确认后将推送到客户，并且不能修改！</p>
       <p class="edit-content">赔率数据异常有：<span>{{validateOdds}}</span></p>
       <span slot="footer" class="dialog-footer">
-        <el-button size="medium" type="primary" @click.stop="confirmSumbit">确 定</el-button>
+        <el-button size="medium" type="primary" @click.stop="confirmSumbit" :disabled="sumbitDisabled" v-loading="sumbitDisabled">确 定</el-button>
         <el-button size="medium" @click.stop="cancelSumbit">取 消</el-button>
       </span>
     </el-dialog>
@@ -163,7 +163,7 @@
       <p>是否确定限售此票？</p>
       <span>系统票号：{{limitSaleData.ticketInfoNumber}}</span>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="confirmLimitSale" :disabled="limitSaleData.limitDisabled">确 定</el-button>
+        <el-button type="primary" @click="confirmLimitSale" :disabled="limitSaleData.limitDisabled" v-loading="limitSaleData.limitDisabled">确 定</el-button>
         <el-button @click="cancelLimitSale">取 消</el-button>
       </span>
     </el-dialog>
@@ -231,13 +231,16 @@ export default {
       Mask: false,
       enlargeImg: false,
       spans: [],
-      // 倒计时时间
+      // 倒计时时间2
       reaminingTime: 0,
       // 出票状态
       printFlag: null,
       // 落地票号
       realTicketNumber: '',
+      // 是否确认提交
       confirmFlag: false,
+      // 是否确认提交禁用
+      sumbitDisabled: false,
       showClose: false,
       // 后端返回的异常赔率值
       validateOdds: '',
@@ -272,7 +275,7 @@ export default {
   },
   watch: {
     '$store.state.activeIndex' (val) {
-      console.log('点击获取到路由')
+      // console.log('点击获取到路由')
       this.getSpaceSize()
       if (this.spaceFlag) {
         this.$store.commit('setActiveIndex', '')
@@ -304,10 +307,14 @@ export default {
     reaminingTime (val) {
       if (val === 0) {
         this.$nextTick(() => {
-          // console.log('倒计为0')
+          console.log('倒计为0')
           this.reaminingTime = 0
           this.openTimerId = false
           clearInterval(this.timerId)
+          this.showOutPopover = false
+          this.confirmFlag = false
+          this.sumbitDisabled = false
+          this.confirmDisabled = false
         })
         this.getData()
         this.exitNoOutTicketFlag = false
@@ -322,7 +329,7 @@ export default {
         this.$store.commit('setMenuDisabled', setMenuDisabled)
         localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
       } else if (val > 0) {
-        // console.log('重新开启')
+        // console.log('开启定时器')
         this.openTimerId = true
       }
     },
@@ -338,7 +345,7 @@ export default {
     },
     tableData (val) {
       if (this.tableDataLen !== val.length && val.length === 0 && this.reaminingTime >= 0) {
-        // console.log('扫码完成')
+        console.log('扫码完成')
         this.$nextTick(() => {
           this.reaminingTime = 0
           this.openTimerId = false
@@ -450,7 +457,9 @@ export default {
               localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
               console.log(res.data.reaminingTime, '存在票，倒计时')
               // 暂定解决前后台倒计时差异为1秒
-              this.reaminingTime = Math.ceil((res.data.reaminingTime + 1000) / 1000)
+              if (res.data.reaminingTime > 0) {
+                this.reaminingTime = Math.ceil((res.data.reaminingTime + 1000) / 1000)
+              }
               res.data.orderList.result.map(val => {
                 val.lotteryType = ChangeBetContext.lotteryType(val.lotteryType)
                 val.printFlagWord = ChangeBetContext.printFlag(val.printFlag)
@@ -821,7 +830,6 @@ export default {
             if (item.subPlayType === '61') {
               objMix['score'] = item.score
             }
-            // item.subPlayType === '64' ? objMix['totalScore'] = item.score : objMix['score'] = item.score
           }
           obj[item.matchUniqueId] = objMix
         } else {
@@ -862,7 +870,7 @@ export default {
           } else {
             this.$message({
               type: 'error',
-              message: res.msg || '提交失败！'
+              message: res.msg
             })
           }
           this.confirmDisabled = false
@@ -870,26 +878,21 @@ export default {
     },
     cancelSumbit () {
       this.confirmFlag = false
+      this.showOutPopover = true
     },
     // 提交数据，出票完成
     confirmSumbit () {
-      this.confirmFlag = false
-      // this.fullscreenLoading = true
-      this.showOutPopover = false
+      this.sumbitDisabled = true
       let params = {
         ticketInfoNumber: this.ticketInfoNumber,
         qrInfo: this.realTicketNumber,
         betContextOdds: JSON.stringify(this.betContextOdds),
         printResult: this.imgStr
       }
+      console.log(params, '出票参数')
       req('editTicket', params)
         .then(res => {
           if (res.code === '00000') {
-            this.$message({
-              type: 'success',
-              message: '出票成功'
-            })
-            // this.reaminingTime = 0
             try {
               latech.saveImageFromJS(this.ticketInfoNumber, this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
             } catch (error) {
@@ -901,16 +904,30 @@ export default {
               }
             })
             this.getData()
+            this.$message({
+              type: 'success',
+              message: '出票成功'
+            })
             this.confirmFlag = false
             this.showOutPopover = false
+            this.sumbitDisabled = false
+          } else if (res.code === '20041') {
+            this.$message({
+              type: 'error',
+              message: '此票已读票成功，请更换票据读票！'
+            })
+            this.confirmFlag = true
+            this.showOutPopover = true
+            this.sumbitDisabled = false
           } else {
             this.$message({
               type: 'error',
               message: res.msg
             })
+            this.confirmFlag = true
             this.showOutPopover = true
+            this.sumbitDisabled = false
           }
-          // this.fullscreenLoading = false
         })
     },
     // 取消限售
@@ -923,6 +940,12 @@ export default {
       req('limitSale', {'ticketInfoNumber': this.limitSaleData.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
+            this.tableData.map((item, index) => {
+              if (item.serialNumber === this.orderInfo.serialNumber) {
+                this.$delete(this.tableData, index)
+                this.getData()
+              }
+            })
             this.limitSaleData.limitSaleFlag = false
             this.limitSaleData.limitDisabled = false
             this.showOutPopover = false
@@ -930,18 +953,14 @@ export default {
               type: 'success',
               message: '限售成功'
             })
-            this.tableData.map((item, index) => {
-              if (item.serialNumber === this.orderInfo.serialNumber) {
-                this.$delete(this.tableData, index)
-                this.getData()
-              }
-            })
-            // this.getData()
           } else {
             this.$message({
               type: 'error',
               message: res.msg
             })
+            this.limitSaleData.limitSaleFlag = true
+            this.limitSaleData.limitDisabled = false
+            this.showOutPopover = true
           }
         })
     },

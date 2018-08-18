@@ -131,7 +131,8 @@ export default {
       enlargeImg: false,
       serialNumbersArr: [],
       loading: false,
-      winHeight: 0
+      winHeight: 0,
+      lastqrInfo: ''
     }
   },
   watch: {
@@ -399,6 +400,14 @@ export default {
               // clearInterval(_this.timer)
               _this.scanTicket = latech.BCRGetTicketInfoFromJS() // eslint-disable-line
               latech.BCRStopScan() // eslint-disable-line
+              if (_this.lastqrInfo === _this.scanTicket) {
+                _this.$message({
+                  type: 'error',
+                  message: '此单已扫码，请扫码新的单据！'
+                })
+              } else {
+                _this.lastqrInfo = _this.scanTicket
+              }
             }
           }, 200)
         }

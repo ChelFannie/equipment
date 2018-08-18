@@ -18,7 +18,13 @@
                         <span slot="title" class="icon-name">获取订单</span>
                     </span>
                 </el-menu-item>
-                <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
+                <!-- <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
+                    <span class="icon-box">
+                        <i class="el-icon-printer i-color"></i>
+                        <span slot="title" class="icon-name">订单结算</span>
+                    </span>
+                </el-menu-item> -->
+                <el-menu-item index="/order-query/examine-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
                     <span class="icon-box">
                         <i class="el-icon-printer i-color"></i>
                         <span slot="title" class="icon-name">订单结算</span>
@@ -27,25 +33,25 @@
                 <el-menu-item index="" class="flex-item"  v-if="$store.state.activeIndex==='/order-query/examine-order'">
                     <span class="icon-box" @click="quit">
                         <i class="el-icon-sold-out  i-color"></i>
-                        <span slot="title" class="icon-name is-active">管理员登出</span>
+                        <span slot="title" class="icon-name">管理员登出</span>
                     </span>
                 </el-menu-item>
-                <el-menu-item :disabled="$store.state.menuDisabled.queryOrder" index="/order-query/query-order" class="flex-item">
+                <!-- <el-menu-item :disabled="$store.state.menuDisabled.queryOrder" index="/order-query/query-order" class="flex-item">
                     <span class="icon-box">
                         <i class="el-icon-sold-out  i-color"></i>
-                        <span slot="title" class="icon-name is-active">查询</span>
-                    </span>
-                </el-menu-item>
-                <!-- <el-menu-item index="/order-query/query-order" class="flex-item">
-                    <span class="icon-box">
-                        <i class="el-icon-sold-out  i-color"></i>
-                        <span slot="title" class="icon-name is-active">查询</span>
+                        <span slot="title" class="icon-name">查询</span>
                     </span>
                 </el-menu-item> -->
-                <el-menu-item index="" class="flex-item last-item" :disabled="$store.state.menuDisabled.quitSystem">
-                    <span class="icon-box" @click="exitSystem">
+                <el-menu-item index="/order-query/query-order" class="flex-item">
+                    <span class="icon-box">
                         <i class="el-icon-sold-out  i-color"></i>
-                        <span slot="title" class="icon-name is-active">退出系统</span>
+                        <span slot="title" class="icon-name">查询</span>
+                    </span>
+                </el-menu-item>
+                <el-menu-item index="quitSystem" class="flex-item last-item" :disabled="$store.state.menuDisabled.quitSystem">
+                    <span class="icon-box">
+                        <i class="el-icon-sold-out  i-color"></i>
+                        <span slot="title" class="icon-name">退出系统</span>
                     </span>
                 </el-menu-item>
             </el-menu>
@@ -133,7 +139,8 @@ export default {
       this.activeIndex = index
       this.$store.commit('setActiveIndex', index)
       localStorage.setItem('setActiveIndex', index)
-      if (index === '/order-query/account-order') {
+      // if (index === '/order-query/account-order') {
+      if (index === '/order-query/examine-order') {
         this.managerDialogVisible = true
         this.validateCode = loginValidate.createCode()
         this.managerForm = {
@@ -141,6 +148,11 @@ export default {
           password: '',
           inputCode: ''
         }
+        return
+      } else if (index === 'quitSystem') {
+        sessionStorage.removeItem('token')
+        this.$store.commit('token', '')
+        this.$router.push({name: '登录'})
         return
       }
       this.$router.push({path: index})
@@ -248,7 +260,7 @@ export default {
     overflow: hidden;
     .top{
         width: 100%;
-        height: 100px;
+        height: 110px;
         position: relative;
         z-index: 999;
         box-sizing: border-box;
@@ -257,14 +269,14 @@ export default {
         display: flex;
         .top-left{
             display: inline-block;
-            font-size: 16px;
+            font-size: 20px;
             color: #fff;
             background: #228fbd;
             padding: 20px 30px;
             position: relative;
             p{
                 margin: 0;
-                line-height: 30px;
+                line-height: 35px;
                 vertical-align: middle;
                 white-space: nowrap;
                 max-width: 400px;
@@ -276,7 +288,7 @@ export default {
             display: inline-block;
             content: "";
             width: 15px;
-            height: 100px;
+            height: 110px;
             background:#2d97c5;
             position: absolute;
             right: 0;
@@ -291,8 +303,8 @@ export default {
                 background: transparent;
                 .flex-item{
                     width: 110px;
-                    height: 90px;
-                    line-height: 90px;
+                    height: 100px;
+                    line-height: 100px;
                     text-align: center;
                     padding: 0!important;
                     letter-spacing: 3px;
@@ -300,7 +312,7 @@ export default {
                     border-radius: 10px;
                     margin: 5px 10px;
                     // box-shadow: 0 0 10px 10px rgba(255,  255, 255, .6) inset;
-                    border: 1px solid #ffffff;
+                    border: 3px solid hsl(0, 0%, 100%);
                     .icon-box{
                         display: inline-block;
                         line-height: normal;
@@ -309,13 +321,13 @@ export default {
                             display: block;
                             text-align: center;
                             width: 100%;
-                            font-size: 32px;
+                            font-size: 36px;
                             margin-bottom: 15px;
                             color: #ffffff;
                         }
                         .icon-name{
                             display: inline-block;
-                            font-size: 16px;
+                            font-size: 20px;
                             color: #fff;
                         }
                     }
@@ -324,15 +336,18 @@ export default {
                         outline: none;
                         background: #4dafdb;
                     }
+                    &.is-active{
+                        background: #56718F!important;
+                    }
                 }
                 .last-item{
                     position: absolute;
-                    right: 200px;
+                    right: 220px;
                 }
             }
         }
         .logo{
-            width: 180px;
+            width: 200px;
             position: absolute;
             right: 30px;
             top: 0;
@@ -369,6 +384,47 @@ export default {
             background: #f4f4f4;
         }
     }
+    .login{
+      font-size: 20px!important;
+      .el-dialog__header{
+        .el-dialog__title{
+        background: blue!important;
+        padding: 20px 0 0!important;
+        font-size: 50px!important;
+        }
+      }
+      .el-dialog__body{
+        text-align: center;
+        .el-form-item__label{
+          display: inline-block;
+          float: none;
+        }
+        .el-form-item__content{
+          width: 300px!important;
+          display: inline-block;
+          margin: 0!important;
+          margin-left: 0!important;
+          .code{
+            width: 180px!important;
+            margin-right: 20px;
+          }
+          .managerLogin-right{
+            text-align: center;
+            float: right;
+            width: 100px;
+            height: 40px;
+            line-height: 40px;
+            background: #409EFF;
+            color: #fff;
+            letter-spacing: 6px;
+            cursor:pointer;
+          }
+        }
+        .el-button+.el-button {
+          margin-left: 50px;
+        }
+      }
+    }
     .el-menu-item.is-active{
         background-color: rgba(255,  255, 255, .5) !important;
         // color: #333333 !important;
@@ -376,41 +432,10 @@ export default {
         //     color: #909399!important;
         // }
     }
-  .login{
-    .el-dialog__header{
-      padding: 20px 0 0;
+    .el-dialog__title{
+        background: blue!important;
+        padding: 20px 0 0!important;
+        font-size: 30px!important;
     }
-    .el-dialog__body{
-      text-align: center;
-      .el-form-item__label{
-        display: inline-block;
-        float: none;
-      }
-      .el-form-item__content{
-        width: 300px!important;
-        display: inline-block;
-        margin: 0!important;
-        margin-left: 0!important;
-        .code{
-          width: 180px!important;
-          margin-right: 20px;
-        }
-        .managerLogin-right{
-          text-align: center;
-          float: right;
-          width: 100px;
-          height: 40px;
-          line-height: 40px;
-          background: #409EFF;
-          color: #fff;
-          letter-spacing: 6px;
-          cursor:pointer;
-        }
-      }
-      .el-button+.el-button {
-        margin-left: 50px;
-      }
-    }
-  }
 }
 </style>
