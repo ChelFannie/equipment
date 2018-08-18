@@ -305,9 +305,10 @@ export default {
       }
     },
     reaminingTime (val) {
+      // console.log(val)
       if (val === 0) {
         this.$nextTick(() => {
-          console.log('倒计为0')
+          // console.log('倒计为0')
           this.reaminingTime = 0
           this.openTimerId = false
           clearInterval(this.timerId)
@@ -507,8 +508,14 @@ export default {
             } else {
               // 不存在票
               console.log('不存在票')
+              this.$message({
+                type: 'warning',
+                message: '当前无票！'
+              })
               this.exitNoOutTicketFlag = false
               this.reaminingTime = res.data.reaminingTime ? Math.ceil(res.data.reaminingTime) : 0
+              this.$store.commit('setActiveIndex', '')
+              localStorage.setItem('setActiveIndex', '')
               this.tableData = res.data.orderList.result
               this.totalCount = res.data.orderList.totalCount
               let setMenuDisabled = {
@@ -738,6 +745,7 @@ export default {
               //  获取图片
               _this.imgStr = latech.ScannerGetOriginImage(size) // eslint-disable-line
               _this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
+              console.log(_this.realTicketNumber, 55555)
               //  退票
               latech.ScannerRollBackFromJS() // eslint-disable-line
               _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
@@ -804,6 +812,15 @@ export default {
     },
     // 检验是否有赔率异常
     submitRealTicket () {
+      console.log()
+      if (!(this.realTicketNumber.length === 29 && this.realTicketNumber.split(' ')[0].length === 20 && this.realTicketNumber.split(' ')[1].length === 8)) {
+        this.$message({
+          type: 'error',
+          message: '请投入正确票单！'
+        })
+        this.realTicketNumber = ''
+        return
+      }
       // 必须读票后，获取到图片和落地票号才能提交
       if (!this.realTicketNumber || !this.imgStr) {
         this.$message({
@@ -889,7 +906,6 @@ export default {
         betContextOdds: JSON.stringify(this.betContextOdds),
         printResult: this.imgStr
       }
-      console.log(params, '出票参数')
       req('editTicket', params)
         .then(res => {
           if (res.code === '00000') {

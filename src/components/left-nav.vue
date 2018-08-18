@@ -36,18 +36,18 @@
                         <span slot="title" class="icon-name">管理员登出</span>
                     </span>
                 </el-menu-item>
-                <!-- <el-menu-item :disabled="$store.state.menuDisabled.queryOrder" index="/order-query/query-order" class="flex-item">
-                    <span class="icon-box">
-                        <i class="el-icon-sold-out  i-color"></i>
-                        <span slot="title" class="icon-name">查询</span>
-                    </span>
-                </el-menu-item> -->
-                <el-menu-item index="/order-query/query-order" class="flex-item">
+                <el-menu-item :disabled="$store.state.menuDisabled.queryOrder" index="/order-query/query-order" class="flex-item">
                     <span class="icon-box">
                         <i class="el-icon-sold-out  i-color"></i>
                         <span slot="title" class="icon-name">查询</span>
                     </span>
                 </el-menu-item>
+                <!-- <el-menu-item index="/order-query/query-order" class="flex-item">
+                    <span class="icon-box">
+                        <i class="el-icon-sold-out  i-color"></i>
+                        <span slot="title" class="icon-name">查询</span>
+                    </span>
+                </el-menu-item> -->
                 <el-menu-item index="quitSystem" class="flex-item last-item" :disabled="$store.state.menuDisabled.quitSystem">
                     <span class="icon-box">
                         <i class="el-icon-sold-out  i-color"></i>
@@ -193,7 +193,7 @@ export default {
           return
         }
         this.validate()
-        this.validateFlag = true
+        // this.validateFlag = true
         if (this.validateFlag) {
           let form = {
             userAccount: this.managerForm.userAccount,
@@ -201,13 +201,13 @@ export default {
           }
           req1('toggleLogin', form).then(res => {
             if (res.code === '00000') {
+              this.managerDialogVisible = false
               sessionStorage.setItem('lastToken', sessionStorage.getItem('token'))
               sessionStorage.setItem('token', res.data.token)
               this.$store.commit('token', res.data.token)
               this.$store.commit('setActiveIndex', '/order-query/examine-order')
               localStorage.setItem('setActiveIndex', '/order-query/examine-order')
               this.$router.push({name: '审核订单'})
-              this.managerDialogVisible = false
               this.$message({
                 message: res.msg,
                 type: 'success'

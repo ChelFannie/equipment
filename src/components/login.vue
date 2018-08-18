@@ -22,14 +22,14 @@
               <div class="btnbox">
                 <el-button class="leftBtn" type="warning"  @click="statusCheck">设备检测</el-button>
                 <div class="rightBtn">
-                  <div class="success">
+                  <div class="success" v-if="statusCheckFlag">
                     <span>设备检测成功</span>
                     <i class="el-icon-success"></i>
                   </div>
-                  <!-- <div class="danger">
+                  <div class="danger" v-if="!statusCheckFlag">
                     <span>请检测设备</span>
                     <i class="el-icon-warning"></i>
-                  </div> -->
+                  </div>
                 </div>
               </div>
               <el-button type="primary" size="medium" class="btn" @click="login">登录</el-button>
@@ -66,7 +66,7 @@ export default {
         })
         return
       }
-      this.statusCheckFlag = true
+      // this.statusCheckFlag = true
       if (this.statusCheckFlag) {
         req('login', this.form).then(res => {
           if (res.code === '00000') {
@@ -117,13 +117,13 @@ export default {
         this.printTicket(this.QRcode)
         this.readTicket()
       } catch (error) {
-        console.log('自检')
+        console.log(error)
       }
     },
     // 打印机
     printTicket (QRcode) {
       // let printStatus = latech.printStatusFromJS() // eslint-disable-line
-      // console.log(1, printStatus)
+      // console.log(3, printStatus)
       console.log(QRcode)
       latech.printSampleBMPFromJS(QRcode) // eslint-disable-line
     },
@@ -139,7 +139,15 @@ export default {
               let realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
               //  退票
               latech.ScannerRollBackFromJS() // eslint-disable-line
-              _this.QRcode === realTicketNumber ? (_this.statusCheckFlag = true) : (_this.statusCheckFlag = false)
+              if (_this.QRcode === realTicketNumber) {
+                _this.statusCheckFlag = true
+              } else {
+                _this.statusCheckFlag = false
+                _this.$message({
+                  type: 'error',
+                  message: '请投入正确的设备检测码'
+                })
+              }
             }
           }, 200)
         } else {

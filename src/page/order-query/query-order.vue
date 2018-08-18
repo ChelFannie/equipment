@@ -7,7 +7,7 @@
       <span>销售总额： {{(accountData.amounts).toFixed(2) || 0}}元</span>
       <span>奖金： {{(accountData.awardAmounts).toFixed(2) || 0}}元</span>
       <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
-          <div class="search-condition">
+      <div class="search-condition" ref="countOrder">
       <el-form ref="form" labelPosition="left" label-width="85px" size="large">
         <el-form-item label="订单号">
           <el-input v-model="form.serialNumber" maxlength="30"></el-input>
@@ -93,7 +93,7 @@
     </div>
 
     <el-table
-      height="350"
+      :height="winHeight"
       ref="multipleTable"
       :data="tableData"
       tooltip-effect="dark"
@@ -229,8 +229,8 @@ export default {
         printFlag: '',
         awardFlag: '',
         settleStatus: '',
-        beginCreateDate: '',
-        endCreateDate: ''
+        beginUploadTime: '',
+        endUploadTime: ''
       },
       // 彩种
       subPlayTypeSelect: [
@@ -267,7 +267,9 @@ export default {
       searchFlag: false,
       // 创建时间
       createDate: [],
-      lastqrInfo: ''
+      lastqrInfo: '',
+      // 屏幕高度
+      winHeight: 0
     }
   },
   watch: {
@@ -279,8 +281,8 @@ export default {
       })
     },
     createDate (val) {
-      this.form.beginCreateDate = val[0]
-      this.form.endCreateDate = val[1]
+      this.form.beginUploadTime = val[0]
+      this.form.endUploadTime = val[1]
     }
   },
   created () {
@@ -301,6 +303,10 @@ export default {
     })
   },
   mounted () {
+    this.$nextTick(() => {
+      this.winHeight = localStorage.getItem('winHeight') - 250 - this.$refs.countOrder.offsetHeight
+    })
+    console.log(1, this.winHeight)
     try {
       this.scan()
     } catch (error) {
@@ -343,13 +349,16 @@ export default {
               val.settleStatusWord = ChangeBetContext.settleStatus(val.changeSettleStatus)
               val.printFlagWord = ChangeBetContext.printFlag(val.printFlag)
               val.amount = val.amount / 100
-              val.awardAmount = val.awardAmount / 100
+              // val.awardAmount = val.awardAmount / 100
+              val.calAwardAmount = val.calAwardAmount / 100
               val.awardFlagWord = val.awardFlag === 1 ? '已中奖' : '未中奖'
               val.amountWord = (val.amount).toFixed(2)
-              val.awardAmountWord = (val.awardAmount).toFixed(2)
+              // val.awardAmountWord = (val.awardAmount).toFixed(2)
+              val.awardAmountWord = (val.calAwardAmount).toFixed(2)
               val.flag = false
               amounts += val.amount
-              awardAmounts += val.awardAmount
+              // awardAmounts += val.awardAmount
+              awardAmounts += val.calAwardAmount
               val.typeWords = `${val.lotteryTypeWord}${val.subPlayTypeWord}`
             })
             this.tableData = res.data.orderList.result

@@ -273,6 +273,7 @@ export default {
             this.loading = false
             this.submitSettleTime = res.data.submitSettleTime ? res.data.submitSettleTime : '无'
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
+            console.log(this.accountData.rebatePoint, '比列')
             this.statisticData = res.data.statistic
             let amounts = 0
             let awardAmounts = 0
@@ -282,12 +283,15 @@ export default {
               val.subPlayTypeWord = ChangeBetContext.subPlayType(val.subPlayType)
               val.settleStatusWord = ChangeBetContext.settleStatus(val.changeSettleStatus)
               val.amount = val.amount / 100
-              val.awardAmount = val.awardAmount / 100
+              // val.awardAmount = val.awardAmount / 100
+              val.calAwardAmount = val.calAwardAmount / 100
               val.amountWord = (val.amount).toFixed(2)
-              val.awardAmountWord = (val.awardAmount).toFixed(2)
+              // val.awardAmountWord = (val.awardAmount).toFixed(2)
+              val.awardAmountWord = (val.calAwardAmount).toFixed(2)
               val.flag = false
               amounts += val.amount
-              awardAmounts += val.awardAmount
+              // awardAmounts += val.awardAmount
+              awardAmounts += val.calAwardAmount
             })
             this.tableData = res.data.orderList.result
             this.totalCount = res.data.orderList.totalCount
