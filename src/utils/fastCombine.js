@@ -1214,8 +1214,6 @@ function getCalculate(objData, bunch){
         obj['v'] = v
         dataObj[val.matchUniqueId] = obj
     })
-    // console.log(dataObj, 3333333333)
-    let price = computePrice(dataObj, bunch)
    return {
     zhu: computeZHu(dataObj, bunch),
     price: computePrice(dataObj, bunch)

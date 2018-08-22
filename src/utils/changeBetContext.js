@@ -425,16 +425,18 @@ class changeBetContext {
             singleMax = numVal > singleMax ? numVal : singleMax
           }
         })
-        // maxMoney += singleMax
-        maxMoney += singleMax * multiple * 2
-        // console.log(maxMoney, 222)
+        // maxMoney += singleMax * multiple * 2
+        maxMoney += singleMax * 2
       })
     })
+    // return maxMoney
+    maxMoney = changeBetContext.evenRound(changeBetContext.evenRound(maxMoney, 2) * multiple, 2)
     return maxMoney
   }
 
   // 得到过关方式最高奖金
-  static getPassMaxMoney (calcData) {
+  static getPassMaxMoney (calcData, eddOddsFlag) {
+    // console.log(calcData)
     let obj = {
       lotteryType: calcData.orderInfo.lotteryType,
       subPlayType: calcData.orderInfo.subPlayType,
@@ -448,9 +450,14 @@ class changeBetContext {
         item.type = changeBetContext.subPlayTypeToType(item.subPlayType)
       }
       item.selectData.map(ele => {
-        for (let keys in ele) {
-          ele.val = ele[keys]
-          ele.key = changeBetContext.bet(item.subPlayType, keys)
+        // if (ele.key) { // 点击修改
+        if (eddOddsFlag) { // 点击修改
+          ele.val = ele.odds
+        } else { // 第一次点击
+          for (let keys in ele) {
+            ele.val = ele[keys]
+            ele.key = changeBetContext.bet(item.subPlayType, keys)
+          }
         }
       })
     })
@@ -470,14 +477,46 @@ class changeBetContext {
     if (calcData.orderInfo.subPlayType === '59' || calcData.orderInfo.subPlayType === '69') {
       dataInfo = hunheComputeHunhe(obj, betTypeArr)
     } else {
+      // console.log(obj, 'obj')
+      // console.log(betTypeArr, 'betTypeArr')
       dataInfo = getCalculate(obj, betTypeArr)
     }
-    // console.log(dataInfo)
+    console.log(dataInfo)
     // 注数
     // let zhushu = dataInfo.zhu
     // 投注金额
     // maxMoney = zhushu * calcData.orderInfo.multiple * 2
     return dataInfo
+  }
+
+  // 四舌五入六成双算法
+  static evenRound (num, decimalPlaces) {
+    let d = decimalPlaces || 0
+    let m = Math.pow(10, d)
+    let n = +(d ? num * m : num).toFixed(8) // Avoid rounding errors
+    let i = Math.floor(n)
+    let f = n - i
+    // let i = Math.floor(n),
+    //   f = n - i
+    let e = 1e-8 // Allow for rounding errors in f
+    let r = (f > 0.5 - e && f < 0.5 + e) ? ((i % 2 === 0) ? i : i + 1) : Math.round(n)
+    return d ? r / m : r
+  }
+
+  // 自动补零
+  static returnFloat (maxMoney) {
+    let floatMaxMoney = 0
+    if (maxMoney.toString().split('.').length) {
+      if (maxMoney.toString().split('.')[1].length === 1) {
+        floatMaxMoney = `${maxMoney}0`
+      } else {
+        floatMaxMoney = maxMoney
+      }
+    } else if (maxMoney.indexof('.') === -1) {
+      console.log(2222222)
+      floatMaxMoney = `${maxMoney}.00`
+    }
+    return floatMaxMoney
   }
 }
 

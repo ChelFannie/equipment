@@ -24,10 +24,11 @@
         prop="serialNumber"
         label="系统编号"
         min-width="190"
-        align="center">
-        <template slot-scope="outScope">
+        align="center"
+        @row-click="getOutPopover">
+        <!-- <template slot-scope="outScope">
           <el-button @click="getOutPopover(outScope.row)" :disabled="outScope.row.flag">{{ outScope.row.serialNumber }}</el-button>
-        </template>
+        </template> -->
       </el-table-column>
       <el-table-column v-for="(item, index) in tableColumn"
         :key="index"
@@ -45,17 +46,17 @@
       id="outPopover"
       title="订单详情">
       <div class="hoverContent">
-        <el-row :gutter="20">
-          <el-col :span="12">出票店铺：<div class="grid-content">{{orderInfo.storeName}}</div></el-col>
-          <el-col :span="12">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber}}</div></el-col>
+        <el-row :gutter="10">
+          <el-col :span="16">出票店铺：<div class="grid-content">{{orderInfo.storeName}}</div></el-col>
+          <el-col :span="8">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
         </el-row>
-        <el-row :gutter="20">
+        <el-row :gutter="10">
+          <el-col :span="16">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber}}</div></el-col>
+          <el-col :span="8">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
+        </el-row>
+        <el-row :gutter="10">
           <el-col :span="12">出票时间：<div class="grid-content">{{orderInfo.uploadTime}}</div></el-col>
           <el-col :span="12">最迟出票时间：<div class="grid-content">{{orderInfo.lastPrintDate}}</div></el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="12">预计奖金：<div class="grid-content">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
         </el-row>
         <el-row class="tip" :gutter="20">
           <el-col :span="8">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
@@ -73,7 +74,8 @@
         </el-table-column>
         <el-table-column prop="assumption" label="投注项" width="240" align="center">
           <template slot-scope="scope">
-            <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span>
+            <!-- <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span> -->
+            <span>{{scope.row.subPlayTypeWord}}</span>
             <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}&nbsp;({{item1.odds}})]</span>
           </template>
         </el-table-column>
@@ -100,6 +102,7 @@ export default {
   data () {
     return {
       tableColumn: [
+        {prop: 'serialNumber', label: '系统编号', 'min-width': '230'},
         {prop: 'typeWords', label: '彩种类型', 'min-width': '100'},
         {prop: 'multiple', label: '倍数', 'min-width': '50'},
         {prop: 'amountWord', label: '金额', 'min-width': '100'},
@@ -138,7 +141,8 @@ export default {
       serialNumbersArr: [],
       loading: false,
       winHeight: 0,
-      lastqrInfo: ''
+      lastqrInfo: '',
+      ticketInfoNumber: ''
     }
   },
   watch: {
@@ -319,7 +323,10 @@ export default {
       return ''
     },
     // 获取订单信息
-    getOutPopover (rows) {
+    getOutPopover (rows, event, column) {
+      this.orderInfo = {}
+      this.hoverData = []
+      this.ticketInfoNumber = ''
       this.tableData.map(item => {
         if (item.serialNumber === rows.serialNumber) {
           this.$set(item, 'flag', true)
@@ -353,15 +360,18 @@ export default {
           if (res.code === '00000') {
             // 计算最高奖金
             let maxMoney = 0
-            let calcData = JSON.parse(JSON.stringify(res.data))
-            if (calcData.orderInfo.betType === 'single') {
-              maxMoney = Math.ceil(ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple))
-              // console.log(maxMoney)
-            } else {
-              let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-              // console.log(dataInfo)
-              maxMoney = Math.ceil(dataInfo.price * calcData.orderInfo.multiple)
-              // console.log(maxMoney)
+            try {
+              let calcData = JSON.parse(JSON.stringify(res.data))
+              if (calcData.orderInfo.betType === 'single') {
+                maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
+                // console.log(maxMoney)
+              } else {
+                let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
+                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
+                // console.log(maxMoney)
+              }
+            } catch (error) {
+              console.log(error)
             }
             // 获取信息
             let orderInfo = res.data.orderInfo

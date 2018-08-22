@@ -30,14 +30,15 @@
       class="orderlist-table"
       v-loading="loading"
       element-loading-text="拼命加载中..."
-      element-loading-spinner="el-icon-loading">
+      element-loading-spinner="el-icon-loading"
+      @row-click="getOutPopover">
       <el-table-column
         prop="sequenceNumber"
         label="序号"
         min-width="40"
         align="center">
       </el-table-column>
-      <el-table-column
+      <!-- <el-table-column
         prop="serialNumber"
         label="系统编号"
         min-width="200"
@@ -45,7 +46,7 @@
         <template slot-scope="outScope">
           <el-button @click="getOutPopover(outScope.row)" :disabled="outScope.row.flag">{{ outScope.row.serialNumber }}</el-button>
         </template>
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column v-for="(item, index) in tableColumn"
         :key="index"
         :prop="item.prop"
@@ -57,28 +58,26 @@
 
     <el-dialog
       :visible.sync="showOutPopover"
-      width="60%"
+      width="75%"
       center
       class="orderNum-popover"
       id="outPopover"
       title="订单详情">
       <div class="hoverContent">
-        <el-row :gutter="20">
-          <el-col :span="12">出票店铺：<div class="grid-content">{{orderInfo.storeName}}</div></el-col>
+        <el-row :gutter="10">
+          <el-col :span="12">订单号：<div class="grid-content">OR2018082184601132868960259</div></el-col>
           <el-col :span="12">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber}}</div></el-col>
         </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">出票时间：<div class="grid-content">{{orderInfo.uploadTime}}</div></el-col>
-          <el-col :span="12">最迟出票时间：<div class="grid-content">{{orderInfo.lastPrintDate}}</div></el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="12">预计奖金：<div class="grid-content">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
-        </el-row>
         <el-row class="tip" :gutter="20">
-          <el-col :span="8">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
-          <el-col :span="8">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
-          <el-col :span="8">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+          <el-col :span="5">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
+          <el-col :span="4">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
+          <el-col :span="4">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+          <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
+          <el-col :span="6">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
+        </el-row>
+        <el-row type="flex" justify="end">
+          <el-col :span="6" class="fontr"><el-button class="small" type="warning" @click="limitSale(orderInfo.ticketInfoNumber)">限售</el-button></el-col>
+          <el-col :span="6" class="fontr"><el-button class="submit-btn" type="success" @click="submitRealTicket" :disabled="confirmDisabled" v-loading="confirmDisabled">出票完成</el-button></el-col>
         </el-row>
       </div>
       <el-table :data="hoverData" border class="noright" style="width: 100%">
@@ -97,7 +96,7 @@
           label="客队"
           align="center">
         </el-table-column>
-        <el-table-column
+        <!-- <el-table-column
           prop="assumption"
           label="预设"
           align="center">
@@ -112,10 +111,11 @@
               <el-button slot="reference" type="text" size="small" :disabled="!scopeAssumption.row.score || printFlag!==1" @click="showAssumptiondsPopover(scopeAssumption.row.matchUniqueId)">[{{scopeAssumption.row.assumption}}]</el-button>
             </el-popover>
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column label="投注项" width="214" align="center">
           <template slot-scope="scope">
-            <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span>
+            <!-- <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span> -->
+            <span>{{scope.row.subPlayTypeWord}}</span>
             <el-popover ref="innerPopover" popper-class="edit-popover" v-for="(item1, index1) in scope.row.betItemsObj" :key="index1" trigger="click" placement="bottom" width="200" v-model="item1.flag">
               <p>系统赔率：<span>{{item1.odds}}</span></p>
               <p>正确赔率：</p>
@@ -133,12 +133,12 @@
           </template>
         </el-table-column>
       </el-table>
-      <div class="btn-box">
+      <!-- <div class="btn-box">
         <div v-if="printFlag===1">
-          <el-button class="submit-btn" type="primary" size="medium" @click="submitRealTicket" :disabled="confirmDisabled" v-loading="confirmDisabled">出票完成</el-button>
-          <el-button type="danger" size="medium" @click="limitSale(orderInfo.ticketInfoNumber)">限售</el-button>
+          <el-button class="submit-btn" type="success" @click="submitRealTicket" :disabled="confirmDisabled" v-loading="confirmDisabled">出票完成</el-button>
+          <el-button class="small" type="warning" @click="limitSale(orderInfo.ticketInfoNumber)">限售</el-button>
         </div>
-      </div>
+      </div> -->
       <div class="uploadImg">
         <img class="img" :src="imgStr" alt="" @click="enlarge">
       </div>
@@ -155,7 +155,7 @@
       <p class="edit-content">赔率数据异常有：<span>{{validateOdds}}</span></p>
       <span slot="footer" class="dialog-footer">
         <el-button size="medium" type="primary" @click.stop="confirmSumbit" :disabled="sumbitDisabled" v-loading="sumbitDisabled">确 定</el-button>
-        <el-button size="medium" @click.stop="cancelSumbit">取 消</el-button>
+        <el-button size="mini" @click.stop="cancelSumbit">取 消</el-button>
       </span>
     </el-dialog>
 
@@ -211,6 +211,7 @@ export default {
   data () {
     return {
       tableColumn: [
+        {prop: 'serialNumber', label: '系统编号', 'min-width': '230'},
         {prop: 'lotteryTypeWord', label: '彩种类型', 'min-width': '100'},
         {prop: 'multiple', label: '倍数', 'min-width': '300'},
         {prop: 'amount', label: '金额', 'min-width': '100'},
@@ -554,7 +555,10 @@ export default {
         })
     },
     // 获取订单信息
-    getOutPopover (rows) {
+    getOutPopover (rows, event, column) {
+      this.orderInfo = {}
+      this.hoverData = []
+      this.ticketInfoNumber = ''
       // 出票状态
       this.printFlag = rows.printFlag
       this.tableData.map(item => {
@@ -603,14 +607,21 @@ export default {
             this.confirmDisabled = false
             // 计算最高奖金
             let maxMoney = 0
-            let calcData = JSON.parse(JSON.stringify(res.data))
-            if (calcData.orderInfo.betType === 'single') {
-              maxMoney = Math.ceil(ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple))
-            } else {
-              let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-              // console.log(dataInfo)
-              maxMoney = Math.ceil(dataInfo.price * calcData.orderInfo.multiple)
-              // console.log(maxMoney)
+            try {
+              let calcData = JSON.parse(JSON.stringify(res.data))
+              // 增加提示
+              if (calcData.orderInfo.betType === 'single') {
+                maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
+                // maxMoney = ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)
+              } else {
+                let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
+                // console.log(dataInfo)
+                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
+                // maxMoney = dataInfo.price * calcData.orderInfo.multiple
+                // console.log(maxMoney)
+              }
+            } catch (error) {
+              console.log(error)
             }
             // 获取信息
             let orderInfo = res.data.orderInfo
@@ -718,6 +729,24 @@ export default {
             })
           }
         })
+        // console.log(this.hoverData, 1)
+        // console.log(this.orderInfo, 2)
+        // 计算奖金
+        let hoverData = JSON.parse(JSON.stringify(this.hoverData))
+        let orderInfo = JSON.parse(JSON.stringify(this.orderInfo))
+        if (orderInfo.betType === 'single') {
+          console.log(22, orderInfo)
+        } else {
+          let calcData = {
+            betContextList: hoverData,
+            orderInfo: orderInfo
+          }
+          let eddOddsFlag = true
+          let dataInfo = ChangeBetContext.getPassMaxMoney(calcData, eddOddsFlag)
+          // let maxMoney = Math.ceil(dataInfo.price * calcData.orderInfo.multiple)
+          let maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
+          this.$set(this.orderInfo, 'maxMoney', maxMoney)
+        }
       } else {
         rows.betItemsObj.map(val => {
           val.flag = false
@@ -1169,10 +1198,17 @@ export default {
           margin: 0 0 10px 0!important;
           .el-col{
             padding: 0!important;
+            &.fontr{
+              text-align: right;
+            }
           }
           .grid-content{
             display: inline-block;
-            color: #4daedb;
+            color: #0485c1;
+            letter-spacing: 1px;
+            &.red{
+              color: #FE4C40;
+            }
           }
         }
       }
@@ -1201,14 +1237,19 @@ export default {
       margin-top: 0 !important;
       margin-bottom: 0;
     }
-    .btn-box{
-      margin-top: 10px;
-      text-align: center;
-      .el-button{
-        padding: 15px 40px;
-        font-size: 20px;
-      }
-    }
+    // .btn-box{
+    //   margin-top: 15px;
+    //   text-align: center;
+    //   .el-button{
+    //     &.submit-btn{
+    //       padding: 15px 40px;
+    //     }
+    //     &.small{
+    //       padding: 10px 20px;
+    //     }
+    //     font-size: 20px;
+    //   }
+    // }
   }
   .confirm-msg,.limit{
     .el-dialog{
@@ -1223,7 +1264,7 @@ export default {
         .edit-content{
           margin: 0;
           span{
-            color: #4daedb;
+            color: #0485c1;
             line-height: 30px;
           }
         }
@@ -1290,5 +1331,9 @@ export default {
 }
 .el-table{
   font-size: 20px;
+}
+.small{
+  font-size: 16px!important;
+  padding: 10px 20px!important;
 }
 </style>
