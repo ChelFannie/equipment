@@ -585,6 +585,9 @@ export default {
   .el-pagination{
     text-align:center;
     margin:20px 0;
+    *{
+      font-size: 20px;
+    }
   }
   // 禁用的颜色
   .el-table .disabled-row {

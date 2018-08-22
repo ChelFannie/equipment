@@ -1,17 +1,12 @@
 <template>
   <div class="examine-order">
-    <div class="detail">
-      <!-- <span>今日销售：{{statisticData.printedOrderCount || 0}} 张</span>
-      <span>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</span> -->
-      <span>提交时间：{{submitSettleTime}}</span>
-    </div>
-
     <div class="count-order">
       <span class="count-all">审核统计：&nbsp;</span>
       <span>张数：{{accountData.pages || 0}}张</span>
       <span>销售总额： {{(accountData.amounts).toFixed(2) || 0}}元</span>
       <span>奖金： {{(accountData.awardAmounts).toFixed(2) || 0}}元</span>
       <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
+      <span>提交时间：{{submitSettleTime}}</span>
     </div>
 
     <el-table
@@ -28,7 +23,7 @@
       <el-table-column
         prop="serialNumber"
         label="系统编号"
-        width="280"
+        min-width="190"
         align="center">
         <template slot-scope="outScope">
           <el-button @click="getOutPopover(outScope.row)" :disabled="outScope.row.flag">{{ outScope.row.serialNumber }}</el-button>
@@ -47,16 +42,26 @@
       width="60%"
       center
       class="orderNum-popover"
-      id="outPopover">
+      id="outPopover"
+      title="订单详情">
       <div class="hoverContent">
-        <p class="hoverItem">系统票号: <span class="substance">{{orderInfo.ticketInfoNumber}}</span></p>
-        <p class="hoverItem">彩种: <span class="substance">{{orderInfo.lotterykinds}}</span></p>
-        <p class="hoverItem">倍数: <span class="substance">{{orderInfo.multiple}}倍</span></p>
-        <p class="hoverItem">金额: <span class="substance">{{orderInfo.amount}}元</span></p>
-        <p class="hoverItem">预计奖金: <span class="substance">25.43元</span></p>
-        <p class="hoverItem">出票店铺: <span class="substance">{{orderInfo.storeName}}</span></p>
-        <p class="hoverItem">最迟出票时间: <span class="substance">{{orderInfo.lastPrintDate}}</span></p>
-        <p class="hoverItem">出票时间: <span class="substance">{{orderInfo.uploadTime}}</span></p>
+        <el-row :gutter="20">
+          <el-col :span="12">出票店铺：<div class="grid-content">{{orderInfo.storeName}}</div></el-col>
+          <el-col :span="12">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber}}</div></el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">出票时间：<div class="grid-content">{{orderInfo.uploadTime}}</div></el-col>
+          <el-col :span="12">最迟出票时间：<div class="grid-content">{{orderInfo.lastPrintDate}}</div></el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
+          <el-col :span="12">预计奖金：<div class="grid-content">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
+        </el-row>
+        <el-row class="tip" :gutter="20">
+          <el-col :span="8">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
+          <el-col :span="8">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
+          <el-col :span="8">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+        </el-row>
       </div>
       <el-table :data="hoverData" border class="noright" style="width: 100%">
         <el-table-column v-for="(item, index) in hoverTableColumn"
@@ -88,13 +93,14 @@
 <script>
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import req from '../../api/order-list/index.js'
+// import {getCalculate, hunheComputeHunhe} from '../../utils/fastCombine.js'
 export default {
   components: {
   },
   data () {
     return {
       tableColumn: [
-        {prop: 'lotteryTypeWord', label: '彩种类型', 'min-width': '100'},
+        {prop: 'typeWords', label: '彩种类型', 'min-width': '100'},
         {prop: 'multiple', label: '倍数', 'min-width': '50'},
         {prop: 'amountWord', label: '金额', 'min-width': '100'},
         {prop: 'awardAmountWord', label: '奖金', 'min-width': '100'},
@@ -199,8 +205,6 @@ export default {
     },
     // 扫码列表的所有订单号
     serialNumbersArr (val) {
-      console.log(val.length, '已扫成功的数组长度1')
-      console.log(this.tableData.length, 'tableData长度2')
       if (val.length > 0 && (val.length === this.tableData.length)) {
         this.submitToAudit()
       }
@@ -273,7 +277,6 @@ export default {
             this.loading = false
             this.submitSettleTime = res.data.submitSettleTime ? res.data.submitSettleTime : '无'
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
-            console.log(this.accountData.rebatePoint, '比列')
             this.statisticData = res.data.statistic
             let amounts = 0
             let awardAmounts = 0
@@ -292,6 +295,7 @@ export default {
               amounts += val.amount
               // awardAmounts += val.awardAmount
               awardAmounts += val.calAwardAmount
+              val.typeWords = `${val.lotteryTypeWord}${val.subPlayTypeWord}`
             })
             this.tableData = res.data.orderList.result
             this.totalCount = res.data.orderList.totalCount
@@ -347,10 +351,31 @@ export default {
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
+            // 计算最高奖金
+            let maxMoney = 0
+            let calcData = JSON.parse(JSON.stringify(res.data))
+            if (calcData.orderInfo.betType === 'single') {
+              maxMoney = Math.ceil(ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple))
+              // console.log(maxMoney)
+            } else {
+              let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
+              // console.log(dataInfo)
+              maxMoney = Math.ceil(dataInfo.price * calcData.orderInfo.multiple)
+              // console.log(maxMoney)
+            }
+            // 获取信息
             let orderInfo = res.data.orderInfo
+            orderInfo.maxMoney = maxMoney
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
             orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
             orderInfo.amount = (orderInfo.amount / 100).toFixed(2)
+            if (orderInfo.betType === 'single') {
+              orderInfo.betTypeWord = '单关'
+            } else if (Object.prototype.toString.call(orderInfo.betType) === '[object String]') {
+              orderInfo.betTypeWord = orderInfo.betType
+            } else {
+              orderInfo.betTypeWord = JSON.parse(orderInfo.betType)
+            }
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
             this.orderInfo.printResult && (this.imgStr = this.orderInfo.printResult)
@@ -433,6 +458,8 @@ export default {
     },
     maskClick (event) {
       event.stopPropagation()
+      this.Mask = false
+      this.enlargeImg = false
     }
   },
   destroyed () {
@@ -448,34 +475,14 @@ export default {
 
 <style lang="less">
 .examine-order{
-  .detail{
-    box-sizing: border-box;
-    width: calc(100% - 60px);
-    line-height: 40px;
-    color: #1f2f3d;
-    font-size: 20px;
-    position: fixed;
-    top: 100px;
-    left: 30px;
-    z-index: 998;
-    background: #ffffff;
-    padding: 10px 20px 0;
-    >span{
-      margin-right: 60px;
-    }
-    .btn{
-      float: right;
-    }
-  }
   .count-order{
     box-sizing: border-box;
     width: calc(100% - 60px);
-    padding:0 20px 10px;
-    height: 35px;
-    font-size: 16px;
+    padding:20px;
+    font-size: 20px;
     background: #ffffff;
     position: fixed;
-    top: 150px;
+    top: 110px;
     left: 30px;
     z-index: 998;
     border-bottom: 1px solid #4dafdb;
@@ -487,6 +494,9 @@ export default {
       margin-right: 60px;
     }
   }
+  .el-table{
+    font-size: 20px;
+  }
   .page{
     margin-top: 15px;
     margin-left: 100px;
@@ -495,42 +505,52 @@ export default {
   .el-table .disabled-row {
     background: #FE4C40;
     color: #fff;
+    font-size: 20px;
     .el-button{
       background: #FE4C40;
       color: #fff;
       border: none;
     }
   }
+  // 订单详情
   .orderNum-popover{
     .el-dialog{
       margin-top: 0 !important;
       margin-bottom: 0;
     }
     .el-dialog__header{
-      padding: 0;
-    }
-    .el-dialog__header{
-      padding: 0;
-    }
-    .popper__arrow{
-      top: 2% !important;
-    }
-    .hoverInput{
-      display: flex;
-      align-items: center;
-      span{
-        width: 100px;
+      padding: 20px;
+      .el-dialog__title{
+        font-size: 24px;
       }
-      .el-input__inner{
-        width: 545px;
-        height: 33px;
+      .el-dialog__close{
+        font-size: 28px;
       }
     }
-    .hoverItem{
-      display: inline-block;
-      margin: 10px 40px 0 0;
-      .substance{
-        color: #4daedb;
+    .el-dialog__body{
+      padding: 0 20px 20px;
+      .hoverContent{
+        font-size: 20px;
+        .tip{
+          border-bottom: 1px solid #FE4C40;
+          .el-col{
+            margin-bottom: 15px;
+            .grid-content{
+              color: #FE4C40;
+            }
+          }
+        }
+        .el-row{
+          width: 100%;
+          margin: 0 0 10px 0!important;
+          .el-col{
+            padding: 0!important;
+          }
+          .grid-content{
+            display: inline-block;
+            color: #4daedb;
+          }
+        }
       }
     }
     .noright{

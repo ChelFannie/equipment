@@ -18,19 +18,19 @@
                         <span slot="title" class="icon-name">获取订单</span>
                     </span>
                 </el-menu-item>
-                <!-- <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
-                    <span class="icon-box">
-                        <i class="el-icon-printer i-color"></i>
-                        <span slot="title" class="icon-name">订单结算</span>
-                    </span>
-                </el-menu-item> -->
-                <el-menu-item index="/order-query/examine-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
+                <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
                     <span class="icon-box">
                         <i class="el-icon-printer i-color"></i>
                         <span slot="title" class="icon-name">订单结算</span>
                     </span>
                 </el-menu-item>
-                <el-menu-item index="" class="flex-item"  v-if="$store.state.activeIndex==='/order-query/examine-order'">
+                <!-- <el-menu-item index="/order-query/examine-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
+                    <span class="icon-box">
+                        <i class="el-icon-printer i-color"></i>
+                        <span slot="title" class="icon-name">订单结算</span>
+                    </span>
+                </el-menu-item> -->
+                <el-menu-item index="" class="flex-item bigger"  v-if="$store.state.activeIndex==='/order-query/examine-order'">
                     <span class="icon-box" @click="quit">
                         <i class="el-icon-sold-out  i-color"></i>
                         <span slot="title" class="icon-name">管理员登出</span>
@@ -68,9 +68,10 @@
       title="登陆"
       :visible.sync="managerDialogVisible"
       width="500px"
+      :show-close="false"
       center
       class="login">
-      <el-form :model="managerForm" label-width="80px" :rules="rules" ref="ruleForm">
+      <el-form :model="managerForm" label-width="100px" :rules="rules" ref="ruleForm">
         <el-form-item label="用户名" prop="userAccount">
           <el-input v-model="managerForm.userAccount" auto-complete="off" maxlength="15"></el-input>
         </el-form-item>
@@ -81,7 +82,7 @@
           <el-input class="code" v-model="managerForm.inputCode" auto-complete="off" maxlength="4"></el-input>
           <div @click="createCodeWord" class="managerLogin-right">{{validateCode}}</div>
         </el-form-item>
-        <el-form-item>
+        <el-form-item class="last-item">
           <el-button type="primary" @click="sumbitManagerLogin('ruleForm')">登 陆</el-button>
           <el-button @click="managerDialogVisible = false">取 消</el-button>
         </el-form-item>
@@ -139,12 +140,12 @@ export default {
       this.activeIndex = index
       this.$store.commit('setActiveIndex', index)
       localStorage.setItem('setActiveIndex', index)
-      // if (index === '/order-query/account-order') {
-      if (index === '/order-query/examine-order') {
+      if (index === '/order-query/account-order') {
+      // if (index === '/order-query/examine-order') {
         this.managerDialogVisible = true
         this.validateCode = loginValidate.createCode()
         this.managerForm = {
-          userAccount: this.managerForm.userAccount,
+          userAccount: '',
           password: '',
           inputCode: ''
         }
@@ -253,7 +254,7 @@ export default {
   }
 }
 </script>
-<style lang="less" scoped>
+<style lang="less">
 .nav{
     width: 100%;
     height: 100%;
@@ -308,11 +309,12 @@ export default {
                     text-align: center;
                     padding: 0!important;
                     letter-spacing: 3px;
-                    // background:rgba(255,  255, 255, .2);
                     border-radius: 10px;
                     margin: 5px 10px;
-                    // box-shadow: 0 0 10px 10px rgba(255,  255, 255, .6) inset;
                     border: 3px solid hsl(0, 0%, 100%);
+                    &.bigger{
+                      width: 130px;
+                    }
                     .icon-box{
                         display: inline-block;
                         line-height: normal;
@@ -385,39 +387,55 @@ export default {
         }
     }
     .login{
-      font-size: 20px!important;
       .el-dialog__header{
+        padding: 30px 0;
         .el-dialog__title{
-        background: blue!important;
-        padding: 20px 0 0!important;
-        font-size: 50px!important;
+          font-size: 26px;
+        }
+        .el-dialog__close{
+          font-size: 32px;
         }
       }
       .el-dialog__body{
         text-align: center;
-        .el-form-item__label{
-          display: inline-block;
-          float: none;
-        }
-        .el-form-item__content{
-          width: 300px!important;
-          display: inline-block;
-          margin: 0!important;
-          margin-left: 0!important;
-          .code{
-            width: 180px!important;
-            margin-right: 20px;
+        padding: 0 25px 30px;
+        .el-form-item{
+          text-align: center;
+          font-size: 0;
+          &.last-item{
+            margin-bottom: 0;
+            button{
+              font-size: 20px;
+              padding: 12px 30px;
+            }
           }
-          .managerLogin-right{
-            text-align: center;
-            float: right;
-            width: 100px;
-            height: 40px;
-            line-height: 40px;
-            background: #409EFF;
-            color: #fff;
-            letter-spacing: 6px;
-            cursor:pointer;
+          .el-form-item__label{
+            font-size: 20px;
+            display: inline-block;
+            float: none;
+          }
+          .el-form-item__content{
+            width: 300px;
+            display: inline-block;
+            margin-left: 0!important;
+            .el-input__inner{
+              font-size: 20px;
+            }
+            .code{
+              width: 180px;
+              margin-right: 20px;
+            }
+            .managerLogin-right{
+              text-align: center;
+              float: right;
+              width: 100px;
+              line-height: 40px;
+              background: #409EFF;
+              color: #fff;
+              letter-spacing: 6px;
+              cursor:pointer;
+              font-size: 20px;
+            }
           }
         }
         .el-button+.el-button {
@@ -431,11 +449,6 @@ export default {
         // i{
         //     color: #909399!important;
         // }
-    }
-    .el-dialog__title{
-        background: blue!important;
-        padding: 20px 0 0!important;
-        font-size: 30px!important;
     }
 }
 </style>

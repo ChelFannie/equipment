@@ -34,13 +34,13 @@
       <el-table-column
         prop="sequenceNumber"
         label="序号"
-        width="70"
+        min-width="40"
         align="center">
       </el-table-column>
       <el-table-column
         prop="serialNumber"
         label="系统编号"
-        width="250"
+        min-width="200"
         align="center">
         <template slot-scope="outScope">
           <el-button @click="getOutPopover(outScope.row)" :disabled="outScope.row.flag">{{ outScope.row.serialNumber }}</el-button>
@@ -60,16 +60,26 @@
       width="60%"
       center
       class="orderNum-popover"
-      id="outPopover">
+      id="outPopover"
+      title="订单详情">
       <div class="hoverContent">
-        <p class="hoverItem">系统票号: <span class="substance">{{orderInfo.ticketInfoNumber}}</span></p>
-        <p class="hoverItem">彩种: <span class="substance">{{orderInfo.lotterykinds}}</span></p>
-        <p class="hoverItem">倍数: <span class="substance">{{orderInfo.multiple}}倍</span></p>
-        <p class="hoverItem">金额: <span class="substance">{{orderInfo.amount}}元</span></p>
-        <p class="hoverItem">预计奖金: <span class="substance">25.43元</span></p>
-        <p class="hoverItem">出票店铺: <span class="substance">{{orderInfo.storeName}}</span></p>
-        <p class="hoverItem">最迟出票时间: <span class="substance">{{orderInfo.lastPrintDate}}</span></p>
-        <p class="hoverItem">出票时间: <span class="substance">{{orderInfo.uploadTime}}</span></p>
+        <el-row :gutter="20">
+          <el-col :span="12">出票店铺：<div class="grid-content">{{orderInfo.storeName}}</div></el-col>
+          <el-col :span="12">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber}}</div></el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">出票时间：<div class="grid-content">{{orderInfo.uploadTime}}</div></el-col>
+          <el-col :span="12">最迟出票时间：<div class="grid-content">{{orderInfo.lastPrintDate}}</div></el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
+          <el-col :span="12">预计奖金：<div class="grid-content">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
+        </el-row>
+        <el-row class="tip" :gutter="20">
+          <el-col :span="8">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
+          <el-col :span="8">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
+          <el-col :span="8">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+        </el-row>
       </div>
       <el-table :data="hoverData" border class="noright" style="width: 100%">
         <el-table-column
@@ -159,7 +169,8 @@
       :visible.sync="limitSaleData.limitSaleFlag"
       width="30%"
       center
-      id="limitSaleDialog">
+      id="limitSaleDialog"
+      class="limit">
       <p>是否确定限售此票？</p>
       <span>系统票号：{{limitSaleData.ticketInfoNumber}}</span>
       <span slot="footer" class="dialog-footer">
@@ -187,6 +198,7 @@
 </template>
 <script>
 import ChangeBetContext from '../../utils/changeBetContext.js'
+// import {getCalculate, hunheComputeHunhe} from '../../utils/fastCombine.js'
 import req from '../../api/order-list/index.js'
 import getResultStr from '../../utils/combine.js'
 import formatDateTime from '../../utils/format.js'
@@ -200,7 +212,7 @@ export default {
     return {
       tableColumn: [
         {prop: 'lotteryTypeWord', label: '彩种类型', 'min-width': '100'},
-        {prop: 'multiple', label: '倍数', 'min-width': '50'},
+        {prop: 'multiple', label: '倍数', 'min-width': '300'},
         {prop: 'amount', label: '金额', 'min-width': '100'},
         {prop: 'lastPrintDate', label: '最迟出票时间', 'min-width': '150'},
         {prop: 'printFlagWord', label: '状态', 'min-width': '70'}
@@ -275,7 +287,6 @@ export default {
   },
   watch: {
     '$store.state.activeIndex' (val) {
-      // console.log('点击获取到路由')
       this.getSpaceSize()
       if (this.spaceFlag) {
         this.$store.commit('setActiveIndex', '')
@@ -305,17 +316,29 @@ export default {
       }
     },
     reaminingTime (val) {
-      // console.log(val)
       if (val === 0) {
         this.$nextTick(() => {
-          // console.log('倒计为0')
           this.reaminingTime = 0
           this.openTimerId = false
           clearInterval(this.timerId)
+          // 关闭票详情页弹出框
           this.showOutPopover = false
           this.confirmFlag = false
           this.sumbitDisabled = false
           this.confirmDisabled = false
+          // 关闭限售弹出框
+          this.limitSaleData.limitSaleFlag = false
+          this.limitSaleData.limitDisabled = false
+          // 关闭图片放大的遮罩
+          this.Mask = false
+          this.enlargeImg = false
+          // 关闭修改预设值和赔率弹出框
+          this.hoverData.map(item => {
+            this.$set(item, 'assumptionFlag', false)
+            item.betItemsObj.map(item1 => {
+              this.$set(item1, 'flag', false)
+            })
+          })
         })
         this.getData()
         this.exitNoOutTicketFlag = false
@@ -330,7 +353,6 @@ export default {
         this.$store.commit('setMenuDisabled', setMenuDisabled)
         localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
       } else if (val > 0) {
-        // console.log('开启定时器')
         this.openTimerId = true
       }
     },
@@ -346,7 +368,6 @@ export default {
     },
     tableData (val) {
       if (this.tableDataLen !== val.length && val.length === 0 && this.reaminingTime >= 0) {
-        console.log('扫码完成')
         this.$nextTick(() => {
           this.reaminingTime = 0
           this.openTimerId = false
@@ -363,14 +384,13 @@ export default {
     this.winHeight = localStorage.getItem('winHeight') - 285
   },
   mounted () {
+    console.log(this.$store.state.activeIndex, '当前路由')
     if (this.$store.state.activeIndex === '/order-query/order-List') {
       // 已经有路由的切换
       this.takeOrderToPrint()
-      // console.log('已经有路由的切换')
     } else if (!this.$store.state.activeIndex) {
       // 默认路由跳转到当前页面，初始化
       this.getData()
-      // console.log('初始化')
     }
     // 倒计时定时器
     this.spans = document.getElementsByClassName('timer')[0].children
@@ -456,7 +476,7 @@ export default {
               }
               this.$store.commit('setMenuDisabled', setMenuDisabled)
               localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
-              console.log(res.data.reaminingTime, '存在票，倒计时')
+              // console.log(res.data.reaminingTime, '存在票，倒计时')
               // 暂定解决前后台倒计时差异为1秒
               if (res.data.reaminingTime > 0) {
                 this.reaminingTime = Math.ceil((res.data.reaminingTime + 1000) / 1000)
@@ -482,32 +502,20 @@ export default {
                 }
               } else {
                 if (sequenceNumberObj['date'] !== new Date(new Date().getTime()).toDateString()) {
+                  // 每天早上7点清零
                   if (parseInt(formatDateTime(new Date().getTime()).substr(11, 2)) >= 7) {
                     sequenceNumberObj['value'] = 0
                     sequenceNumberObj['date'] = new Date(new Date().getTime()).toDateString()
                   }
                 }
               }
-              // sequenceNumberObj['count'] = parseInt(sequenceNumberObj['count']) + 1
-              let lastData = JSON.parse(localStorage.getItem('lastData'))
-              let lastFlag = true
-              lastData !== null && lastData.map(val => {
-                this.tableData.map(val1 => {
-                  if (val.serialNumber === val1.serialNumber) {
-                    lastFlag = false
-                    val1['sequenceNumber'] = val['sequenceNumber']
-                  }
-                })
-              })
-              lastFlag && this.tableData.map(val => {
+              this.tableData.map(val => {
                 sequenceNumberObj['value'] = sequenceNumberObj['value'] + 1
                 val['sequenceNumber'] = sequenceNumberObj['value']
               })
-              localStorage.setItem('lastData', JSON.stringify(this.tableData))
               localStorage.setItem('sequenceNumber', JSON.stringify({value: sequenceNumberObj['value'], date: sequenceNumberObj['date']}))
             } else {
               // 不存在票
-              console.log('不存在票')
               this.$message({
                 type: 'warning',
                 message: '当前无票！'
@@ -593,10 +601,30 @@ export default {
           if (res.code === '00000') {
             this.showOutPopover = true
             this.confirmDisabled = false
+            // 计算最高奖金
+            let maxMoney = 0
+            let calcData = JSON.parse(JSON.stringify(res.data))
+            if (calcData.orderInfo.betType === 'single') {
+              maxMoney = Math.ceil(ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple))
+            } else {
+              let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
+              // console.log(dataInfo)
+              maxMoney = Math.ceil(dataInfo.price * calcData.orderInfo.multiple)
+              // console.log(maxMoney)
+            }
+            // 获取信息
             let orderInfo = res.data.orderInfo
+            orderInfo.maxMoney = maxMoney
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
             orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
             orderInfo.amount = (orderInfo.amount / 100).toFixed(2)
+            if (orderInfo.betType === 'single') {
+              orderInfo.betTypeWord = '单关'
+            } else if (Object.prototype.toString.call(orderInfo.betType) === '[object String]') {
+              orderInfo.betTypeWord = orderInfo.betType
+            } else {
+              orderInfo.betTypeWord = JSON.parse(orderInfo.betType)
+            }
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
             if (rows.printFlag === 1) { // 未出票状态（printFlag=1）才能读票
@@ -745,7 +773,6 @@ export default {
               //  获取图片
               _this.imgStr = latech.ScannerGetOriginImage(size) // eslint-disable-line
               _this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
-              console.log(_this.realTicketNumber, 55555)
               //  退票
               latech.ScannerRollBackFromJS() // eslint-disable-line
               _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
@@ -791,6 +818,8 @@ export default {
     },
     maskClick (event) {
       event.stopPropagation()
+      this.Mask = false
+      this.enlargeImg = false
     },
     // 订单剩余时间
     timeGo () {
@@ -812,8 +841,8 @@ export default {
     },
     // 检验是否有赔率异常
     submitRealTicket () {
-      console.log()
-      if (!(this.realTicketNumber.length === 29 && this.realTicketNumber.split(' ')[0].length === 20 && this.realTicketNumber.split(' ')[1].length === 8)) {
+      let reg = /^\d{20}\s\d{8}$/
+      if (!reg.test(this.realTicketNumber)) {
         this.$message({
           type: 'error',
           message: '请投入正确票单！'
@@ -892,6 +921,9 @@ export default {
           }
           this.confirmDisabled = false
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     cancelSumbit () {
       this.confirmFlag = false
@@ -900,6 +932,12 @@ export default {
     // 提交数据，出票完成
     confirmSumbit () {
       this.sumbitDisabled = true
+      try {
+        latech.saveImageFromJS(this.ticketInfoNumber, this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
+        this.imgStr = latech.getBinaryzationBMP(this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
+      } catch (error) {
+        console.log('保存图片')
+      }
       let params = {
         ticketInfoNumber: this.ticketInfoNumber,
         qrInfo: this.realTicketNumber,
@@ -909,11 +947,6 @@ export default {
       req('editTicket', params)
         .then(res => {
           if (res.code === '00000') {
-            try {
-              latech.saveImageFromJS(this.ticketInfoNumber, this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
-            } catch (error) {
-              console.log('保存图片')
-            }
             this.tableData.map((item, index) => {
               if (item.serialNumber === this.orderInfo.serialNumber) {
                 this.$delete(this.tableData, index)
@@ -944,6 +977,9 @@ export default {
             this.showOutPopover = true
             this.sumbitDisabled = false
           }
+        })
+        .catch(error => {
+          console.log(error)
         })
     },
     // 取消限售
@@ -1055,7 +1091,7 @@ export default {
     width: calc(100% - 60px);
     padding:0 20px 10px;
     height: 35px;
-    font-size: 16px;
+    font-size: 20px;
     background: #ffffff;
     position: fixed;
     top: 150px;
@@ -1069,8 +1105,7 @@ export default {
     }
   }
   .orderlist-table{
-    font-size: 14px!important;
-    // margin-top: 90px;
+    font-size: 20px!important;;
     .el-table__header-wrapper{
       th{
         padding: 5px 0;
@@ -1096,60 +1131,54 @@ export default {
   }
   .el-button--primary{
     margin: 8px 0;
+
   }
   .el-table .cell{
     cursor: pointer;
   }
+  // 订单详情
   .orderNum-popover{
-    .el-dialog__header{
-      padding: 0;
+    .el-dialog{
+      margin-top: 0 !important;
+      margin-bottom: 0;
     }
-    .noright{
-      margin-top: 20px;
-      font-size: 14px!important;
-      .el-table__header-wrapper{
-        th{
-          padding: 5px 0;
-        }
+    .el-dialog__header{
+      padding: 20px;
+      .el-dialog__title{
+        font-size: 24px;
       }
-      .el-table__row{
-        td{
-          padding: 0;
-          .cell{
-            padding: 0;
-            .el-button{
-              // font-size: 12px;
-              padding: 15px 10px;
+      .el-dialog__close{
+        font-size: 28px;
+      }
+    }
+    .el-dialog__body{
+      padding: 0 20px 20px;
+      .hoverContent{
+        font-size: 20px;
+        .tip{
+          border-bottom: 1px solid #FE4C40;
+          .el-col{
+            margin-bottom: 15px;
+            .grid-content{
+              color: #FE4C40;
             }
+          }
+        }
+        .el-row{
+          width: 100%;
+          margin: 0 0 10px 0!important;
+          .el-col{
+            padding: 0!important;
+          }
+          .grid-content{
+            display: inline-block;
+            color: #4daedb;
           }
         }
       }
     }
-    .hoverContent{
-      display: flex;
-      flex-wrap: wrap;
-      font-size: 14px;
-    }
-    .popper__arrow{
-      top: 2% !important;
-    }
-    .hoverInput{
-      display: flex;
-      align-items: center;
-      span{
-        width: 100px;
-      }
-      .el-input__inner{
-        width: 545px;
-        height: 33px;
-      }
-    }
-    .hoverItem{
-      display: inline-block;
-      margin: 10px 40px 0 0;
-      .substance{
-        color: #4daedb;
-      }
+    .noright{
+      margin-top: 20px;
     }
     .uploadImg{
       margin-top: 10px;
@@ -1175,14 +1204,18 @@ export default {
     .btn-box{
       margin-top: 10px;
       text-align: center;
+      .el-button{
+        padding: 15px 40px;
+        font-size: 20px;
+      }
     }
   }
-  .confirm-msg{
+  .confirm-msg,.limit{
     .el-dialog{
       width: 450px!important;
       .el-dialog__body{
         padding: 0 20px;
-        font-size: 16PX;
+        font-size: 20px!important;
         .tip{
           text-align: center;
           color: #EB5528;
@@ -1194,6 +1227,16 @@ export default {
             line-height: 30px;
           }
         }
+      }
+      .el-button{
+        font-size: 20px;
+        padding: 13px 30px;
+      }
+      .el-dialog__close{
+        font-size: 30px;
+      }
+      .el-dialog__title{
+        font-size: 23px;
       }
     }
     .el-button+.el-button {
@@ -1235,5 +1278,17 @@ export default {
       padding-bottom: 20px !important;
     }
   }
+}
+.el-popover {
+  font-size: 20px;
+  .el-input__inner{
+    font-size: 20px;
+  }
+  .el-button{
+    font-size: 20px;
+  }
+}
+.el-table{
+  font-size: 20px;
 }
 </style>

@@ -5,3 +5,4 @@
 /test/unit/coverage/
 /src/assets/address.js
 /src/utils/combine.js
+/src/utils/fastCombine.js

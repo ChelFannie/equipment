@@ -6,7 +6,7 @@ import ILayout from './components/common/i-layout'
 import IForm from './components/common/i-form'
 import router from './router'
 import store from './store/store'
-import {Button, Dialog, Menu, MenuItem, Table, TableColumn, Popover, Form, FormItem, Icon, Loading, Message, MessageBox, Pagination, Input, Select, Option, DatePicker} from 'element-ui'
+import {Button, Row, Dialog, Col, Menu, MenuItem, Table, TableColumn, Popover, Form, FormItem, Icon, Loading, Message, MessageBox, Pagination, Input, Select, Option, DatePicker} from 'element-ui'
 require('./utils/vconsole.js')
 
 // Vue.use(ElementUI)
@@ -27,6 +27,8 @@ Vue.use(Input)
 Vue.use(Select)
 Vue.use(Option)
 Vue.use(DatePicker)
+Vue.use(Row)
+Vue.use(Col)
 // Vue.use(DateTimePicker)
 // Vue.use(MessageBox)
 Vue.component('i-layout', ILayout)

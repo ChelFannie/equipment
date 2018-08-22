@@ -1,3 +1,4 @@
+import {getCalculate, hunheComputeHunhe} from '../utils/fastCombine'
 class changeBetContext {
   // 转换彩种
   static lotteryType (val) {
@@ -27,7 +28,7 @@ class changeBetContext {
     return lotteryType
   }
 
-  // 转换彩种
+  // 转换彩种(转为文字)
   static subPlayType (val) {
     let subPlayType = ''
     switch (val) {
@@ -70,6 +71,42 @@ class changeBetContext {
     return subPlayType
   }
 
+  // 转换彩种(转为type)
+  static subPlayTypeToType (val) {
+    let type = ''
+    switch (val) {
+      case '51':
+        type = 'winFlatLoss'
+        break
+      case '56':
+        type = 'letwinFlatLoss'
+        break
+      case '52':
+        type = 'score'
+        break
+      case '53':
+        type = 'goals'
+        break
+      case '54':
+        type = 'halfFull'
+        break
+      case '61':
+        type = 'letWinLoss'
+        break
+      case '62':
+        type = 'winLoss'
+        break
+      case '63':
+        type = 'victoryDifference'
+        break
+      case '64':
+        type = 'sizePoints'
+        break
+      default:
+        break
+    }
+    return type
+  }
   // 转换投注项
   static bet (subPlayType, val) {
     let bet = ''
@@ -373,6 +410,74 @@ class changeBetContext {
         break
     }
     return settleStatus
+  }
+
+  // 得到单关最高奖金
+  static getSingleMaxMoney (obj, multiple) {
+    let maxMoney = 0
+    obj.map(element => {
+      Object.keys(element).map(matchUniqueId => {
+        let singleMax = 0
+        element[matchUniqueId].map(ele => {
+          let numVal = 0
+          for (let oddskey in ele) {
+            numVal = JSON.parse(ele[oddskey])
+            singleMax = numVal > singleMax ? numVal : singleMax
+          }
+        })
+        // maxMoney += singleMax
+        maxMoney += singleMax * multiple * 2
+        // console.log(maxMoney, 222)
+      })
+    })
+    return maxMoney
+  }
+
+  // 得到过关方式最高奖金
+  static getPassMaxMoney (calcData) {
+    let obj = {
+      lotteryType: calcData.orderInfo.lotteryType,
+      subPlayType: calcData.orderInfo.subPlayType,
+      type: 'pass'
+    }
+    let selectData = calcData.betContextList
+    selectData.map(item => {
+      item.selectData = item.betItemsObj
+      item.matchTimes = item.matchUniqueId.substring(item.matchUniqueId.length - 3)
+      if (calcData.orderInfo.subPlayType === '59' || calcData.orderInfo.subPlayType === '69') {
+        item.type = changeBetContext.subPlayTypeToType(item.subPlayType)
+      }
+      item.selectData.map(ele => {
+        for (let keys in ele) {
+          ele.val = ele[keys]
+          ele.key = changeBetContext.bet(item.subPlayType, keys)
+        }
+      })
+    })
+    obj.selectData = selectData
+    let betTypeArr = []
+    if (Object.prototype.toString.call(calcData.orderInfo.betType) === '[object String]') {
+      // console.log('M*N')
+      betTypeArr = [calcData.orderInfo.betType]
+    } else {
+      // console.log('自由过关')
+      let betType = JSON.parse(calcData.orderInfo.betType)
+      betType.map(item => {
+        betTypeArr.push(`${item}x1`)
+      })
+    }
+    let dataInfo = {}
+    if (calcData.orderInfo.subPlayType === '59' || calcData.orderInfo.subPlayType === '69') {
+      dataInfo = hunheComputeHunhe(obj, betTypeArr)
+    } else {
+      dataInfo = getCalculate(obj, betTypeArr)
+    }
+    // console.log(dataInfo)
+    // 注数
+    // let zhushu = dataInfo.zhu
+    // 投注金额
+    // maxMoney = zhushu * calcData.orderInfo.multiple * 2
+    return dataInfo
   }
 }
 

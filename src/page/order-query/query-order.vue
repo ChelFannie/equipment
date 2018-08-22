@@ -1,93 +1,97 @@
 <template>
   <div class="query-order">
-
     <div class="count-order">
-      <span class="count-all">审核统计：&nbsp;</span>
-      <span>张数：{{accountData.pages || 0}}张</span>
-      <span>销售总额： {{(accountData.amounts).toFixed(2) || 0}}元</span>
-      <span>奖金： {{(accountData.awardAmounts).toFixed(2) || 0}}元</span>
-      <span>结算金额： {{(accountData.operateMoney).toFixed(2) || 0}}元</span>
+      <!-- <el-row>
+        <el-col :span="6">审核统计：&nbsp;张数：<div class="grid-content">{{accountData.pages || 0}}</div> 张</el-col>
+        <el-col :span="6">销售总额：<div class="grid-content">{{(accountData.amounts).toFixed(2) || 0}}</div> 元</el-col>
+        <el-col :span="6">奖金：<div class="grid-content">{{(accountData.awardAmounts).toFixed(2) || 0}}</div> 元</el-col>
+        <el-col :span="6">结算金额：<div class="grid-content">{{(accountData.operateMoney).toFixed(2) || 0}}</div> 元</el-col>
+      </el-row> -->
       <div class="search-condition" ref="countOrder">
-      <el-form ref="form" labelPosition="left" label-width="85px" size="large">
-        <el-form-item label="订单号">
-          <el-input v-model="form.serialNumber" maxlength="30"></el-input>
-        </el-form-item>
-        <el-form-item label="落地票号">
-          <el-input v-model="form.qrInfo" maxlength="30"></el-input>
-        </el-form-item>
-        <el-form-item label="彩种">
-          <el-select v-model="form.subPlayType" placeholder="请选择">
-            <el-option
-              v-for="item in subPlayTypeSelect"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="出票状态">
-          <el-select v-model="form.printFlag" placeholder="请选择">
-            <el-option
-              v-for="item in printFlagSelect"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="中奖状态">
-          <el-select v-model="form.awardFlag" placeholder="请选择">
-            <el-option
-              v-for="item in awardFlagSelect"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="结算状态">
-          <el-select v-model="form.settleStatus" placeholder="请选择">
-            <el-option
-              v-for="item in settleFlagSelect"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="出票时间" class="creatTime">
-          <el-date-picker
-            v-model="createDate"
-            type="datetimerange"
-            range-separator="至"
-            start-placeholder="选择开始时间"
-            end-placeholder="选择结束时间"
-            :default-time="['00:00:00', '23:59:59']"
-            format="yyyy-MM-dd HH:mm:ss"
-            value-format="yyyy-MM-dd HH:mm:ss">
-          </el-date-picker>
-          <!-- <el-date-picker
-            v-model="form.beginCreateDate"
-            type="datetime"
-            placeholder="选择开始时间"
-            format="yyyy-MM-dd HH:mm:ss"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            default-time="00:00:00"
-            @change="getTime">
-          </el-date-picker>
-          <span>至</span>
-          <el-date-picker
-            v-model="form.endCreateDate"
-            type="datetime"
-            placeholder="选择结束时间"
-            format="yyyy-MM-dd HH:mm:ss"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            default-time="23:59:59"
-            :picker-options="pickerOptions1">
-          </el-date-picker> -->
-        </el-form-item>
-        <el-button @click="empty" type="success">清空</el-button>
-        <el-button @click="queryOrder" type="primary">查询</el-button>
+      <el-form ref="form" labelPosition="left" label-width="100px" size="large">
+        <el-row :gutter="30">
+          <el-col :span="12">
+            <el-form-item label="订单号">
+              <el-input v-model="form.serialNumber" maxlength="30"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="落地票号">
+              <el-input v-model="form.qrInfo" maxlength="30"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="6">
+            <el-form-item label="彩种">
+              <el-select v-model="form.subPlayType" placeholder="请选择">
+                <el-option
+                  v-for="item in subPlayTypeSelect"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6">
+            <el-form-item label="出票状态">
+              <el-select v-model="form.printFlag" placeholder="请选择">
+                <el-option
+                  v-for="item in printFlagSelect"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6">
+            <el-form-item label="中奖状态">
+              <el-select v-model="form.awardFlag" placeholder="请选择">
+                <el-option
+                  v-for="item in awardFlagSelect"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6">
+            <el-form-item label="结算状态">
+              <el-select v-model="form.settleStatus" placeholder="请选择">
+                <el-option
+                  v-for="item in settleFlagSelect"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="30">
+          <el-col :span="12">
+            <el-form-item label="出票时间" class="creatTime">
+              <el-date-picker
+                v-model="createDate"
+                type="datetimerange"
+                range-separator="至"
+                start-placeholder="选择开始时间"
+                end-placeholder="选择结束时间"
+                :default-time="['00:00:00', '23:59:59']"
+                format="yyyy-MM-dd"
+                value-format="yyyy-MM-dd HH:mm:ss"
+                class="tick-time">
+              </el-date-picker>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12" class="btn-box">
+            <el-button @click="empty" type="success">清空</el-button>
+            <el-button @click="queryOrder" type="primary">查询</el-button>
+          </el-col>
+        </el-row>
       </el-form>
     </div>
     </div>
@@ -105,7 +109,7 @@
       <el-table-column
         prop="serialNumber"
         label="系统编号"
-        width="280"
+        min-width="230"
         align="center">
         <template slot-scope="outScope">
           <el-button @click="getOutPopover(outScope.row)" :disabled="outScope.row.flag">{{ outScope.row.serialNumber }}</el-button>
@@ -137,17 +141,26 @@
       width="60%"
       center
       class="orderNum-popover"
-      id="outPopover">
+      id="outPopover"
+      title="订单详情">
       <div class="hoverContent">
-        <p class="hoverItem">系统票号: <span class="substance">{{orderInfo.ticketInfoNumber}}</span></p>
-        <p class="hoverItem">彩种: <span class="substance">{{orderInfo.lotterykinds}}</span></p>
-        <p class="hoverItem">倍数: <span class="substance">{{orderInfo.multiple}}倍</span></p>
-        <p class="hoverItem">金额: <span class="substance">{{orderInfo.amount}}元</span></p>
-        <p class="hoverItem">预计奖金: <span class="substance">25.43元</span></p>
-        <p class="hoverItem">出票店铺: <span class="substance">{{orderInfo.storeName}}</span></p>
-        <p class="hoverItem">最迟出票时间: <span class="substance">{{orderInfo.lastPrintDate}}</span></p>
-        <p class="hoverItem">出票时间: <span class="substance">{{orderInfo.uploadTime}}</span></p>
-        <!-- <p class="hoverItem">创建时间: <span class="substance">{{orderInfo.createDate}}</span></p> -->
+        <el-row :gutter="20">
+          <el-col :span="12">出票店铺：<div class="grid-content">{{orderInfo.storeName}}</div></el-col>
+          <el-col :span="12">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber}}</div></el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">出票时间：<div class="grid-content">{{orderInfo.uploadTime}}</div></el-col>
+          <el-col :span="12">最迟出票时间：<div class="grid-content">{{orderInfo.lastPrintDate}}</div></el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
+          <el-col :span="12">预计奖金：<div class="grid-content">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
+        </el-row>
+        <el-row class="tip" :gutter="20">
+          <el-col :span="8">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
+          <el-col :span="8">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
+          <el-col :span="8">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+        </el-row>
       </div>
       <el-table :data="hoverData" border class="noright" style="width: 100%">
         <el-table-column v-for="(item, index) in hoverTableColumn"
@@ -159,7 +172,8 @@
         </el-table-column>
         <el-table-column prop="assumption" label="投注项" width="240" align="center">
           <template slot-scope="scope">
-            <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span>
+            <!-- <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span> -->
+            <span>{{scope.row.subPlayTypeWord}}</span>
             <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}&nbsp;({{item1.odds}})]</span>
           </template>
         </el-table-column>
@@ -179,6 +193,7 @@
 <script>
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import req from '../../api/order-list/index.js'
+// import {getCalculate, hunheComputeHunhe} from '../../utils/fastCombine.js'
 export default {
   components: {
   },
@@ -301,12 +316,24 @@ export default {
     document.addEventListener('click', () => {
       this.showOutPopover = false
     })
+    // 计算奖金
+    let maxMoney = 0
+    let calcData = JSON.parse(localStorage.getItem('calcData'))
+    if (calcData.orderInfo.betType === 'single') {
+      maxMoney = ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)
+      console.log(maxMoney)
+    } else {
+      let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
+      console.log(dataInfo)
+      maxMoney = Math.ceil(dataInfo.price * calcData.orderInfo.multiple)
+      console.log(maxMoney)
+    }
   },
   mounted () {
     this.$nextTick(() => {
+      // console.log(111, this.$refs.countOrder.offsetHeight)
       this.winHeight = localStorage.getItem('winHeight') - 250 - this.$refs.countOrder.offsetHeight
     })
-    console.log(1, this.winHeight)
     try {
       this.scan()
     } catch (error) {
@@ -423,10 +450,31 @@ export default {
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
+            // 计算最高奖金
+            let maxMoney = 0
+            let calcData = JSON.parse(JSON.stringify(res.data))
+            if (calcData.orderInfo.betType === 'single') {
+              maxMoney = Math.ceil(ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple))
+              console.log(maxMoney)
+            } else {
+              let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
+              console.log(dataInfo)
+              maxMoney = Math.ceil(dataInfo.price * calcData.orderInfo.multiple)
+              console.log(maxMoney)
+            }
+            // 获取信息
             let orderInfo = res.data.orderInfo
+            orderInfo.maxMoney = maxMoney
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
-            orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
+            orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType, 1)
             orderInfo.amount = (orderInfo.amount / 100).toFixed(2)
+            if (orderInfo.betType === 'single') {
+              orderInfo.betTypeWord = '单关'
+            } else if (Object.prototype.toString.call(orderInfo.betType) === '[object String]') {
+              orderInfo.betTypeWord = orderInfo.betType
+            } else {
+              orderInfo.betTypeWord = JSON.parse(orderInfo.betType)
+            }
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
             this.orderInfo.printResult && (this.imgStr = this.orderInfo.printResult)
@@ -480,6 +528,8 @@ export default {
     },
     maskClick (event) {
       event.stopPropagation()
+      this.Mask = false
+      this.enlargeImg = false
     },
     // 更改查询条数
     handleSizeChange (val) {
@@ -533,71 +583,40 @@ export default {
 </script>
 
 <style lang="less">
+.el-select-dropdown__item{
+  font-size: 20px;
+}
 .query-order{
-   margin-top: 145px!important;
+  padding-top: 145px!important;
   .count-order{
     box-sizing: border-box;
     width: calc(100% - 60px);
+    overflow: hidden;
     padding:15px 20px 5px;
-    font-size: 20px;
     background: #ffffff;
     position: fixed;
     top: 110px;
     left: 30px;
     z-index: 998;
     border-bottom: 1px solid #4dafdb;
-    .count-all{
-      display: inline-block;
-      margin-right: 10px;
-    }
-    >span{
-      margin-right: 80px;
-    }
-    .search-condition{
-      padding: 15px 0 0;
-      .el-form{
-        overflow: hidden;
-        .el-form-item{
-          // display: inline-block;
-          float: left;
-          margin-bottom: 10px;
-          width: 33.33%;
-          padding-right: 30px;
-          box-sizing: border-box;
-          .el-form-item__label{
-            font-size: 20px;
-            padding: 0;
-          }
-          .el-input{
-            font-size: 20px;
-            .el-input__inner{
-              // width: 100%;
-            }
-          }
-        }
-        .creatTime{
-          width: 60%;
-          overflow: hidden;
-          span{
-            float: left;
-            width: 6%;
-            font-size: 20px;
-            text-align: center;
-          }
-          input { pointer-events: none; }
-          .el-input{
-            float: left;
-            width: 47%;
+    .el-row{
+      margin-bottom: 10px;
+      *{
+        font-size: 20px!important;
+      }
+      .grid-content{
+        display: inline-block;
+      }
+      .el-form-item{
+        margin-bottom: 0;
+        .el-date-editor{
+          &.el-input__inner{
+            width: 100%!important;
           }
         }
       }
-      .el-button{
-        float: right;
-        padding: 15px 35px;
-        font-size: 20px;
-        &.el-button--success{
-          margin-left: 50px;
-        }
+      .btn-box{
+        text-align: right;
       }
     }
   }
@@ -608,6 +627,9 @@ export default {
   .el-pagination{
     text-align:center;
     margin:20px 0;
+    *{
+      font-size: 20px!important;
+    }
   }
   .el-table{
     font-size: 20px;
@@ -616,36 +638,45 @@ export default {
   .el-table .disabled-row {
     background: #D3D3D3;
   }
+  // 订单详情
   .orderNum-popover{
     .el-dialog{
       margin-top: 0 !important;
       margin-bottom: 0;
     }
     .el-dialog__header{
-      padding: 0;
-    }
-    .el-dialog__header{
-      padding: 0;
-    }
-    .popper__arrow{
-      top: 2% !important;
-    }
-    .hoverInput{
-      display: flex;
-      align-items: center;
-      span{
-        width: 100px;
+      padding: 20px;
+      .el-dialog__title{
+        font-size: 24px;
       }
-      .el-input__inner{
-        width: 545px;
-        height: 33px;
+      .el-dialog__close{
+        font-size: 28px;
       }
     }
-    .hoverItem{
-      display: inline-block;
-      margin: 10px 40px 0 0;
-      .substance{
-        color: #4daedb;
+    .el-dialog__body{
+      padding: 0 20px 20px;
+      .hoverContent{
+        font-size: 20px;
+        .tip{
+          border-bottom: 1px solid #FE4C40;
+          .el-col{
+            margin-bottom: 15px;
+            .grid-content{
+              color: #FE4C40;
+            }
+          }
+        }
+        .el-row{
+          width: 100%;
+          margin: 0 0 10px 0!important;
+          .el-col{
+            padding: 0!important;
+          }
+          .grid-content{
+            display: inline-block;
+            color: #4daedb;
+          }
+        }
       }
     }
     .noright{
@@ -699,5 +730,27 @@ export default {
       width: 100%;
     }
   }
+}
+.el-picker-panel__body{
+  .el-input__inner{
+    font-size: 20px;
+  }
+  .el-picker-panel__icon-btn{
+    font-size: 20px;
+  }
+  div{
+    font-size: 20px;
+  }
+}
+.el-date-range-picker{
+    table{
+      font-size: 20px!important;
+    }
+}
+.el-button{
+  font-size: 20px;
+}
+.el-button+.el-button {
+    margin-left: 40px;
 }
 </style>

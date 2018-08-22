@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import LeftNav from '@/components/left-nav'
+// import LeftNav from '@/components/left-nav'
 import OrderQuery from './order-query'
 // const Welcome = () => import('../page/welcome')
 const Login = () => import('../components/login')
+const LeftNav = () => import('../components/left-nav')
 Vue.use(Router)
 
 export default new Router({
