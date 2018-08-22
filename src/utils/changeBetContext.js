@@ -413,9 +413,10 @@ class changeBetContext {
   }
 
   // 得到单关最高奖金
-  static getSingleMaxMoney (obj, multiple) {
+  static getSingleMaxMoney (arr, multiple) {
+    console.log(arr, 'arr')
     let maxMoney = 0
-    obj.map(element => {
+    arr.map(element => {
       Object.keys(element).map(matchUniqueId => {
         let singleMax = 0
         element[matchUniqueId].map(ele => {

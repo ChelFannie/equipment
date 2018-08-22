@@ -735,7 +735,28 @@ export default {
         let hoverData = JSON.parse(JSON.stringify(this.hoverData))
         let orderInfo = JSON.parse(JSON.stringify(this.orderInfo))
         if (orderInfo.betType === 'single') {
-          console.log(22, orderInfo)
+          let betContextOdds = []
+          hoverData.map(item => {
+            let obj = {}
+            let arr = []
+            item.betItemsObj.map(item1 => {
+              arr.push(item1[item.matchUniqueId])
+            })
+            obj[item.matchUniqueId] = arr
+            if (item.score) {
+              if (this.orderInfo.subPlayType === '64') {
+                obj['totalScore'] = item.score
+              }
+              if (this.orderInfo.subPlayType === '61') {
+                obj['score'] = item.score
+              }
+            }
+            betContextOdds.push(obj)
+          })
+          // console.log(betContextOdds, 'betContextOdds')
+          let maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(betContextOdds, orderInfo.multiple)))
+          this.$set(this.orderInfo, 'maxMoney', maxMoney)
+          console.log(maxMoney, 'maxMoney')
         } else {
           let calcData = {
             betContextList: hoverData,
