@@ -10,7 +10,8 @@ const state = {
     accountOrder: false,
     queryOrder: false,
     quitSystem: false
-  }
+  },
+  keyboardCode: ''
 }
 
 const mutations = {
@@ -24,6 +25,9 @@ const mutations = {
     Object.keys(obj).map(key => {
       state.menuDisabled[key] = obj[key]
     })
+  },
+  setkeyboardCode (state, param) {
+    state.keyboardCode = param
   }
 }
 

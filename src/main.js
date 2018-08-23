@@ -6,14 +6,16 @@ import router from './router'
 import 'babel-polyfill'
 import Es6Promise from 'es6-promise'
 // 引入echarts
-import echarts from 'echarts'
+// import echarts from 'echarts'
 import './init'
 // import axios from './utils/fetch.js'
 import store from './store/store'
+// 引入图标
+import './assets/iconfont/iconfont.css'
 Vue.config.productionTip = false
 Es6Promise.polyfill() // 解决低版本安卓内核和ie浏览器显示空白页面
 // Vue.prototype.$ajax = axios
-Vue.prototype.$echarts = echarts
+// Vue.prototype.$echarts = echarts
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

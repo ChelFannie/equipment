@@ -262,6 +262,9 @@ export default {
             })
           }
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     // 获取待审核列表
     getData () {
@@ -314,6 +317,9 @@ export default {
             })
           }
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     // 添加扫码成功后的颜色
     tableRowClassName ({row, rowIndex}) {
@@ -351,6 +357,9 @@ export default {
               message: res.msg
             })
           }
+        })
+        .catch(error => {
+          console.log(error)
         })
     },
     // 获取票面信息
@@ -421,6 +430,9 @@ export default {
               message: res.msg
             })
           }
+        })
+        .catch(error => {
+          console.log(error)
         })
     },
     scan () {

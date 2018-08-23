@@ -281,6 +281,9 @@ export default {
             })
           }
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     handleSizeChange (val) {
       this.pageSize = val
@@ -343,6 +346,9 @@ export default {
             })
           }
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     // 获取票面信息
     getPopoverData () {
@@ -389,6 +395,9 @@ export default {
             }
           })
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     // 结算
     submitToSettle () {
@@ -430,6 +439,9 @@ export default {
                 message: res.msg
               })
             }
+          })
+          .catch(error => {
+            console.log(error)
           })
       }
     },
@@ -492,36 +504,40 @@ export default {
             userAccount: this.managerForm.userAccount,
             password: this.managerForm.password
           }
-          req1('toggleLogin', form).then(res => {
-            if (res.code === '00000') {
-              sessionStorage.setItem('lastToken', sessionStorage.getItem('token'))
-              sessionStorage.setItem('token', res.data.token)
-              this.$store.commit('token', res.data.token)
-              this.$store.commit('setActiveIndex', '/order-query/examine-order')
-              localStorage.setItem('setActiveIndex', '/order-query/examine-order')
-              this.$router.push({name: '审核订单'})
-              let setMenuDisabled = {
-                orderList: false,
-                accountOrder: false,
-                queryOrder: false
+          req1('toggleLogin', form)
+            .then(res => {
+              if (res.code === '00000') {
+                sessionStorage.setItem('lastToken', sessionStorage.getItem('token'))
+                sessionStorage.setItem('token', res.data.token)
+                this.$store.commit('token', res.data.token)
+                this.$store.commit('setActiveIndex', '/order-query/examine-order')
+                localStorage.setItem('setActiveIndex', '/order-query/examine-order')
+                this.$router.push({name: '审核订单'})
+                let setMenuDisabled = {
+                  orderList: false,
+                  accountOrder: false,
+                  queryOrder: false
+                }
+                this.$store.commit('setMenuDisabled', setMenuDisabled)
+                localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
+                this.managerDialogVisible = false
+                this.$message({
+                  message: res.msg,
+                  type: 'success'
+                })
+              } else {
+                this.$message({
+                  message: res.msg,
+                  type: 'warning'
+                })
+                // 刷新验证码
+                this.validateCode = loginValidate.createCode()
+                this.managerForm.inputCode = ''
               }
-              this.$store.commit('setMenuDisabled', setMenuDisabled)
-              localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
-              this.managerDialogVisible = false
-              this.$message({
-                message: res.msg,
-                type: 'success'
-              })
-            } else {
-              this.$message({
-                message: res.msg,
-                type: 'warning'
-              })
-              // 刷新验证码
-              this.validateCode = loginValidate.createCode()
-              this.managerForm.inputCode = ''
-            }
-          })
+            })
+            .catch(error => {
+              console.log(error)
+            })
         }
       })
     },

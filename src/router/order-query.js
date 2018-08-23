@@ -3,6 +3,7 @@ const OrderList = () => import('../page/order-query/order-List')
 const AccountOrder = () => import('../page/order-query/account-order')
 const ExamineOrder = () => import('../page/order-query/examine-order')
 const QueryOrder = () => import('../page/order-query/query-order')
+const PrizeOrder = () => import('../page/order-query/prize-order')
 
 export default [{
   path: '/order-query',
@@ -23,5 +24,9 @@ export default [{
     path: 'query-order',
     name: '查询订单',
     component: QueryOrder
+  }, {
+    path: 'prize-order',
+    name: '兑奖页面',
+    component: PrizeOrder
   }]
 }]

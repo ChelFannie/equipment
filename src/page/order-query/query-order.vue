@@ -340,7 +340,7 @@ export default {
     try {
       this.scan()
     } catch (error) {
-      console.log('条码枪')
+      console.log('条码枪扫描错误', error)
     }
     document.getElementById('outPopover').addEventListener('click', (event) => {
       event.stopPropagation()
@@ -405,6 +405,9 @@ export default {
             })
           }
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     // 查询列表
     queryOrder () {
@@ -451,6 +454,9 @@ export default {
               message: res.msg
             })
           }
+        })
+        .catch(error => {
+          console.log(error)
         })
     },
     // 获取票面信息
@@ -526,6 +532,9 @@ export default {
             })
           }
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     // 图片放大
     enlarge () {
@@ -591,7 +600,7 @@ export default {
       clearInterval(this.timer)
       latech.BCRDisableFromJS() // eslint-disable-line  
     } catch (error) {
-      console.log('条码枪')
+      console.log('条码枪停止错误', error)
     }
   }
 }

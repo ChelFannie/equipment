@@ -262,6 +262,9 @@ export default {
             })
           }
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     onFileChange (e) {
       let files = e.target.files || e.dataTransfer.files
@@ -327,6 +330,9 @@ export default {
               message: res.msg
             })
           }
+        })
+        .catch(error => {
+          console.log(error)
         })
     },
     showOddsPopover (rows, odds) {
@@ -461,6 +467,9 @@ export default {
             })
           }
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     cancelSumbit () {
       this.confirmFlag = false
@@ -493,6 +502,9 @@ export default {
             })
             this.showOutPopover = true
           }
+        })
+        .catch(error => {
+          console.log(error)
         })
     }
   }

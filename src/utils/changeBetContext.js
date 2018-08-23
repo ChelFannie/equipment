@@ -414,7 +414,6 @@ class changeBetContext {
 
   // 得到单关最高奖金
   static getSingleMaxMoney (arr, multiple) {
-    console.log(arr, 'arr')
     let maxMoney = 0
     arr.map(element => {
       Object.keys(element).map(matchUniqueId => {
@@ -430,14 +429,14 @@ class changeBetContext {
         maxMoney += singleMax * 2
       })
     })
-    // return maxMoney
     maxMoney = changeBetContext.evenRound(changeBetContext.evenRound(maxMoney, 2) * multiple, 2)
+    console.log(maxMoney)
     return maxMoney
   }
 
   // 得到过关方式最高奖金
   static getPassMaxMoney (calcData, eddOddsFlag) {
-    // console.log(calcData)
+    console.log(calcData)
     let obj = {
       lotteryType: calcData.orderInfo.lotteryType,
       subPlayType: calcData.orderInfo.subPlayType,
@@ -507,14 +506,14 @@ class changeBetContext {
   // 自动补零
   static returnFloat (maxMoney) {
     let floatMaxMoney = 0
-    if (maxMoney.toString().split('.').length) {
-      if (maxMoney.toString().split('.')[1].length === 1) {
+    let a = maxMoney.toString()
+    if (a.indexOf('.') > -1 && a.split('.').length) {
+      if (a.split('.')[1].length === 1) {
         floatMaxMoney = `${maxMoney}0`
       } else {
         floatMaxMoney = maxMoney
       }
-    } else if (maxMoney.indexof('.') === -1) {
-      console.log(2222222)
+    } else if (a.indexOf('.') === -1) {
       floatMaxMoney = `${maxMoney}.00`
     }
     return floatMaxMoney

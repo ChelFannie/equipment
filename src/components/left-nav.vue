@@ -12,45 +12,53 @@
                 @open="handleOpen"
                 @close="handleClose"
                 @select="handleSelect">
-                <el-menu-item index="/order-query/order-List" class="flex-item" :disabled="$store.state.menuDisabled.orderList">
-                    <span class="icon-box">
-                        <i class="el-icon-tickets i-color"></i>
+                <el-menu-item index="/order-query/order-List" class="flex-item" id="order-List" :disabled="$store.state.menuDisabled.orderList">
+                    <span class="icon-box" ref="orderList">
+                        <i class="icon iconfont icon-xiaofeimingxidan"></i>
                         <span slot="title" class="icon-name">获取订单</span>
                     </span>
                 </el-menu-item>
-                <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
-                    <span class="icon-box">
-                        <i class="el-icon-printer i-color"></i>
-                        <span slot="title" class="icon-name">订单结算</span>
-                    </span>
-                </el-menu-item>
-                <!-- <el-menu-item index="/order-query/examine-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
+                <!-- <el-menu-item index="/order-query/account-order" class="flex-item" id="account-order" :disabled="$store.state.menuDisabled.accountOrder">
+                    <span class="icon-box" ref="accountOrder"> -->
+                <!-- <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
                     <span class="icon-box">
                         <i class="el-icon-printer i-color"></i>
                         <span slot="title" class="icon-name">订单结算</span>
                     </span>
                 </el-menu-item> -->
+                <el-menu-item index="/order-query/examine-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
+                    <span class="icon-box" ref="accountOrder">
+                        <i class="el-icon-printer i-color"></i>
+                        <span slot="title" class="icon-name">订单结算</span>
+                    </span>
+                </el-menu-item>
                 <el-menu-item index="" class="flex-item bigger"  v-if="$store.state.activeIndex==='/order-query/examine-order'">
                     <span class="icon-box" @click="quit">
-                        <i class="el-icon-sold-out  i-color"></i>
+                        <i class="icon iconfont icon-logout"></i>
                         <span slot="title" class="icon-name">管理员登出</span>
                     </span>
                 </el-menu-item>
-                <el-menu-item :disabled="$store.state.menuDisabled.queryOrder" index="/order-query/query-order" class="flex-item">
-                    <span class="icon-box">
-                        <i class="el-icon-sold-out  i-color"></i>
+                <el-menu-item :disabled="$store.state.menuDisabled.queryOrder" id="query-order" index="/order-query/query-order" class="flex-item">
+                    <span class="icon-box" ref="queryOrder">
+                        <i class="icon iconfont icon-SQLshenhe"></i>
                         <span slot="title" class="icon-name">查询</span>
                     </span>
                 </el-menu-item>
                 <!-- <el-menu-item index="/order-query/query-order" class="flex-item">
                     <span class="icon-box">
-                        <i class="el-icon-sold-out  i-color"></i>
+                        <i class="icon iconfont icon-SQLshenhe"></i>
                         <span slot="title" class="icon-name">查询</span>
                     </span>
                 </el-menu-item> -->
+                <el-menu-item index="/order-query/prize-order" class="flex-item">
+                    <span class="icon-box">
+                        <i class="icon iconfont icon-accountbook"></i>
+                        <span slot="title" class="icon-name">兑奖</span>
+                    </span>
+                </el-menu-item>
                 <el-menu-item index="quitSystem" class="flex-item last-item" :disabled="$store.state.menuDisabled.quitSystem">
                     <span class="icon-box">
-                        <i class="el-icon-sold-out  i-color"></i>
+                        <i class="icon iconfont icon-poweroff"></i>
                         <span slot="title" class="icon-name">退出系统</span>
                     </span>
                 </el-menu-item>
@@ -58,6 +66,7 @@
             <img class="logo" src="../assets/image/logo.png" alt="">
         </div>
     </div>
+
     <div class="content">
         <div class="content1">
             <router-view></router-view>
@@ -122,6 +131,28 @@ export default {
     }
   },
   watch: {
+    '$store.state.keyboardCode': function (val) {
+      console.log('watch', val)
+      switch (val) {
+        case 111:
+          this.$refs.orderList.click()
+          break
+        case 106:
+          this.$refs.accountOrder.click()
+          break
+        case 109:
+          this.$refs.queryOrder.click()
+          break
+        case 8:
+          this.managerDialogVisible = false
+          break
+        case 0:
+          this.sumbitManagerLogin('ruleForm')
+          break
+        default:
+          break
+      }
+    }
     // '$route.path': function (newVal, oldVal) {
     //   console.log(newVal, '路由的变化')
     //   if (newVal === '/order-query/order-List') {
@@ -132,11 +163,39 @@ export default {
   },
   created () {
     this.storeInfo = JSON.parse(sessionStorage.getItem('storeInfo'))
+    console.log('nav页面')
+    const _this = this
+    document.onkeydown = function (e) {
+      console.log('nav', e.keyCode)
+      if (e.keyCode === 144) {
+        return
+      }
+      switch (e.keyCode) {
+        case 111:
+          _this.$refs.orderList.click()
+          break
+        case 106:
+          _this.$refs.accountOrder.click()
+          break
+        case 109:
+          _this.$refs.queryOrder.click()
+          break
+        case 8:
+          _this.managerDialogVisible = false
+          break
+        case 0:
+          _this.sumbitManagerLogin('ruleForm')
+          break
+        default:
+          break
+      }
+    }
   },
   mounted () {
   },
   methods: {
     handleSelect (index, indexPath) {
+      console.log(index, indexPath)
       this.activeIndex = index
       this.$store.commit('setActiveIndex', index)
       localStorage.setItem('setActiveIndex', index)
@@ -265,14 +324,14 @@ export default {
         position: relative;
         z-index: 999;
         box-sizing: border-box;
-        background-color: #4dafdb;
+        background-color: #04285c;
         box-shadow: 0 2px 10px rgba(39,54,78,.2);
         display: flex;
         .top-left{
             display: inline-block;
             font-size: 20px;
             color: #fff;
-            background: #228fbd;
+            background: #073679;
             padding: 20px 30px;
             position: relative;
             p{
@@ -290,14 +349,14 @@ export default {
             content: "";
             width: 15px;
             height: 110px;
-            background:#2d97c5;
+            background:#031e44;
             position: absolute;
             right: 0;
             top: 0;
         }
         .top-right{
             flex: 1;
-            padding: 0 30px;
+            padding: 0 20px;
             .el-menu-vertical{
                 display: flex;
                 flex-flow: row nowrap;
@@ -324,7 +383,7 @@ export default {
                             text-align: center;
                             width: 100%;
                             font-size: 36px;
-                            margin-bottom: 15px;
+                            margin-bottom: 8px;
                             color: #ffffff;
                         }
                         .icon-name{
@@ -339,7 +398,7 @@ export default {
                         background: #4dafdb;
                     }
                     &.is-active{
-                        background: #56718F!important;
+                        background: #035bda!important;
                     }
                 }
                 .last-item{
@@ -368,8 +427,7 @@ export default {
         .content1{
             flex: 1;
             background: #ffffff;
-            overflow-x: hidden;
-            overflow-y: auto;
+            overflow: hidden;
             padding: 85px 20px 20px;
         }
         /*滚动条样式*/

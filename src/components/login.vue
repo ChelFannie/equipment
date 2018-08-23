@@ -2,15 +2,14 @@
   <div class="login">
       <div class="content">
           <div class="loginCon">
-            <!-- <p class="title">设备界面登录</p> -->
             <img class="logo" src="../assets/image/logo.png" alt="">
             <div class="wrap">
               <el-form ref="form" :model="form" label-width="100px" class="form">
                   <el-form-item label="用户名：">
-                      <el-input class="user" v-model="form.userAccount" placeholder="用户名"></el-input>
+                      <el-input class="user" v-model="form.userAccount" placeholder="请输入用户名"></el-input>
                   </el-form-item>
                   <el-form-item  label="密   码：">
-                      <el-input class="pass" type="password" v-model="form.password" placeholder="密码"></el-input>
+                      <el-input class="pass" type="password" v-model="form.password" placeholder="请输入密码"></el-input>
                   </el-form-item>
                   <!-- <div class="code">
                     <el-form-item>
@@ -94,6 +93,9 @@ export default {
             })
           }
         })
+          .catch(error => {
+            console.log(error)
+          })
       } else {
         this.$message({
           message: '请先进行状态检测',
@@ -117,7 +119,7 @@ export default {
         this.printTicket(this.QRcode)
         this.readTicket()
       } catch (error) {
-        console.log(error)
+        console.log('打印机读票机错误', error)
       }
     },
     // 打印机
@@ -179,7 +181,7 @@ export default {
       clearInterval(this.timer)
       this.latechFlag && latech.ScannerStopFromJS() // eslint-disable-line
     } catch (error) {
-      console.log('打印机')
+      console.log('读票机关闭错误', error)
     }
   }
 }

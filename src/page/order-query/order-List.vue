@@ -194,6 +194,17 @@
     <el-dialog :title="fileTitle" :visible.sync="fileVisible" width="585px" class="file">
       <export-file @fileCancel="fileCancel" @getFileName="getFileName"></export-file>
     </el-dialog>
+    <el-dialog
+      title="提示"
+      :visible.sync="printVisible"
+      :show-close="false"
+      width="30%">
+      <span>此订单已打印投注单, 是否继续打印?</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="printCancel">取 消</el-button>
+        <el-button type="primary" @click="printQuery">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -283,7 +294,13 @@ export default {
       timerId: null,
       // 开启定时器
       openTimerId: false,
-      tableDataLen: 0
+      tableDataLen: 0,
+      // 已打印的数据
+      printList: [],
+      // 是否打印弹出框标志
+      printVisible: false,
+      // 是否打印弹出框当前的数据
+      printOneData: {}
     }
   },
   watch: {
@@ -318,6 +335,9 @@ export default {
     },
     reaminingTime (val) {
       if (val === 0) {
+        this.printList = []
+        this.printVisible = false
+        console.log(formatDateTime(new Date().getTime()))
         this.$nextTick(() => {
           this.reaminingTime = 0
           this.openTimerId = false
@@ -426,7 +446,72 @@ export default {
     document.getElementById('limitSaleDialog').addEventListener('click', (event) => {
       event.stopPropagation()
     })
-    // this.$refs.multipleTable8.height = this.winHeight
+    console.log('获取页面')
+    // 注册键盘事件
+    const _this = this
+    document.onkeydown = function (e) {
+      console.log('获取', e.keyCode)
+      if (e.keyCode === 144) {
+        return
+      }
+      switch (e.keyCode) {
+        case 97:
+          _this.tableData.length > 0 && _this.getOutPopover(_this.tableData[0])
+          break
+        case 98:
+          _this.tableData.length > 1 && _this.getOutPopover(_this.tableData[1])
+          break
+        case 99:
+          _this.tableData.length > 2 && _this.getOutPopover(_this.tableData[2])
+          break
+        case 100:
+          _this.tableData.length > 3 && _this.getOutPopover(_this.tableData[3])
+          break
+        case 101:
+          _this.tableData.length > 4 && _this.getOutPopover(_this.tableData[4])
+          break
+        case 102:
+          _this.tableData.length > 5 && _this.getOutPopover(_this.tableData[5])
+          break
+        case 103:
+          _this.tableData.length > 6 && _this.getOutPopover(_this.tableData[6])
+          break
+        case 104:
+          _this.tableData.length > 7 && _this.getOutPopover(_this.tableData[7])
+          break
+        case 105:
+          _this.tableData.length > 8 && _this.getOutPopover(_this.tableData[8])
+          break
+        case 8:
+          if (_this.printVisible) {
+            _this.printVisible = false
+          } else {
+            _this.showOutPopover = false
+          }
+          _this.$store.commit('setkeyboardCode', 8)
+          break
+        case 0:
+          if (_this.printVisible) {
+            _this.printQuery(e)
+            _this.printVisible = false
+          } else {
+            _this.showOutPopover = false
+          }
+          _this.$store.commit('setkeyboardCode', 0)
+          break
+        case 111:
+          _this.$store.commit('setkeyboardCode', 111)
+          break
+        case 106:
+          _this.$store.commit('setkeyboardCode', 106)
+          break
+        case 109:
+          _this.$store.commit('setkeyboardCode', 109)
+          break
+        default:
+          break
+      }
+    }
   },
   methods: {
     takeOrderToPrint () {
@@ -452,6 +537,9 @@ export default {
             this.$store.commit('setMenuDisabled', setMenuDisabled)
             localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
           }
+        })
+        .catch(error => {
+          console.log(error)
         })
     },
     // 获取订单列表
@@ -553,6 +641,9 @@ export default {
           }
           this.tableDataLen = this.tableData.length
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     // 获取订单信息
     getOutPopover (rows, event, column) {
@@ -595,6 +686,9 @@ export default {
               this.$set(item, 'flag', false)
             }
           })
+        })
+        .catch(error => {
+          console.log(error)
         })
     },
     // 获取票面信息
@@ -644,10 +738,16 @@ export default {
               let resultObj = getResultStr(obj)
               this.latechFlag = true
               try {
-                this.printTicket(resultObj)
+                if (this.printList.includes(rows.serialNumber)) {
+                  this.printVisible = true
+                  this.printOneData = {resultObj: resultObj, serialNumber: rows.serialNumber}
+                } else {
+                  this.printList.push(rows.serialNumber)
+                  this.printTicket(resultObj, rows.serialNumber)
+                }
                 this.readTicket()
               } catch (error) {
-                console.log('打印机')
+                console.log('打印机读票机', error)
               }
             } else {
               this.latechFlag = false
@@ -689,6 +789,9 @@ export default {
               }
             })
           }
+        })
+        .catch(error => {
+          console.log(error)
         })
     },
     // 修改预设值
@@ -795,14 +898,14 @@ export default {
       })
     },
     // 打印机
-    printTicket (obj) {
+    printTicket (obj, orderNum) {
       // let printStatus = latech.printStatusFromJS() // eslint-disable-line
       // console.log(1, printStatus)
       if (obj.status === '1') {
-        latech.printBMPFromJS(obj.resultStr) // eslint-disable-line
+        latech.printBMPFromJS(obj.resultStr, orderNum) // eslint-disable-line
       } else {
         // latech.printInit() // eslint-disable-line
-        latech.printStringFormJS(obj.resultStr) // eslint-disable-line
+        latech.printStringFormJS(obj.resultStr, orderNum) // eslint-disable-line
         // latech.printFeedLineFromJS(10) // eslint-disable-line
         // latech.printCutPaperFromJS() // eslint-disable-line
       }
@@ -986,7 +1089,7 @@ export default {
         latech.saveImageFromJS(this.ticketInfoNumber, this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
         this.imgStr = latech.getBinaryzationBMP(this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
       } catch (error) {
-        console.log('保存图片')
+        console.log('保存图片错误', error)
       }
       let params = {
         ticketInfoNumber: this.ticketInfoNumber,
@@ -1065,6 +1168,9 @@ export default {
             this.showOutPopover = true
           }
         })
+        .catch(error => {
+          console.log(error)
+        })
     },
     limitSale (ticketInfoNumber) {
       this.limitSaleData = {
@@ -1089,7 +1195,7 @@ export default {
           this.spaceVisible = false
         }
       } catch (error) {
-        console.log('读磁盘')
+        console.log('读磁盘错误', error)
       }
     },
     fileCancel () {
@@ -1097,6 +1203,18 @@ export default {
     },
     getFileName (val) {
       this.fileTitle = val
+    },
+    // 是否打印弹出框取消
+    printCancel (e) {
+      this.printVisible = false
+      e.stopPropagation()
+      // this.showOutPopover = true
+    },
+    // 是否打印弹出框确认
+    printQuery (e) {
+      this.printVisible = false
+      e.stopPropagation()
+      this.printTicket(this.printOneData.resultObj, this.printOneData.serialNumber)
     }
   },
   destroyed () {
@@ -1105,7 +1223,7 @@ export default {
       clearInterval(this.timer)
       this.latechFlag && latech.ScannerStopFromJS() // eslint-disable-line
     } catch (error) {
-      console.log('打印机')
+      console.log('读票机关闭错误', error)
     }
   }
 }
