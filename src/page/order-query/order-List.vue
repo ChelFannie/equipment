@@ -96,10 +96,11 @@
           label="客队"
           align="center">
         </el-table-column>
-        <!-- <el-table-column
+        <el-table-column
           prop="assumption"
           label="预设"
-          align="center">
+          align="center"
+           v-if="orderInfo.subPlayType === '52' || orderInfo.subPlayType === '59'">
           <template slot-scope="scopeAssumption">
             <el-popover ref="innerPopover" popper-class="edit-popover" placement="bottom" width="200" v-model="scopeAssumption.row.assumptionFlag">
               <p>系统预设：<span>{{scopeAssumption.row.assumption}}</span></p>
@@ -111,7 +112,7 @@
               <el-button slot="reference" type="text" size="small" :disabled="!scopeAssumption.row.score || printFlag!==1" @click="showAssumptiondsPopover(scopeAssumption.row.matchUniqueId)">[{{scopeAssumption.row.assumption}}]</el-button>
             </el-popover>
           </template>
-        </el-table-column> -->
+        </el-table-column>
         <el-table-column label="投注项" width="214" align="center">
           <template slot-scope="scope">
             <!-- <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span> -->
@@ -194,7 +195,7 @@
     <el-dialog :title="fileTitle" :visible.sync="fileVisible" width="585px" class="file">
       <export-file @fileCancel="fileCancel" @getFileName="getFileName"></export-file>
     </el-dialog>
-    <el-dialog
+    <!-- <el-dialog
       title="提示"
       :visible.sync="printVisible"
       :show-close="false"
@@ -204,7 +205,7 @@
         <el-button @click="printCancel">取 消</el-button>
         <el-button type="primary" @click="printQuery">确 定</el-button>
       </span>
-    </el-dialog>
+    </el-dialog> -->
   </div>
 </template>
 <script>
@@ -337,7 +338,6 @@ export default {
       if (val === 0) {
         this.printList = []
         this.printVisible = false
-        console.log(formatDateTime(new Date().getTime()))
         this.$nextTick(() => {
           this.reaminingTime = 0
           this.openTimerId = false
@@ -447,71 +447,76 @@ export default {
       event.stopPropagation()
     })
     console.log('获取页面')
-    // 注册键盘事件
-    const _this = this
-    document.onkeydown = function (e) {
-      console.log('获取', e.keyCode)
-      if (e.keyCode === 144) {
-        return
-      }
-      switch (e.keyCode) {
-        case 97:
-          _this.tableData.length > 0 && _this.getOutPopover(_this.tableData[0])
-          break
-        case 98:
-          _this.tableData.length > 1 && _this.getOutPopover(_this.tableData[1])
-          break
-        case 99:
-          _this.tableData.length > 2 && _this.getOutPopover(_this.tableData[2])
-          break
-        case 100:
-          _this.tableData.length > 3 && _this.getOutPopover(_this.tableData[3])
-          break
-        case 101:
-          _this.tableData.length > 4 && _this.getOutPopover(_this.tableData[4])
-          break
-        case 102:
-          _this.tableData.length > 5 && _this.getOutPopover(_this.tableData[5])
-          break
-        case 103:
-          _this.tableData.length > 6 && _this.getOutPopover(_this.tableData[6])
-          break
-        case 104:
-          _this.tableData.length > 7 && _this.getOutPopover(_this.tableData[7])
-          break
-        case 105:
-          _this.tableData.length > 8 && _this.getOutPopover(_this.tableData[8])
-          break
-        case 8:
-          if (_this.printVisible) {
-            _this.printVisible = false
-          } else {
-            _this.showOutPopover = false
-          }
-          _this.$store.commit('setkeyboardCode', 8)
-          break
-        case 0:
-          if (_this.printVisible) {
-            _this.printQuery(e)
-            _this.printVisible = false
-          } else {
-            _this.showOutPopover = false
-          }
-          _this.$store.commit('setkeyboardCode', 0)
-          break
-        case 111:
-          _this.$store.commit('setkeyboardCode', 111)
-          break
-        case 106:
-          _this.$store.commit('setkeyboardCode', 106)
-          break
-        case 109:
-          _this.$store.commit('setkeyboardCode', 109)
-          break
-        default:
-          break
-      }
-    }
+    // // 注册键盘事件
+    // const _this = this
+    // document.onkeydown = function (e) {
+    //   console.log('获取', e.keyCode)
+    //   if (e.keyCode === 144) {
+    //     return
+    //   }
+    //   switch (e.keyCode) {
+    //     case 97:
+    //       _this.tableData.length > 0 && _this.getOutPopover(_this.tableData[0])
+    //       break
+    //     case 98:
+    //       _this.tableData.length > 1 && _this.getOutPopover(_this.tableData[1])
+    //       break
+    //     case 99:
+    //       _this.tableData.length > 2 && _this.getOutPopover(_this.tableData[2])
+    //       break
+    //     case 100:
+    //       _this.tableData.length > 3 && _this.getOutPopover(_this.tableData[3])
+    //       break
+    //     case 101:
+    //       _this.tableData.length > 4 && _this.getOutPopover(_this.tableData[4])
+    //       break
+    //     case 102:
+    //       _this.tableData.length > 5 && _this.getOutPopover(_this.tableData[5])
+    //       break
+    //     case 103:
+    //       _this.tableData.length > 6 && _this.getOutPopover(_this.tableData[6])
+    //       break
+    //     case 104:
+    //       _this.tableData.length > 7 && _this.getOutPopover(_this.tableData[7])
+    //       break
+    //     case 105:
+    //       _this.tableData.length > 8 && _this.getOutPopover(_this.tableData[8])
+    //       break
+    //     case 8:
+    //       if (_this.printVisible) {
+    //         _this.printVisible = false
+    //       } else {
+    //         _this.showOutPopover = false
+    //       }
+    //       _this.$store.commit('setkeyboardCode', 8)
+    //       break
+    //     case 0:
+    //       if (_this.printVisible) {
+    //         _this.printQuery(e)
+    //         _this.printVisible = false
+    //       } else {
+    //         _this.showOutPopover = false
+    //       }
+    //       _this.$store.commit('setkeyboardCode', 0)
+    //       break
+    //     case 111:
+    //       _this.$store.commit('setkeyboardCode', 111)
+    //       break
+    //     case 106:
+    //       _this.$store.commit('setkeyboardCode', 106)
+    //       break
+    //     case 109:
+    //       _this.$store.commit('setkeyboardCode', 109)
+    //       break
+    //     default:
+    //       break
+    //   }
+    // }
+    // 读票机初始化
+    // if (latech.ScannerInit() === 0) { // eslint-disable-line
+    // } else {
+    //   this.getTicketError()
+    // }
   },
   methods: {
     takeOrderToPrint () {
@@ -697,26 +702,50 @@ export default {
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
-            this.showOutPopover = true
-            this.confirmDisabled = false
-            // 计算最高奖金
+            // this.showOutPopover = true
+            // this.confirmDisabled = false
             let maxMoney = 0
+            let calcData = JSON.parse(JSON.stringify(res.data))
+            // 数据出现异常
+            if (calcData.orderInfo.betType !== 'single') {
+              // 判断后台拆票是否出现问题
+              let ticketErrorFlag = false
+              let betLen = Number(calcData.orderInfo.betType.split('x')[0])
+              let tablelen = calcData.betContextList.length
+              betLen !== tablelen && (ticketErrorFlag = true)
+              // 判断是否拆票时，有重复的matchUniqueId
+              let repeatIdFlag = false
+              for (let i = 0; i < calcData.betContextList.length - 1; i++) {
+                if (calcData.betContextList[i].matchUniqueId === calcData.betContextList[i + 1].matchUniqueId) {
+                  repeatIdFlag = true
+                  break
+                }
+              }
+              if (ticketErrorFlag || repeatIdFlag) {
+                this.$alert('数据出现异常，请联系开发人员！', '错误提示', {
+                  confirmButtonText: '确定',
+                  type: 'error',
+                  showClose: false,
+                  callback: action => {
+                    console.log('后台数据出现异常，请检查！')
+                  }
+                })
+                return
+              }
+            }
+            // 计算最高奖金
             try {
-              let calcData = JSON.parse(JSON.stringify(res.data))
-              // 增加提示
               if (calcData.orderInfo.betType === 'single') {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
-                // maxMoney = ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)
               } else {
                 let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-                // console.log(dataInfo)
                 maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
-                // maxMoney = dataInfo.price * calcData.orderInfo.multiple
-                // console.log(maxMoney)
               }
             } catch (error) {
               console.log(error)
             }
+            this.showOutPopover = true
+            this.confirmDisabled = false
             // 获取信息
             let orderInfo = res.data.orderInfo
             orderInfo.maxMoney = maxMoney
@@ -865,9 +894,8 @@ export default {
             betContextList: hoverData,
             orderInfo: orderInfo
           }
-          let eddOddsFlag = true
-          let dataInfo = ChangeBetContext.getPassMaxMoney(calcData, eddOddsFlag)
-          // let maxMoney = Math.ceil(dataInfo.price * calcData.orderInfo.multiple)
+          let editOddsFlag = true
+          let dataInfo = ChangeBetContext.getPassMaxMoney(calcData, editOddsFlag)
           let maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
           this.$set(this.orderInfo, 'maxMoney', maxMoney)
         }
@@ -929,6 +957,7 @@ export default {
               //  退票
               latech.ScannerRollBackFromJS() // eslint-disable-line
               _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
+              console.log('QR码:' + _this.realTicketNumber)
             }
           }, 200)
         } else {

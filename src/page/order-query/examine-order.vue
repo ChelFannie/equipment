@@ -367,17 +367,42 @@ export default {
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
-            // 计算最高奖金
             let maxMoney = 0
+            let calcData = JSON.parse(JSON.stringify(res.data))
+            // 数据出现异常
+            if (calcData.orderInfo.betType !== 'single') {
+              // 判断后台拆票是否出现问题
+              let ticketErrorFlag = false
+              let betLen = Number(calcData.orderInfo.betType.split('x')[0])
+              let tablelen = calcData.betContextList.length
+              betLen !== tablelen && (ticketErrorFlag = true)
+              // 判断是否拆票时，有重复的matchUniqueId
+              let repeatIdFlag = false
+              for (let i = 0; i < calcData.betContextList.length - 1; i++) {
+                if (calcData.betContextList[i].matchUniqueId === calcData.betContextList[i + 1].matchUniqueId) {
+                  repeatIdFlag = true
+                  break
+                }
+              }
+              if (ticketErrorFlag || repeatIdFlag) {
+                this.$alert('数据出现异常，请联系开发人员！', '错误提示', {
+                  confirmButtonText: '确定',
+                  type: 'error',
+                  showClose: false,
+                  callback: action => {
+                    console.log('后台数据出现异常，请检查！')
+                  }
+                })
+                return
+              }
+            }
+            // 计算最高奖金
             try {
-              let calcData = JSON.parse(JSON.stringify(res.data))
               if (calcData.orderInfo.betType === 'single') {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
-                // console.log(maxMoney)
               } else {
                 let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
                 maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
-                // console.log(maxMoney)
               }
             } catch (error) {
               console.log(error)

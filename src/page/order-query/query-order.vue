@@ -218,8 +218,8 @@ export default {
       hoverTableColumn: [
         {prop: 'orderNum', label: '编号'},
         {prop: 'host', label: '主队'},
-        {prop: 'guest', label: '客队'}
-        // {prop: 'assumption', label: '预设'}
+        {prop: 'guest', label: '客队'},
+        {prop: 'assumption', label: '预设'}
       ],
       hoverData: [],
       orderInfo: {},
@@ -464,11 +464,37 @@ export default {
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
-            // 计算最高奖金
             let maxMoney = 0
-            // localStorage.setItem('calcData1', JSON.stringify(res.data))
+            let calcData = JSON.parse(JSON.stringify(res.data))
+            // 数据出现异常
+            if (calcData.orderInfo.betType !== 'single') {
+              // 判断后台拆票是否出现问题
+              let ticketErrorFlag = false
+              let betLen = Number(calcData.orderInfo.betType.split('x')[0])
+              let tablelen = calcData.betContextList.length
+              betLen !== tablelen && (ticketErrorFlag = true)
+              // 判断是否拆票时，有重复的matchUniqueId
+              let repeatIdFlag = false
+              for (let i = 0; i < calcData.betContextList.length - 1; i++) {
+                if (calcData.betContextList[i].matchUniqueId === calcData.betContextList[i + 1].matchUniqueId) {
+                  repeatIdFlag = true
+                  break
+                }
+              }
+              if (ticketErrorFlag || repeatIdFlag) {
+                this.$alert('数据出现异常，请联系开发人员！', '错误提示', {
+                  confirmButtonText: '确定',
+                  type: 'error',
+                  showClose: false,
+                  callback: action => {
+                    console.log('后台数据出现异常，请检查！')
+                  }
+                })
+                return
+              }
+            }
+            // 计算最高奖金
             try {
-              let calcData = JSON.parse(JSON.stringify(res.data))
               if (calcData.orderInfo.betType === 'single') {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
               } else {

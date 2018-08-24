@@ -17,8 +17,36 @@ const instance = axios.create({
     'Content-Type': 'application/x-www-form-urlencoded'
   }
 })
+
+/**
+ *  解決重复请求
+ *
+ */
+let pending = [] // 存储网络请求列表
+let CancelToken = axios.CancelToken
+let removePending = (config, cancleHandle) => {
+  let flagUrl = config.url
+  if (flagUrl.indexOf(config.baseURL) !== -1) {
+    flagUrl = '/' + flagUrl.substr(config.baseURL.length, flagUrl.length) // 把这条记录从数组中移除
+  }
+  if (flagUrl.indexOf('http') !== 0) flagUrl = config.baseURL + flagUrl
+  if (pending.indexOf(flagUrl) !== -1) { // 如果要检索的字符串值没有出现，则该方法indexOf返回 -1
+    if (cancleHandle) {
+      cancleHandle('重复的请求') // 执行取消操作
+    } else {
+      pending.splice(pending.indexOf(flagUrl), 1) // 把这条记录从数组中移除
+    }
+  } else {
+    pending.push(flagUrl)
+  }
+  console.log(flagUrl)
+}
+
 // axios请求拦截器
 instance.interceptors.request.use((config) => {
+  config.cancelToken = new CancelToken((c) => {
+    removePending(config, c)
+  })
   config.headers.token = `${store.state.token}`
   if (config.method === 'post' && config.headers['Content-Type'] !== 'application/json') {
     config.data = qs.stringify(config.data) // stringify POST方式提交的数据
@@ -26,11 +54,12 @@ instance.interceptors.request.use((config) => {
   return config
 },
 (error) => {
-  console.log('error.request', error.request)
   return Promise.reject(error)
 })
+
 // axios响应拦截器
 instance.interceptors.response.use((response) => {
+  removePending(response.config) // 不管成功与否都从记录中移除请求记录
   if (response.data.code && response.data.code === '10009') {
     // 用户没登录
     store.commit('token', '')
@@ -39,6 +68,7 @@ instance.interceptors.response.use((response) => {
   }
   return response.data
 }, (error) => {
+  removePending(error.config) // 不管成功与否都从记录中移除请求记录
   switch (error.response && error.response.status) {
     case 400:
       error.message = '请求错误(400)'

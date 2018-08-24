@@ -1,6 +1,9 @@
-import {getCalculate, hunheComputeHunhe} from '../utils/fastCombine'
+import {getCalculate, hunheComputeHunhe} from './fastCombine'
 class changeBetContext {
-  // 转换彩种
+  /**
+   * 转换彩种
+   * @param {String} val - 彩种类型 lotteryType
+   */
   static lotteryType (val) {
     let lotteryType = ''
     switch (val) {
@@ -28,7 +31,10 @@ class changeBetContext {
     return lotteryType
   }
 
-  // 转换彩种(转为文字)
+  /**
+   * 转换彩种(转为文字)
+   * @param {String} val - 子彩种类型 subPlayType
+   */
   static subPlayType (val) {
     let subPlayType = ''
     switch (val) {
@@ -71,7 +77,10 @@ class changeBetContext {
     return subPlayType
   }
 
-  // 转换彩种(转为type)
+  /**
+   * 转换彩种(转为type): 用于混合玩法
+   * @param {String} val - 子彩种类型 subPlayType
+   */
   static subPlayTypeToType (val) {
     let type = ''
     switch (val) {
@@ -107,7 +116,12 @@ class changeBetContext {
     }
     return type
   }
-  // 转换投注项
+
+  /**
+   * 转换投注项
+   * @param {String} subPlayType - 子彩种类型 subPlayType
+   * @param {String} val - 投注项
+   */
   static bet (subPlayType, val) {
     let bet = ''
     switch (subPlayType) {
@@ -301,7 +315,10 @@ class changeBetContext {
     return bet
   }
 
-  // 转换订单打印状态
+  /**
+   * 转换订单打印状态
+   * @param {Number} val - 订单打印状态 printFlag
+   */
   static printFlag (val) {
     let printFlag = ''
     switch (val) {
@@ -332,7 +349,10 @@ class changeBetContext {
     return printFlag
   }
 
-  // 转换订单支付状态
+  /**
+   * 转换订单支付状态
+   * @param {Number} val - 打印状态码 payFlag
+   */
   static payFlag (val) {
     let payFlag = ''
     switch (val) {
@@ -354,7 +374,10 @@ class changeBetContext {
     return payFlag
   }
 
-  // 转换赛事
+  /**
+   * 转换赛事日期和场次
+   * @param {String} val - 订单唯一matchUniqueId
+   */
   static changeMatchUniqueId (val) {
     let str = val.substring(val.length - 4)
     let orderNum = ''
@@ -386,7 +409,10 @@ class changeBetContext {
     return orderNum
   }
 
-  // 转换订单支付状态
+  /**
+   * 转换订单结算状态
+   * @param {Number} val - 结算状态settleStatus
+   */
   static settleStatus (val) {
     let settleStatus = ''
     switch (val) {
@@ -412,7 +438,11 @@ class changeBetContext {
     return settleStatus
   }
 
-  // 得到单关最高奖金
+  /**
+   * 得到单关最高奖金
+   * @param {Array} arr -选中的所有赛事
+   * @param {Number} multiple -倍数
+   */
   static getSingleMaxMoney (arr, multiple) {
     let maxMoney = 0
     arr.map(element => {
@@ -434,8 +464,12 @@ class changeBetContext {
     return maxMoney
   }
 
-  // 得到过关方式最高奖金
-  static getPassMaxMoney (calcData, eddOddsFlag) {
+  /**
+   * 得到过关方式最高奖金
+   * @param {Object} calcData - 必须传入的参数
+   * @param {Boolean} editOddsFlag - 是否是修改赔率,奖金更新计算
+   */
+  static getPassMaxMoney (calcData, editOddsFlag) {
     console.log(calcData)
     let obj = {
       lotteryType: calcData.orderInfo.lotteryType,
@@ -451,7 +485,7 @@ class changeBetContext {
       }
       item.selectData.map(ele => {
         // if (ele.key) { // 点击修改
-        if (eddOddsFlag) { // 点击修改
+        if (editOddsFlag) { // 点击修改
           ele.val = ele.odds
         } else { // 第一次点击
           for (let keys in ele) {
@@ -489,7 +523,11 @@ class changeBetContext {
     return dataInfo
   }
 
-  // 四舌五入六成双算法
+  /**
+   * 四舍五入六成双算法
+   * @param {Number} num - 要处理的数字
+   * @param {Number} decimalPlaces - 保留的小数位
+   */
   static evenRound (num, decimalPlaces) {
     let d = decimalPlaces || 0
     let m = Math.pow(10, d)
@@ -503,7 +541,10 @@ class changeBetContext {
     return d ? r / m : r
   }
 
-  // 自动补零
+  /**
+   * 自动补零
+   * @param {Number} maxMoney - 要补零的数字
+   */
   static returnFloat (maxMoney) {
     let floatMaxMoney = 0
     let a = maxMoney.toString()

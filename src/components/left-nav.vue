@@ -20,18 +20,18 @@
                 </el-menu-item>
                 <!-- <el-menu-item index="/order-query/account-order" class="flex-item" id="account-order" :disabled="$store.state.menuDisabled.accountOrder">
                     <span class="icon-box" ref="accountOrder"> -->
-                <!-- <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
-                    <span class="icon-box">
-                        <i class="el-icon-printer i-color"></i>
-                        <span slot="title" class="icon-name">订单结算</span>
-                    </span>
-                </el-menu-item> -->
-                <el-menu-item index="/order-query/examine-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
+                <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
                     <span class="icon-box" ref="accountOrder">
                         <i class="el-icon-printer i-color"></i>
                         <span slot="title" class="icon-name">订单结算</span>
                     </span>
                 </el-menu-item>
+                <!-- <el-menu-item index="/order-query/examine-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
+                    <span class="icon-box" ref="accountOrder">
+                        <i class="el-icon-printer i-color"></i>
+                        <span slot="title" class="icon-name">订单结算</span>
+                    </span>
+                </el-menu-item> -->
                 <el-menu-item index="" class="flex-item bigger"  v-if="$store.state.activeIndex==='/order-query/examine-order'">
                     <span class="icon-box" @click="quit">
                         <i class="icon iconfont icon-logout"></i>
@@ -50,7 +50,7 @@
                         <span slot="title" class="icon-name">查询</span>
                     </span>
                 </el-menu-item> -->
-                <el-menu-item index="/order-query/prize-order" class="flex-item">
+                <el-menu-item :disabled="$store.state.menuDisabled.queryOrder" index="/order-query/prize-order" class="flex-item">
                     <span class="icon-box">
                         <i class="icon iconfont icon-accountbook"></i>
                         <span slot="title" class="icon-name">兑奖</span>
