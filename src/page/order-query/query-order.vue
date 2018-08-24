@@ -171,6 +171,12 @@
           :width="item.width"
           align="center">
         </el-table-column>
+        <el-table-column
+          prop="assumption"
+          label="预设"
+          align="center"
+          v-if="orderInfo.subPlayType === '52' || orderInfo.subPlayType === '59'">
+        </el-table-column>
         <el-table-column prop="assumption" label="投注项" width="240" align="center">
           <template slot-scope="scope">
             <!-- <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span> -->
@@ -218,8 +224,8 @@ export default {
       hoverTableColumn: [
         {prop: 'orderNum', label: '编号'},
         {prop: 'host', label: '主队'},
-        {prop: 'guest', label: '客队'},
-        {prop: 'assumption', label: '预设'}
+        {prop: 'guest', label: '客队'}
+        // {prop: 'assumption', label: '预设'}
       ],
       hoverData: [],
       orderInfo: {},

@@ -100,7 +100,7 @@
           prop="assumption"
           label="预设"
           align="center"
-           v-if="orderInfo.subPlayType === '52' || orderInfo.subPlayType === '59'">
+          v-if="orderInfo.subPlayType === '52' || orderInfo.subPlayType === '59'">
           <template slot-scope="scopeAssumption">
             <el-popover ref="innerPopover" popper-class="edit-popover" placement="bottom" width="200" v-model="scopeAssumption.row.assumptionFlag">
               <p>系统预设：<span>{{scopeAssumption.row.assumption}}</span></p>
@@ -195,7 +195,7 @@
     <el-dialog :title="fileTitle" :visible.sync="fileVisible" width="585px" class="file">
       <export-file @fileCancel="fileCancel" @getFileName="getFileName"></export-file>
     </el-dialog>
-    <!-- <el-dialog
+    <el-dialog
       title="提示"
       :visible.sync="printVisible"
       :show-close="false"
@@ -205,7 +205,7 @@
         <el-button @click="printCancel">取 消</el-button>
         <el-button type="primary" @click="printQuery">确 定</el-button>
       </span>
-    </el-dialog> -->
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -447,71 +447,71 @@ export default {
       event.stopPropagation()
     })
     console.log('获取页面')
-    // // 注册键盘事件
-    // const _this = this
-    // document.onkeydown = function (e) {
-    //   console.log('获取', e.keyCode)
-    //   if (e.keyCode === 144) {
-    //     return
-    //   }
-    //   switch (e.keyCode) {
-    //     case 97:
-    //       _this.tableData.length > 0 && _this.getOutPopover(_this.tableData[0])
-    //       break
-    //     case 98:
-    //       _this.tableData.length > 1 && _this.getOutPopover(_this.tableData[1])
-    //       break
-    //     case 99:
-    //       _this.tableData.length > 2 && _this.getOutPopover(_this.tableData[2])
-    //       break
-    //     case 100:
-    //       _this.tableData.length > 3 && _this.getOutPopover(_this.tableData[3])
-    //       break
-    //     case 101:
-    //       _this.tableData.length > 4 && _this.getOutPopover(_this.tableData[4])
-    //       break
-    //     case 102:
-    //       _this.tableData.length > 5 && _this.getOutPopover(_this.tableData[5])
-    //       break
-    //     case 103:
-    //       _this.tableData.length > 6 && _this.getOutPopover(_this.tableData[6])
-    //       break
-    //     case 104:
-    //       _this.tableData.length > 7 && _this.getOutPopover(_this.tableData[7])
-    //       break
-    //     case 105:
-    //       _this.tableData.length > 8 && _this.getOutPopover(_this.tableData[8])
-    //       break
-    //     case 8:
-    //       if (_this.printVisible) {
-    //         _this.printVisible = false
-    //       } else {
-    //         _this.showOutPopover = false
-    //       }
-    //       _this.$store.commit('setkeyboardCode', 8)
-    //       break
-    //     case 0:
-    //       if (_this.printVisible) {
-    //         _this.printQuery(e)
-    //         _this.printVisible = false
-    //       } else {
-    //         _this.showOutPopover = false
-    //       }
-    //       _this.$store.commit('setkeyboardCode', 0)
-    //       break
-    //     case 111:
-    //       _this.$store.commit('setkeyboardCode', 111)
-    //       break
-    //     case 106:
-    //       _this.$store.commit('setkeyboardCode', 106)
-    //       break
-    //     case 109:
-    //       _this.$store.commit('setkeyboardCode', 109)
-    //       break
-    //     default:
-    //       break
-    //   }
-    // }
+    // 注册键盘事件
+    const _this = this
+    document.onkeydown = function (e) {
+      console.log('获取', e.keyCode)
+      if (e.keyCode === 144) {
+        return
+      }
+      switch (e.keyCode) {
+        case 97:
+          _this.tableData.length > 0 && _this.getOutPopover(_this.tableData[0])
+          break
+        case 98:
+          _this.tableData.length > 1 && _this.getOutPopover(_this.tableData[1])
+          break
+        case 99:
+          _this.tableData.length > 2 && _this.getOutPopover(_this.tableData[2])
+          break
+        case 100:
+          _this.tableData.length > 3 && _this.getOutPopover(_this.tableData[3])
+          break
+        case 101:
+          _this.tableData.length > 4 && _this.getOutPopover(_this.tableData[4])
+          break
+        case 102:
+          _this.tableData.length > 5 && _this.getOutPopover(_this.tableData[5])
+          break
+        case 103:
+          _this.tableData.length > 6 && _this.getOutPopover(_this.tableData[6])
+          break
+        case 104:
+          _this.tableData.length > 7 && _this.getOutPopover(_this.tableData[7])
+          break
+        case 105:
+          _this.tableData.length > 8 && _this.getOutPopover(_this.tableData[8])
+          break
+        case 8:
+          if (_this.printVisible) {
+            _this.printVisible = false
+          } else {
+            _this.showOutPopover = false
+          }
+          _this.$store.commit('setkeyboardCode', 8)
+          break
+        case 0:
+          if (_this.printVisible) {
+            _this.printQuery(e)
+            _this.printVisible = false
+          } else {
+            _this.showOutPopover = false
+          }
+          _this.$store.commit('setkeyboardCode', 0)
+          break
+        case 111:
+          _this.$store.commit('setkeyboardCode', 111)
+          break
+        case 106:
+          _this.$store.commit('setkeyboardCode', 106)
+          break
+        case 109:
+          _this.$store.commit('setkeyboardCode', 109)
+          break
+        default:
+          break
+      }
+    }
     // 读票机初始化
     // if (latech.ScannerInit() === 0) { // eslint-disable-line
     // } else {
@@ -847,6 +847,8 @@ export default {
     // 修改赔率
     getEditOdds (rows, betItemsObjIndex, editOdds) {
       if (this.editOdds) {
+        // 给修改的赔率自动补零
+        this.editOdds = ChangeBetContext.returnFloat(this.editOdds)
         rows.betItemsObj.map((val, index) => {
           if (betItemsObjIndex === index) {
             Object.keys(val).map((val1, index1) => {
