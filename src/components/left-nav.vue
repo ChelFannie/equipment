@@ -7,7 +7,7 @@
         </div>
         <div class="top-right">
             <el-menu
-                :default-active="activeIndex"
+                :default-active="$route.path"
                 class="el-menu-vertical"
                 @open="handleOpen"
                 @close="handleClose"
@@ -18,20 +18,12 @@
                         <span slot="title" class="icon-name">获取订单</span>
                     </span>
                 </el-menu-item>
-                <!-- <el-menu-item index="/order-query/account-order" class="flex-item" id="account-order" :disabled="$store.state.menuDisabled.accountOrder">
-                    <span class="icon-box" ref="accountOrder"> -->
-                <el-menu-item index="/order-query/account-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
+                <el-menu-item index="/order-query/examine-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
                     <span class="icon-box" ref="accountOrder">
                         <i class="el-icon-printer i-color"></i>
                         <span slot="title" class="icon-name">订单结算</span>
                     </span>
                 </el-menu-item>
-                <!-- <el-menu-item index="/order-query/examine-order" class="flex-item" :disabled="$store.state.menuDisabled.accountOrder">
-                    <span class="icon-box" ref="accountOrder">
-                        <i class="el-icon-printer i-color"></i>
-                        <span slot="title" class="icon-name">订单结算</span>
-                    </span>
-                </el-menu-item> -->
                 <el-menu-item index="" class="flex-item bigger"  v-if="$store.state.activeIndex==='/order-query/examine-order'">
                     <span class="icon-box" @click="quit">
                         <i class="icon iconfont icon-logout"></i>
@@ -44,6 +36,7 @@
                         <span slot="title" class="icon-name">查询</span>
                     </span>
                 </el-menu-item>
+
                 <!-- <el-menu-item index="/order-query/query-order" class="flex-item">
                     <span class="icon-box">
                         <i class="icon iconfont icon-SQLshenhe"></i>
@@ -93,7 +86,7 @@
         </el-form-item>
         <el-form-item class="last-item">
           <el-button type="primary" @click="sumbitManagerLogin('ruleForm')">登 陆</el-button>
-          <el-button @click="managerDialogVisible = false">取 消</el-button>
+          <el-button @click="cancleMangerLogin">取 消</el-button>
         </el-form-item>
       </el-form>
     </el-dialog>
@@ -153,13 +146,6 @@ export default {
           break
       }
     }
-    // '$route.path': function (newVal, oldVal) {
-    //   console.log(newVal, '路由的变化')
-    //   if (newVal === '/order-query/order-List') {
-    //     this.$store.commit('setActiveIndex', '')
-    //     localStorage.setItem('setActiveIndex', '')
-    //   }
-    // }
   },
   created () {
     this.storeInfo = JSON.parse(sessionStorage.getItem('storeInfo'))
@@ -195,12 +181,8 @@ export default {
   },
   methods: {
     handleSelect (index, indexPath) {
-      console.log(index, indexPath)
-      this.activeIndex = index
-      this.$store.commit('setActiveIndex', index)
-      localStorage.setItem('setActiveIndex', index)
-      if (index === '/order-query/account-order') {
-      // if (index === '/order-query/examine-order') {
+      // console.log(index, indexPath)
+      if (index === '/order-query/examine-order') {
         this.managerDialogVisible = true
         this.validateCode = loginValidate.createCode()
         this.managerForm = {
@@ -215,6 +197,9 @@ export default {
         this.$router.push({name: '登录'})
         return
       }
+      this.activeIndex = index
+      this.$store.commit('setActiveIndex', index)
+      localStorage.setItem('setActiveIndex', index)
       this.$router.push({path: index})
     },
     // 生成验证码
@@ -283,6 +268,12 @@ export default {
             }
           })
         }
+      })
+    },
+    cancleMangerLogin () {
+      this.managerDialogVisible = false
+      this.$nextTick(() => {
+        this.$refs.accountOrder.parentNode.classList.remove('is-active')
       })
     },
     handleOpen (val) {

@@ -195,6 +195,7 @@
     <el-dialog :title="fileTitle" :visible.sync="fileVisible" width="585px" class="file">
       <export-file @fileCancel="fileCancel" @getFileName="getFileName"></export-file>
     </el-dialog>
+
     <el-dialog
       title="提示"
       :visible.sync="printVisible"
