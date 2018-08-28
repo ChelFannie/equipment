@@ -17,6 +17,13 @@ export default {
       isRouterAlive: true
     }
   },
+  mounted () {
+    console.log = (function (oriLogFunc) {
+      return function () {
+        oriLogFunc.call(console, ...arguments)
+      }
+    })(console.log)
+  },
   methods: {
     reload () {
       this.isRouterAlive = false

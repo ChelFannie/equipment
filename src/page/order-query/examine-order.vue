@@ -19,17 +19,8 @@
       :row-class-name="tableRowClassName"
       v-loading="loading"
       element-loading-text="拼命加载中"
-      element-loading-spinner="el-icon-loading">
-      <el-table-column
-        prop="serialNumber"
-        label="系统编号"
-        min-width="190"
-        align="center"
-        @row-click="getOutPopover">
-        <!-- <template slot-scope="outScope">
-          <el-button @click="getOutPopover(outScope.row)" :disabled="outScope.row.flag">{{ outScope.row.serialNumber }}</el-button>
-        </template> -->
-      </el-table-column>
+      element-loading-spinner="el-icon-loading"
+      @row-click="getOutPopover">
       <el-table-column v-for="(item, index) in tableColumn"
         :key="index"
         :prop="item.prop"
@@ -76,11 +67,10 @@
           prop="assumption"
           label="预设"
           align="center"
-          v-if="orderInfo.subPlayType === '52' || orderInfo.subPlayType === '59'">
+          v-if="orderInfo.assumptionShow">
         </el-table-column>
         <el-table-column prop="assumption" label="投注项" width="240" align="center">
           <template slot-scope="scope">
-            <!-- <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span> -->
             <span>{{scope.row.subPlayTypeWord}}</span>
             <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}&nbsp;({{item1.odds}})]</span>
           </template>
@@ -101,7 +91,6 @@
 <script>
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import req from '../../api/order-list/index.js'
-// import {getCalculate, hunheComputeHunhe} from '../../utils/fastCombine.js'
 export default {
   components: {
   },
@@ -152,11 +141,6 @@ export default {
     }
   },
   watch: {
-    // '$store.state.activeIndex' (val) {
-    //   if (val === '/order-query/account-order') {
-    //     this.getData()
-    //   }
-    // },
     scanTicket (val) {
       console.log(val, '落地票号')
       // 判断当前扫描的票是否已经审核完成
@@ -285,7 +269,7 @@ export default {
             try {
               this.scan()
             } catch (error) {
-              console.log('条码枪')
+              console.log('条码枪错误', error)
             }
             this.loading = false
             this.submitSettleTime = res.data.submitSettleTime ? res.data.submitSettleTime : '无'
@@ -376,32 +360,32 @@ export default {
             let maxMoney = 0
             let calcData = JSON.parse(JSON.stringify(res.data))
             // 数据出现异常
-            if (calcData.orderInfo.betType !== 'single') {
-              // 判断后台拆票是否出现问题
-              let ticketErrorFlag = false
-              let betLen = Number(calcData.orderInfo.betType.split('x')[0])
-              let tablelen = calcData.betContextList.length
-              betLen !== tablelen && (ticketErrorFlag = true)
-              // 判断是否拆票时，有重复的matchUniqueId
-              let repeatIdFlag = false
-              for (let i = 0; i < calcData.betContextList.length - 1; i++) {
-                if (calcData.betContextList[i].matchUniqueId === calcData.betContextList[i + 1].matchUniqueId) {
-                  repeatIdFlag = true
-                  break
-                }
-              }
-              if (ticketErrorFlag || repeatIdFlag) {
-                this.$alert('数据出现异常，请联系开发人员！', '错误提示', {
-                  confirmButtonText: '确定',
-                  type: 'error',
-                  showClose: false,
-                  callback: action => {
-                    console.log('后台数据出现异常，请检查！')
-                  }
-                })
-                return
-              }
-            }
+            // if (calcData.orderInfo.betType !== 'single') {
+            //   // 判断后台拆票是否出现问题
+            //   let ticketErrorFlag = false
+            //   let betLen = Number(calcData.orderInfo.betType.split('x')[0])
+            //   let tablelen = calcData.betContextList.length
+            //   betLen !== tablelen && (ticketErrorFlag = true)
+            //   // 判断是否拆票时，有重复的matchUniqueId
+            //   let repeatIdFlag = false
+            //   for (let i = 0; i < calcData.betContextList.length - 1; i++) {
+            //     if (calcData.betContextList[i].matchUniqueId === calcData.betContextList[i + 1].matchUniqueId) {
+            //       repeatIdFlag = true
+            //       break
+            //     }
+            //   }
+            //   if (ticketErrorFlag || repeatIdFlag) {
+            //     this.$alert('数据出现异常，请联系开发人员！', '错误提示', {
+            //       confirmButtonText: '确定',
+            //       type: 'error',
+            //       showClose: false,
+            //       callback: action => {
+            //         console.log('后台数据出现异常，请检查！')
+            //       }
+            //     })
+            //     // return
+            //   }
+            // }
             // 计算最高奖金
             try {
               if (calcData.orderInfo.betType === 'single') {
@@ -428,6 +412,11 @@ export default {
             }
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
+            if (this.orderInfo.subPlayType === '61' || this.orderInfo.subPlayType === '64' || this.orderInfo.subPlayType === '69') {
+              this.orderInfo.assumptionShow = true
+            } else {
+              this.orderInfo.assumptionShow = false
+            }
             this.orderInfo.printResult && (this.imgStr = this.orderInfo.printResult)
             // 投注项
             let betContextList = res.data.betContextList

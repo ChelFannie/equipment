@@ -12,3 +12,12 @@
 .el-button{
     font-size: 20px;
 }
+.el-table__header-wrapper th{
+    padding: 10px 0;
+}
+.el-table__row td{
+    padding: 15px 0;
+}
+.el-table__row td .el-button{
+    padding: 15px 10px;
+}

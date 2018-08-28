@@ -2,8 +2,6 @@ import Vue from 'vue'
 // import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import './style/index.css'
-import ILayout from './components/common/i-layout'
-import IForm from './components/common/i-form'
 import router from './router'
 import store from './store/store'
 import {Button, Row, Dialog, Col, Menu, MenuItem, Table, TableColumn, Popover, Form, FormItem, Icon, Loading, Message, MessageBox, Pagination, Input, Select, Option, DatePicker} from 'element-ui'
@@ -31,12 +29,11 @@ Vue.use(Row)
 Vue.use(Col)
 // Vue.use(DateTimePicker)
 // Vue.use(MessageBox)
-Vue.component('i-layout', ILayout)
-Vue.component('i-form', IForm)
 
 Vue.prototype.$message = Message
 Vue.prototype.$confirm = MessageBox.confirm
 Vue.prototype.$alert = MessageBox.alert
+
 // 路由全局守卫
 router.beforeEach((to, from, next) => {
   // localStorage.setItem('lastRouter', from.path)

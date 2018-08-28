@@ -383,25 +383,26 @@ class changeBetContext {
     let orderNum = ''
     switch (str[0]) {
       case '1':
-        orderNum = `周一${str.substring(1)}`
+        // orderNum = `周一${str.substring(1)}`
+        orderNum = `周一${str}`
         break
       case '2':
-        orderNum = `周二${str.substring(1)}`
+        orderNum = `周二${str}`
         break
       case '3':
-        orderNum = `周三${str.substring(1)}`
+        orderNum = `周三${str}`
         break
       case '4':
-        orderNum = `周四${str.substring(1)}`
+        orderNum = `周四${str}`
         break
       case '5':
-        orderNum = `周五${str.substring(1)}`
+        orderNum = `周五${str}`
         break
       case '6':
-        orderNum = `周六${str.substring(1)}`
+        orderNum = `周六${str}`
         break
       case '7':
-        orderNum = `周日${str.substring(1)}`
+        orderNum = `周日${str}`
         break
       default:
         break
@@ -460,7 +461,7 @@ class changeBetContext {
       })
     })
     maxMoney = changeBetContext.evenRound(changeBetContext.evenRound(maxMoney, 2) * multiple, 2)
-    console.log(maxMoney)
+    // console.log(maxMoney)
     return maxMoney
   }
 
@@ -470,7 +471,7 @@ class changeBetContext {
    * @param {Boolean} editOddsFlag - 是否是修改赔率,奖金更新计算
    */
   static getPassMaxMoney (calcData, editOddsFlag) {
-    console.log(calcData)
+    // console.log(calcData)
     let obj = {
       lotteryType: calcData.orderInfo.lotteryType,
       subPlayType: calcData.orderInfo.subPlayType,
@@ -515,7 +516,7 @@ class changeBetContext {
       // console.log(betTypeArr, 'betTypeArr')
       dataInfo = getCalculate(obj, betTypeArr)
     }
-    console.log(dataInfo)
+    // console.log(dataInfo)
     // 注数
     // let zhushu = dataInfo.zhu
     // 投注金额
@@ -558,6 +559,23 @@ class changeBetContext {
       floatMaxMoney = `${maxMoney}.00`
     }
     return floatMaxMoney
+  }
+
+  /**
+   * 将短横线连接的字符串转为驼峰
+   * @param {String} str - 需要转换的字符
+   */
+  static getTuoFeng (str) {
+    let strArr = str.split('')
+    for (let i = 0; i < strArr.length; i++) {
+      if (strArr[i] === '-') {
+        strArr.splice(i, 1)
+        if (i < strArr.length) {
+          strArr[i] = strArr[i].toUpperCase()
+        }
+      }
+    }
+    return strArr.join('')
   }
 }
 

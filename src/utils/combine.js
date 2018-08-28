@@ -610,96 +610,108 @@ function getResultStr(dataObj){
     }
     if (dataObj.subPlayType == '59' || dataObj.subPlayType == '69'){
         if(dataObj.betContext.length == 4){
-            switch (dataObj.subPlayType) {
-                case '59':
-                    specialStr = '足球混合:'
-                    break;
-                case '69':
-                    specialStr = '篮球混合:'
-                    break;
-                default:
-                    break;
-            }
+            let falg = false
             dataObj.betContext.map((val,index) => {
                 for (const key in val) {
                     for (const key1 in val[key]) {
-                        switch (key1) {
-                            case '51':
-                                specialStr += '足球胜平负:'
-                                specialStr += specialDate[key.substring(10, 11)]
-                                specialStr += key.substring(11, 14) + '[ '
-                                val[key][key1].map(val1 => {
-                                    specialStr += letwinObjF[val1] + ' '
-                                })
-                                specialStr += '] '
-                                break;
-                            case '52':
-                                specialStr += '足球比分:'
-                                specialStr += getSpecialStrF({[key]: val[key][key1]}, '52') + ' '
-                                break
-                            case '53':
-                                specialStr += '足球总进球:'
-                                specialStr += specialDate[key.substring(10, 11)]
-                                specialStr += key.substring(11, 14) + '[ '
-                                val[key][key1].sort()
-                                val[key][key1].map(val1 => {
-                                    specialStr += val1 + ' '
-                                })
-                                specialStr += '] '
-                                break;
-                            case '54':
-                                specialStr += '足球半全场:'
-                                specialStr += getSpecialStrF({[key]: val[key][key1]}, '54') + ' '
-                                break;
-                            case '56':
-                                specialStr += '足球让球胜平负:'
-                                specialStr += specialDate[key.substring(10, 11)]
-                                specialStr += key.substring(11, 14) + '[ '
-                                val[key][key1].map(val1 => {
-                                    specialStr += letwinObjF[val1] + ' '
-                                })
-                                specialStr += '] '
-                                break;
-                            case '61':
-                                specialStr += '篮球让分胜负:'
-                                specialStr += specialDate[key.substring(10, 11)]
-                                specialStr += key.substring(11, 14) + '[ '
-                                val[key][key1].map(val1 => {
-                                    specialStr += (val1 == '1' ? '胜' : '负')+ ' '
-                                })
-                                specialStr += '] '
-                                break;
-                            case '62':
-                                specialStr += '篮球胜负:'
-                                specialStr += specialDate[key.substring(10, 11)]
-                                specialStr += key.substring(11, 14) + '[ '
-                                val[key][key1].map(val1 => {
-                                    specialStr += (val1 == '1' ? '胜' : '负')+ ' '
-                                })
-                                specialStr += '] '
-                                break;
-                            case '63':
-                                specialStr += '篮球胜分差:'
-                                specialStr += getSpecialStr({[key]: val[key][key1]}) + ' '
-                                break;
-                            case '64':
-                                specialStr += '篮球大小分:'
-                                specialStr += specialDate[key.substring(10, 11)]
-                                specialStr += key.substring(11, 14) + '[ '
-                                val[key][key1].map(val1 => {
-                                    specialStr += (val1 == '1' ? '大' : '小')+ ' '
-                                })
-                                specialStr += '] '
-                                break;
-                            default:
-                                break;
+                        if(key1 == '54' || key1 == '52' || key1 == '63') {
+                            falg = true
                         }
                     }
                 }
             })
-            specialStr += '  过关方式:' + dataObj.betType
-            specialStr += '  倍数:' + dataObj.multiple
-            return {status: '0', resultStr: specialStr}
+            if (falg) {
+                switch (dataObj.subPlayType) {
+                    case '59':
+                        specialStr = '足球混合:'
+                        break;
+                    case '69':
+                        specialStr = '篮球混合:'
+                        break;
+                    default:
+                        break;
+                }
+                dataObj.betContext.map((val,index) => {
+                    for (const key in val) {
+                        for (const key1 in val[key]) {
+                            switch (key1) {
+                                case '51':
+                                    specialStr += '足球胜平负:'
+                                    specialStr += specialDate[key.substring(10, 11)]
+                                    specialStr += key.substring(11, 14) + '[ '
+                                    val[key][key1].map(val1 => {
+                                        specialStr += letwinObjF[val1] + ' '
+                                    })
+                                    specialStr += '] '
+                                    break;
+                                case '52':
+                                    specialStr += '足球比分:'
+                                    specialStr += getSpecialStrF({[key]: val[key][key1]}, '52') + ' '
+                                    break
+                                case '53':
+                                    specialStr += '足球总进球:'
+                                    specialStr += specialDate[key.substring(10, 11)]
+                                    specialStr += key.substring(11, 14) + '[ '
+                                    val[key][key1].sort()
+                                    val[key][key1].map(val1 => {
+                                        specialStr += val1 + ' '
+                                    })
+                                    specialStr += '] '
+                                    break;
+                                case '54':
+                                    specialStr += '足球半全场:'
+                                    specialStr += getSpecialStrF({[key]: val[key][key1]}, '54') + ' '
+                                    break;
+                                case '56':
+                                    specialStr += '足球让球胜平负:'
+                                    specialStr += specialDate[key.substring(10, 11)]
+                                    specialStr += key.substring(11, 14) + '[ '
+                                    val[key][key1].map(val1 => {
+                                        specialStr += letwinObjF[val1] + ' '
+                                    })
+                                    specialStr += '] '
+                                    break;
+                                case '61':
+                                    specialStr += '篮球让分胜负:'
+                                    specialStr += specialDate[key.substring(10, 11)]
+                                    specialStr += key.substring(11, 14) + '[ '
+                                    val[key][key1].map(val1 => {
+                                        specialStr += (val1 == '1' ? '胜' : '负')+ ' '
+                                    })
+                                    specialStr += '] '
+                                    break;
+                                case '62':
+                                    specialStr += '篮球胜负:'
+                                    specialStr += specialDate[key.substring(10, 11)]
+                                    specialStr += key.substring(11, 14) + '[ '
+                                    val[key][key1].map(val1 => {
+                                        specialStr += (val1 == '1' ? '胜' : '负')+ ' '
+                                    })
+                                    specialStr += '] '
+                                    break;
+                                case '63':
+                                    specialStr += '篮球胜分差:'
+                                    specialStr += getSpecialStr({[key]: val[key][key1]}) + ' '
+                                    break;
+                                case '64':
+                                    specialStr += '篮球大小分:'
+                                    specialStr += specialDate[key.substring(10, 11)]
+                                    specialStr += key.substring(11, 14) + '[ '
+                                    val[key][key1].map(val1 => {
+                                        specialStr += (val1 == '1' ? '大' : '小')+ ' '
+                                    })
+                                    specialStr += '] '
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                })
+                specialStr += '  过关方式:' + dataObj.betType
+                specialStr += '  倍数:' + dataObj.multiple
+                return {status: '0', resultStr: specialStr}
+            }
         }
     }
     

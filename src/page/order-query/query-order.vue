@@ -1,12 +1,6 @@
 <template>
   <div class="query-order">
     <div class="count-order">
-      <!-- <el-row>
-        <el-col :span="6">审核统计：&nbsp;张数：<div class="grid-content">{{accountData.pages || 0}}</div> 张</el-col>
-        <el-col :span="6">销售总额：<div class="grid-content">{{(accountData.amounts).toFixed(2) || 0}}</div> 元</el-col>
-        <el-col :span="6">奖金：<div class="grid-content">{{(accountData.awardAmounts).toFixed(2) || 0}}</div> 元</el-col>
-        <el-col :span="6">结算金额：<div class="grid-content">{{(accountData.operateMoney).toFixed(2) || 0}}</div> 元</el-col>
-      </el-row> -->
       <div class="search-condition" ref="countOrder">
         <el-form ref="form" labelPosition="left" label-width="100px" size="large">
           <el-row :gutter="30">
@@ -107,19 +101,11 @@
       element-loading-text="拼命加载中..."
       element-loading-spinner="el-icon-loading"
       @row-click="getOutPopover">
-      <!-- <el-table-column
-        prop="serialNumber"
-        label="系统编号"
-        min-width="230"
-        align="center">
-        <template slot-scope="outScope">
-          <el-button @click="getOutPopover(outScope.row)" :disabled="outScope.row.flag">{{ outScope.row.serialNumber }}</el-button>
-        </template>
-      </el-table-column> -->
       <el-table-column v-for="(item, index) in tableColumn"
         :key="index"
         :prop="item.prop"
         :label="item.label"
+        :min-width="item.width"
         align="center">
       </el-table-column>
     </el-table>
@@ -139,54 +125,53 @@
 
     <el-dialog
       :visible.sync="showOutPopover"
-      width="65%"
+      width="80%"
       center
       class="orderNum-popover"
       id="outPopover"
       title="订单详情">
       <div class="hoverContent">
         <el-row :gutter="10">
-          <el-col :span="16">出票店铺：<div class="grid-content">{{orderInfo.storeName}}</div></el-col>
-          <el-col :span="8">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-        </el-row>
-        <el-row :gutter="10">
-          <el-col :span="16">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber}}</div></el-col>
-          <el-col :span="8">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
+          <el-col :span="12">出票店铺：<div class="grid-content">{{orderInfo.storeName}}</div></el-col>
+          <el-col :span="12">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber || '暂无'}}</div></el-col>
         </el-row>
         <el-row :gutter="10">
           <el-col :span="12">出票时间：<div class="grid-content">{{orderInfo.uploadTime}}</div></el-col>
           <el-col :span="12">最迟出票时间：<div class="grid-content">{{orderInfo.lastPrintDate}}</div></el-col>
         </el-row>
         <el-row class="tip" :gutter="20">
-          <el-col :span="8">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
-          <el-col :span="8">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
-          <el-col :span="8">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+          <el-col :span="7">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
+          <el-col :span="5">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
+          <el-col :span="4">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+          <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
+          <el-col :span="3">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
         </el-row>
       </div>
-      <el-table :data="hoverData" border class="noright" style="width: 100%">
-        <el-table-column v-for="(item, index) in hoverTableColumn"
-          :key="index"
-          :prop="item.prop"
-          :label="item.label"
-          :width="item.width"
-          align="center">
-        </el-table-column>
-        <el-table-column
-          prop="assumption"
-          label="预设"
-          align="center"
-          v-if="orderInfo.subPlayType === '52' || orderInfo.subPlayType === '59'">
-        </el-table-column>
-        <el-table-column prop="assumption" label="投注项" width="240" align="center">
-          <template slot-scope="scope">
-            <!-- <span>{{scope.row.lotteryTypeWord}}{{scope.row.subPlayTypeWord}}</span> -->
-            <span>{{scope.row.subPlayTypeWord}}</span>
-            <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}&nbsp;({{item1.odds}})]</span>
-          </template>
-        </el-table-column>
-      </el-table>
-      <div class="uploadImg">
-        <img class="img" :src="imgStr" alt="" @click="enlarge">
+      <div class="contentBox">
+        <el-table :data="hoverData" border style="width: 70%">
+          <el-table-column v-for="(item, index) in hoverTableColumn"
+            :key="index"
+            :prop="item.prop"
+            :label="item.label"
+            :width="item.width"
+            align="center">
+          </el-table-column>
+          <el-table-column
+            prop="assumption"
+            label="预设"
+            align="center"
+            v-if="orderInfo.subPlayType === '52' || orderInfo.subPlayType === '59'">
+          </el-table-column>
+          <el-table-column prop="assumption" label="投注项" width="240" align="center">
+            <template slot-scope="scope">
+              <span>{{scope.row.subPlayTypeWord}}</span>
+              <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}&nbsp;({{item1.odds}})]</span>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="uploadImg">
+          <img class="img" :src="imgStr" alt="" @click="enlarge">
+        </div>
       </div>
     </el-dialog>
 
@@ -200,21 +185,20 @@
 <script>
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import req from '../../api/order-list/index.js'
-// import {getCalculate, hunheComputeHunhe} from '../../utils/fastCombine.js'
 export default {
   components: {
   },
   data () {
     return {
       tableColumn: [
-        {prop: 'serialNumber', label: '系统编号', 'min-width': '230'},
-        {prop: 'typeWords', label: '彩种类型', 'min-width': '100'},
-        {prop: 'multiple', label: '倍数', 'min-width': '50'},
-        {prop: 'amountWord', label: '金额', 'min-width': '100'},
-        {prop: 'awardAmountWord', label: '奖金', 'min-width': '100'},
-        {prop: 'awardFlagWord', label: '中奖', 'min-width': '100'},
-        {prop: 'printFlagWord', label: '出票', 'min-width': '100'},
-        {prop: 'settleStatusWord', label: '结算', 'min-width': '100'}
+        {prop: 'serialNumber', label: '系统编号', width: '250'},
+        {prop: 'typeWords', label: '彩种类型', width: '130'},
+        {prop: 'multiple', label: '倍数', width: '80'},
+        {prop: 'amountWord', label: '金额', width: '100'},
+        {prop: 'awardAmountWord', label: '奖金', width: '100'},
+        {prop: 'awardFlagWord', label: '中奖', width: '80'},
+        {prop: 'printFlagWord', label: '出票', width: '90'},
+        {prop: 'settleStatusWord', label: '结算', width: '100'}
       ],
       tableData: [],
       pageIndex: 1,
@@ -293,7 +277,9 @@ export default {
       lastqrInfo: '',
       // 屏幕高度
       winHeight: 0,
-      ticketInfoNumber: ''
+      ticketInfoNumber: '',
+      // 扫描枪初始化标志
+      scanInitFlag: true
     }
   },
   watch: {
@@ -325,29 +311,11 @@ export default {
     document.addEventListener('click', () => {
       this.showOutPopover = false
     })
-    // 计算奖金
-    // let maxMoney = 0
-    // let calcData = JSON.parse(localStorage.getItem('calcData1'))
-    // if (calcData.orderInfo.betType === 'single') {
-    //   maxMoney = ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)
-    //   console.log(maxMoney)
-    // } else {
-    //   let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-    //   console.log(dataInfo)
-    //   maxMoney = Math.ceil(dataInfo.price * calcData.orderInfo.multiple)
-    //   console.log(maxMoney)
-    // }
   },
   mounted () {
     this.$nextTick(() => {
-      // console.log(111, this.$refs.countOrder.offsetHeight)
       this.winHeight = localStorage.getItem('winHeight') - 250 - this.$refs.countOrder.offsetHeight
     })
-    try {
-      this.scan()
-    } catch (error) {
-      console.log('条码枪扫描错误', error)
-    }
     document.getElementById('outPopover').addEventListener('click', (event) => {
       event.stopPropagation()
     })
@@ -373,7 +341,6 @@ export default {
       req('getOrderList', memberParams)
         .then(res => {
           if (res.code === '00000') {
-            // localStorage.setItem('orderListByPage', JSON.stringify(res.data))
             this.loading = false
             this.submitSettleTime = res.data.submitSettleTime ? res.data.submitSettleTime : '无'
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
@@ -404,6 +371,14 @@ export default {
             this.accountData.amounts = amounts
             this.accountData.awardAmounts = awardAmounts
             this.accountData.operateMoney = amounts - (awardAmounts + amounts * this.accountData.rebatePoint)
+            if (this.scanInitFlag) {
+              try {
+                this.scan()
+              } catch (error) {
+                console.log('条码枪扫描错误', error)
+              }
+              this.scanInitFlag = false
+            }
           } else {
             this.$message({
               type: 'error',
@@ -432,7 +407,6 @@ export default {
     },
     // 获取订单信息
     getOutPopover (rows, event, column) {
-      // console.log(rows)
       this.orderInfo = {}
       this.hoverData = []
       this.ticketInfoNumber = ''
@@ -473,42 +447,38 @@ export default {
             let maxMoney = 0
             let calcData = JSON.parse(JSON.stringify(res.data))
             // 数据出现异常
-            if (calcData.orderInfo.betType !== 'single') {
-              // 判断后台拆票是否出现问题
-              let ticketErrorFlag = false
-              let betLen = Number(calcData.orderInfo.betType.split('x')[0])
-              let tablelen = calcData.betContextList.length
-              betLen !== tablelen && (ticketErrorFlag = true)
-              // 判断是否拆票时，有重复的matchUniqueId
-              let repeatIdFlag = false
-              for (let i = 0; i < calcData.betContextList.length - 1; i++) {
-                if (calcData.betContextList[i].matchUniqueId === calcData.betContextList[i + 1].matchUniqueId) {
-                  repeatIdFlag = true
-                  break
-                }
-              }
-              if (ticketErrorFlag || repeatIdFlag) {
-                this.$alert('数据出现异常，请联系开发人员！', '错误提示', {
-                  confirmButtonText: '确定',
-                  type: 'error',
-                  showClose: false,
-                  callback: action => {
-                    console.log('后台数据出现异常，请检查！')
-                  }
-                })
-                return
-              }
-            }
+            // if (calcData.orderInfo.betType !== 'single') {
+            //   // 判断后台拆票是否出现问题
+            //   let ticketErrorFlag = false
+            //   let betLen = Number(calcData.orderInfo.betType.split('x')[0])
+            //   let tablelen = calcData.betContextList.length
+            //   betLen !== tablelen && (ticketErrorFlag = true)
+            //   // 判断是否拆票时，有重复的matchUniqueId
+            //   let repeatIdFlag = false
+            //   for (let i = 0; i < calcData.betContextList.length - 1; i++) {
+            //     if (calcData.betContextList[i].matchUniqueId === calcData.betContextList[i + 1].matchUniqueId) {
+            //       repeatIdFlag = true
+            //       break
+            //     }
+            //   }
+            //   if (ticketErrorFlag || repeatIdFlag) {
+            //     this.$alert('数据出现异常，请联系开发人员！', '错误提示', {
+            //       confirmButtonText: '确定',
+            //       type: 'error',
+            //       showClose: false,
+            //       callback: action => {
+            //         console.log('后台数据出现异常，请检查！')
+            //       }
+            //     })
+            //     // return
+            //   }
+            // }
             // 计算最高奖金
             try {
               if (calcData.orderInfo.betType === 'single') {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
               } else {
                 let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-                // maxMoney = ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2)
-                // console.log(maxMoney, 1)
-                // maxMoney = ChangeBetContext.returnFloat(maxMoney)
-                // console.log(maxMoney, 2)
                 maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
               }
             } catch (error) {
@@ -516,7 +486,6 @@ export default {
             }
             // 获取信息
             let orderInfo = res.data.orderInfo
-            // this.$set(orderInfo, 'maxMoney', maxMoney)
             orderInfo.maxMoney = maxMoney
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
             orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
@@ -530,6 +499,11 @@ export default {
             }
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
+            if (this.orderInfo.subPlayType === '61' || this.orderInfo.subPlayType === '64' || this.orderInfo.subPlayType === '69') {
+              this.orderInfo.assumptionShow = true
+            } else {
+              this.orderInfo.assumptionShow = false
+            }
             this.orderInfo.printResult && (this.imgStr = this.orderInfo.printResult)
             // 投注项
             let betContextList = res.data.betContextList
@@ -643,7 +617,7 @@ export default {
   font-size: 20px;
 }
 .query-order{
-  padding-top: 110px!important;
+  padding-top: 92px!important;
   .count-order{
     box-sizing: border-box;
     width: calc(100% - 60px);
@@ -714,7 +688,6 @@ export default {
       .hoverContent{
         font-size: 20px;
         .tip{
-          border-bottom: 1px solid #FE4C40;
           .el-col{
             margin-bottom: 15px;
             .grid-content{
@@ -737,25 +710,38 @@ export default {
           }
         }
       }
-    }
-    .noright{
-      margin-top: 20px;
-    }
-    .uploadImg{
-      margin-top: 10px;
-      .no-image{
-        margin: 0 auto;
-        width: 200px;
-        height: 250px;
-        line-height: 250px;
-        text-align: center;
-        border: 1px solid #cccccc;
-      }
-      .img{
-        margin: 10px auto;
-        width: 250px;
-        height: 380px;
-        display: block;
+      .contentBox{
+        margin-top: 10px;
+        overflow: hidden;
+        .el-table{
+          float: left;
+        }
+        .uploadImg{
+          float: left;
+          width: 30%;
+          .el-button.is-disabled{
+            color: #ffffff;
+            background: #909399;
+            border: 1px solid #909399;
+          }
+          .btn{
+            text-align: center;
+          }
+          .no-image{
+            margin: 0 auto;
+            width: 200px;
+            height: 250px;
+            line-height: 250px;
+            text-align: center;
+            border: 1px solid #cccccc;
+          }
+          .img{
+            margin: 0 auto;
+            width: 250px;
+            height: 500px;
+            display: block;
+          }
+        }
       }
     }
   }

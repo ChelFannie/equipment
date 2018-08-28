@@ -27,7 +27,7 @@ let CancelToken = axios.CancelToken
 let removePending = (config, cancleHandle) => {
   let flagUrl = config.url
   if (flagUrl.indexOf(config.baseURL) !== -1) {
-    flagUrl = '/' + flagUrl.substr(config.baseURL.length, flagUrl.length) // 把这条记录从数组中移除
+    flagUrl = '/' + flagUrl.substr(config.baseURL.length, flagUrl.length)
   }
   if (flagUrl.indexOf('http') !== 0) flagUrl = config.baseURL + flagUrl
   if (pending.indexOf(flagUrl) !== -1) { // 如果要检索的字符串值没有出现，则该方法indexOf返回 -1
@@ -39,7 +39,7 @@ let removePending = (config, cancleHandle) => {
   } else {
     pending.push(flagUrl)
   }
-  console.log(flagUrl)
+  // console.log(pending)
 }
 
 // axios请求拦截器

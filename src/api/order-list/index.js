@@ -54,6 +54,16 @@ const config = {
   submitToAudit: {
     url: '/settle/submitToAudit.json',
     method: 'post'
+  },
+  // 获取兑奖图片数据
+  getOrderByAwardFlag: {
+    url: '/admin/order/getOrderByAwardFlag.json',
+    method: 'post'
+  },
+  // 更新兑奖图片数据
+  updateAwardAmount: {
+    url: '/admin/order/updateAwardAmount.json',
+    method: 'post'
   }
 }
 
