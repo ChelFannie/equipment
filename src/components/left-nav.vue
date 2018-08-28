@@ -92,9 +92,9 @@
       class="login">
       <el-form :model="managerForm" label-width="100px" :rules="rules" ref="ruleForm">
         <el-form-item label="用户名" prop="userAccount">
-          <!-- <div ref="managerName"> -->
+          <div ref="managerName">
             <el-input v-model="managerForm.userAccount" auto-complete="off" maxlength="15"></el-input>
-          <!-- </div> -->
+          </div>
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input type="password" v-model="managerForm.password" auto-complete="off" maxlength="15"></el-input>
@@ -251,9 +251,9 @@ export default {
     managerLogin () {
       this.managerDialogVisible = true
       this.validateCode = loginValidate.createCode()
-      // this.$nextTick(() => {
-      //   this.$refs.managerName.querySelector('input').focus()
-      // })
+      this.$nextTick(() => {
+        this.$refs.managerName.querySelector('input').focus()
+      })
       this.managerForm = {
         userAccount: '',
         password: '',
