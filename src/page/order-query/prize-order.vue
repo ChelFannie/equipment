@@ -9,6 +9,7 @@
     </div>
     <div class="imgBox" :ticketInfoNumber="ticketInfoNumber">
       <img class="img" :src="imgStr" alt="">
+      <p class="noticket" v-show="noticket">当前无可兑的票！</p>
     </div>
     <el-dialog
       title="提示"
@@ -32,7 +33,8 @@ export default {
       dialogVisible: false,
       imgStr: '',
       ticketInfoNumber: '',
-      awardAmount: ''
+      awardAmount: '',
+      noticket: false
     }
   },
   watch: {
@@ -46,15 +48,21 @@ export default {
   methods: {
     // 获取列表数据
     getData () {
-      // this.imgStr = '../../assets/logo.png'
+      this.awardAmount = ''
       let memberParams = {
         awardFlag: 1
       }
       req('getOrderByAwardFlag', memberParams)
         .then(res => {
           if (res.code === '00000') {
-            console.log(res.data)
-            this.ticketInfoNumber = res.data.ticketInfoNumber
+            if (res.data && res.data.ticketInfoNumber) {
+              console.log('getdata')
+              this.ticketInfoNumber = res.data.ticketInfoNumber
+              this.noticket = false
+            } else {
+              this.noticket = true
+              return
+            }
             try {
               this.imgStr = 'data:image/bmp;base64,' + latech.getPDF417BMPFromJS(res.data.qrInfo) // eslint-disable-line
             } catch (error) {
@@ -126,7 +134,11 @@ export default {
   .imgBox{
     text-align: center;
     .img{
-      width: 800px;
+      display: inline-block;
+      width: 600px;
+    }
+    .noticket{
+      font-size: 28px;
     }
   }
   .el-dialog__body{

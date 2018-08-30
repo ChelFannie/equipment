@@ -6,7 +6,7 @@
             <div class="wrap">
               <el-form ref="form" :model="form" label-width="100px" class="form">
                   <el-form-item label="用户名：">
-                      <el-input class="user" v-model="form.userAccount" placeholder="请输入用户名"></el-input>
+                      <el-input class="user" ref="user" v-model="form.userAccount" autofocus="autofocus" placeholder="请输入用户名"></el-input>
                   </el-form-item>
                   <el-form-item  label="密   码：">
                       <el-input class="pass" type="password" v-model="form.password" placeholder="请输入密码"></el-input>
@@ -55,6 +55,28 @@ export default {
   },
   created () {
     localStorage.setItem('winHeight', document.body.scrollHeight)
+    const _this = this
+    document.onkeydown = function (e) {
+      // console.log('nav', e.keyCode)
+      if (e.keyCode === 144) {
+        return
+      }
+      switch (e.keyCode) {
+        case 0:
+          _this.login()
+          break
+        default:
+          break
+      }
+    }
+    // try {
+    //   this.scan()
+    // } catch (error) {
+    //   console.log('扫描枪错误', error)
+    // }
+  },
+  mounted () {
+    this.$refs.user.focus()
   },
   methods: {
     login () {
@@ -119,7 +141,7 @@ export default {
     printTicket (QRcode) {
       // let printStatus = latech.printStatusFromJS() // eslint-disable-line
       // console.log(3, printStatus)
-      console.log(QRcode)
+      // console.log(QRcode)
       latech.printSampleBMPFromJS(QRcode) // eslint-disable-line
     },
     readTicket () {
@@ -167,6 +189,28 @@ export default {
           this.$router.push({path: '/login'})
         }
       })
+    },
+    scan () {
+      // 条码枪初始化
+      let code = latech.BCRInitFromJS() // eslint-disable-line
+      if (code === 0) { // eslint-disable-line
+        // 条码枪设置扫描模式 参数： 1 手动模式， 2 自动模式
+        if (latech.BCRSetScanModeFromJS(1) === true) { // eslint-disable-line
+          console.log('扫描枪初始化成功')
+        }
+      } else {
+        this.$confirm(`扫描枪异常，代码:${code}`, '错误', {
+          confirmButtonText: '确定',
+          showCancelButton: false,
+          type: 'error',
+          closeOnClickModal: false,
+          callback: action => {
+            sessionStorage.removeItem('token')
+            this.$store.commit('token', '')
+            this.$router.push({path: '/login'})
+          }
+        })
+      }
     }
   },
   destroyed () {

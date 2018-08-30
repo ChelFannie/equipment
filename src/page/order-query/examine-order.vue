@@ -25,59 +25,60 @@
         :key="index"
         :prop="item.prop"
         :label="item.label"
+        :min-width="item.width"
         align="center">
       </el-table-column>
     </el-table>
 
     <el-dialog
       :visible.sync="showOutPopover"
-      width="60%"
+      width="80%"
       center
       class="orderNum-popover"
       id="outPopover"
       title="订单详情">
       <div class="hoverContent">
         <el-row :gutter="10">
-          <el-col :span="16">出票店铺：<div class="grid-content">{{orderInfo.storeName}}</div></el-col>
-          <el-col :span="8">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-        </el-row>
-        <el-row :gutter="10">
-          <el-col :span="16">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber}}</div></el-col>
-          <el-col :span="8">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
+          <el-col :span="12">出票店铺：<div class="grid-content">{{orderInfo.storeName}}</div></el-col>
+          <el-col :span="12">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber || '暂无'}}</div></el-col>
         </el-row>
         <el-row :gutter="10">
           <el-col :span="12">出票时间：<div class="grid-content">{{orderInfo.uploadTime}}</div></el-col>
           <el-col :span="12">最迟出票时间：<div class="grid-content">{{orderInfo.lastPrintDate}}</div></el-col>
         </el-row>
         <el-row class="tip" :gutter="20">
-          <el-col :span="8">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
-          <el-col :span="8">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
-          <el-col :span="8">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+          <el-col :span="5">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
+          <el-col :span="4">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
+          <el-col :span="4">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+          <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
+          <el-col :span="6">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=100000?`${orderInfo.maxMoney/100000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
         </el-row>
       </div>
-      <el-table :data="hoverData" border class="noright" style="width: 100%">
-        <el-table-column v-for="(item, index) in hoverTableColumn"
-          :key="index"
-          :prop="item.prop"
-          :label="item.label"
-          :width="item.width"
-          align="center">
-        </el-table-column>
-        <el-table-column
-          prop="assumption"
-          label="预设"
-          align="center"
-          v-if="orderInfo.assumptionShow">
-        </el-table-column>
-        <el-table-column prop="assumption" label="投注项" width="240" align="center">
-          <template slot-scope="scope">
-            <span>{{scope.row.subPlayTypeWord}}</span>
-            <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}&nbsp;({{item1.odds}})]</span>
-          </template>
-        </el-table-column>
-      </el-table>
-      <div class="uploadImg">
-        <img class="img" :src="imgStr" alt="" @click="enlarge">
+      <div class="contentBox">
+        <el-table :data="hoverData" border class="noright" style="width: 70%">
+          <el-table-column v-for="(item, index) in hoverTableColumn"
+            :key="index"
+            :prop="item.prop"
+            :label="item.label"
+            :width="item.width"
+            align="center">
+          </el-table-column>
+          <el-table-column
+            prop="assumption"
+            label="预设"
+            align="center"
+            v-if="orderInfo.assumptionShow">
+          </el-table-column>
+          <el-table-column prop="assumption" label="投注项" width="240" align="center">
+            <template slot-scope="scope">
+              <span>{{scope.row.subPlayTypeWord}}</span>
+              <span v-for="(item1, index1) in scope.row.betItemsObj" :key="index1">[{{item1.key}}&nbsp;({{item1.odds}})]</span>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="uploadImg">
+          <img class="img" :src="imgStr" alt="" @click="enlarge">
+        </div>
       </div>
     </el-dialog>
 
@@ -97,46 +98,59 @@ export default {
   data () {
     return {
       tableColumn: [
-        {prop: 'serialNumber', label: '系统编号', 'min-width': '230'},
-        {prop: 'typeWords', label: '彩种类型', 'min-width': '100'},
-        {prop: 'multiple', label: '倍数', 'min-width': '50'},
-        {prop: 'amountWord', label: '金额', 'min-width': '100'},
-        {prop: 'awardAmountWord', label: '奖金', 'min-width': '100'},
-        {prop: 'settleStatusWord', label: '结算', 'min-width': '100'}
+        {prop: 'serialNumber', label: '系统编号', width: '250'},
+        {prop: 'typeWords', label: '彩种类型', width: '130'},
+        {prop: 'multiple', label: '倍数', width: '80'},
+        {prop: 'amountWord', label: '金额', width: '100'},
+        {prop: 'awardAmountWord', label: '奖金', width: '100'},
+        {prop: 'settleStatusWord', label: '结算', width: '100'}
       ],
+      // 列表数据
       tableData: [],
       pageIndex: 1,
       pageSize: 150,
+      // 列表总条数
       totalCount: 0,
+      // 控制票详情页是否打开
       showOutPopover: false,
+      // 票详情页的表格表头
       hoverTableColumn: [
         {prop: 'orderNum', label: '编号'},
         {prop: 'host', label: '主队'},
         {prop: 'guest', label: '客队'}
-        // {prop: 'assumption', label: '预设'}
       ],
+      // 票详情页的表格数据
       hoverData: [],
+      // 票详情页的基本信息
       orderInfo: {},
-      statisticData: {},
+      // 审核统计数据
       accountData: {
+        // 张数
         pages: 0,
+        // 销售总额
         amounts: 0,
+        // 奖金和
         awardAmounts: 0,
+        // 结算金额
         operateMoney: 0,
-        rebatePoint: 0,
-        accountList: []
+        // 比例
+        rebatePoint: 0
       },
       // 提交时间
       submitSettleTime: '',
       timer: null,
       scanTicket: '',
+      // 图片
       imgStr: '',
+      // 放大图片的遮罩层
       Mask: false,
       enlargeImg: false,
+      // 审核成功的数据
       serialNumbersArr: [],
       loading: false,
       winHeight: 0,
       lastqrInfo: '',
+      // 系统票号
       ticketInfoNumber: ''
     }
   },
@@ -274,7 +288,6 @@ export default {
             this.loading = false
             this.submitSettleTime = res.data.submitSettleTime ? res.data.submitSettleTime : '无'
             this.accountData.rebatePoint = res.data.store.rebatePoint / 100
-            this.statisticData = res.data.statistic
             let amounts = 0
             let awardAmounts = 0
             res.data.orderList.result.map(val => {
@@ -390,9 +403,19 @@ export default {
             try {
               if (calcData.orderInfo.betType === 'single') {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
+                maxMoney = maxMoney >= 100000 ? 100000 : maxMoney
               } else {
                 let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
+                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
+                // 过关场次
+                let tablelen = calcData.betContextList.length
+                if (tablelen === 2 || tablelen === 3) {
+                  maxMoney = maxMoney >= 200000 ? 200000 : maxMoney
+                } else if (tablelen === 4 || tablelen === 5) {
+                  maxMoney = maxMoney >= 500000 ? 500000 : maxMoney
+                } else if (tablelen >= 6 && tablelen <= 8) {
+                  maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
+                }
               }
             } catch (error) {
               console.log(error)
@@ -464,10 +487,8 @@ export default {
           // latech.BCRStartScanFromJS() // eslint-disable-line
           const _this = this
           _this.timer = setInterval(function () {
-            let flag = latech.BCRScanIsCompleteFromJS() // eslint-disable-line
-            // let flag = latech.BCRIsReadlyFromJS() // eslint-disable-line
-            // console.log(flag) // eslint-disable-line
-            if (flag === true) { // 判断读票机是否读完票
+            // 判断扫描枪是否扫描完
+            if (latech.BCRScanIsCompleteFromJS() === true) { // eslint-disable-line
               // clearInterval(_this.timer)
               _this.scanTicket = latech.BCRGetTicketInfoFromJS() // eslint-disable-line
               latech.BCRStopScan() // eslint-disable-line
@@ -507,7 +528,7 @@ export default {
   destroyed () {
     try {
       clearInterval(this.timer)
-      latech.BCRDisableFromJS() // eslint-disable-line  
+      latech.BCRDisableFromJS() // eslint-disable-line
     } catch (error) {
       console.log('条码枪')
     }
@@ -574,7 +595,6 @@ export default {
       .hoverContent{
         font-size: 20px;
         .tip{
-          border-bottom: 1px solid #FE4C40;
           .el-col{
             margin-bottom: 15px;
             .grid-content{
@@ -590,30 +610,49 @@ export default {
           }
           .grid-content{
             display: inline-block;
-            color: #4daedb;
+            color: #0485c1;
+            &.red{
+              color: #FE4C40;
+            }
+          }
+        }
+      }
+            .contentBox{
+        margin-top: 10px;
+        overflow: hidden;
+        .el-table{
+          float: left;
+        }
+        .uploadImg{
+          float: left;
+          width: 30%;
+          .el-button.is-disabled{
+            color: #ffffff;
+            background: #909399;
+            border: 1px solid #909399;
+          }
+          .btn{
+            text-align: center;
+          }
+          .no-image{
+            margin: 0 auto;
+            width: 200px;
+            height: 250px;
+            line-height: 250px;
+            text-align: center;
+            border: 1px solid #cccccc;
+          }
+          .img{
+            margin: 0 auto;
+            width: 250px;
+            height: 500px;
+            display: block;
           }
         }
       }
     }
     .noright{
       margin-top: 20px;
-    }
-    .uploadImg{
-      margin-top: 10px;
-      .no-image{
-        margin: 0 auto;
-        width: 200px;
-        height: 250px;
-        line-height: 250px;
-        text-align: center;
-        border: 1px solid #cccccc;
-      }
-      .img{
-        margin: 10px auto;
-        width: 250px;
-        height: 380px;
-        display: block;
-      }
     }
   }
   .managerLogin-right{

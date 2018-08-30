@@ -42,15 +42,6 @@
         min-width="40"
         align="center">
       </el-table-column>
-      <!-- <el-table-column
-        prop="serialNumber"
-        label="系统编号"
-        min-width="200"
-        align="center">
-        <template slot-scope="outScope">
-          <el-button @click="getOutPopover(outScope.row)" :disabled="outScope.row.flag">{{ outScope.row.serialNumber }}</el-button>
-        </template>
-      </el-table-column> -->
       <el-table-column v-for="(item, index) in tableColumn"
         :key="index"
         :prop="item.prop"
@@ -66,14 +57,15 @@
       center
       class="orderNum-popover"
       id="outPopover"
-      title="订单详情">
+      title="订单详情"
+      :close-on-click-modal="false">
       <div class="hoverContent">
         <el-row :gutter="10">
           <el-col :span="12">订单号：<div class="grid-content">{{orderInfo.serialNumber}}</div></el-col>
           <el-col :span="12">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber}}</div></el-col>
         </el-row>
         <el-row class="tip" :gutter="20">
-          <el-col :span="7">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
+          <el-col :span="7">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=100000?`${orderInfo.maxMoney/100000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
           <el-col :span="5">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
           <el-col :span="4">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
           <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
@@ -101,9 +93,9 @@
             prop="assumption"
             label="预设"
             align="center"
-            v-if="orderInfo.subPlayType === '52' || orderInfo.subPlayType === '59'">
+            v-if="orderInfo.assumptionShow">
             <template slot-scope="scopeAssumption">
-              <el-popover ref="innerPopover" popper-class="edit-popover" placement="bottom" width="200" v-model="scopeAssumption.row.assumptionFlag">
+              <el-popover ref="innerPopover" popper-class="edit-popover fixed-popover" placement="bottom" width="200" v-model="scopeAssumption.row.assumptionFlag">
                 <p>系统预设：<span>{{scopeAssumption.row.assumption}}</span></p>
                 <p>正确预设：</p>
                 <input class="editInputs" type="text" v-model="editAssumption" ref="focusAssumptionInput" placeholder="请输入内容"/>
@@ -117,10 +109,10 @@
           <el-table-column label="投注项" width="300" align="center">
             <template slot-scope="scope">
               <span>{{scope.row.subPlayTypeWord}}</span>
-              <el-popover ref="innerPopover" popper-class="edit-popover" v-for="(item1, index1) in scope.row.betItemsObj" :key="index1" trigger="click" placement="bottom" width="200" v-model="item1.flag">
+              <el-popover ref="innerPopover" popper-class="edit-popover fixed-popover" v-for="(item1, index1) in scope.row.betItemsObj" :key="index1" trigger="click" placement="bottom" width="200" v-model="item1.flag">
                 <p>系统赔率：<span>{{item1.odds}}</span></p>
                 <p>正确赔率：</p>
-                <input class="edictInput" type="text" v-model="editOdds" ref="focusOddsInput" placeholder="请输入正确赔率"/>
+                <input class="edictInput" autofocus="autofocus" type="text" v-model="editOdds" ref="focusOddsInput" placeholder="请输入正确赔率"/>
                 <div class="edictBtn">
                   <button :ref="scope.row.matchUniqueId" :data-idx="index1" :data-row="JSON.stringify(scope.row)" :data-odd="item1.odds" @click="getEditOdds(scope.row, index1, item1.odds)">修改</button>
                 </div>
@@ -140,11 +132,11 @@
             <el-button
               class="submit-btn"
               type="success"
-              @click="submitRealTicket"
               :disabled="submitFlag"
               v-loading.fullscreen.lock="confirmDisabled"
               element-loading-background="rgba(0,0,0,0.4)"
-              element-loading-text="拼命加载中...">出票完成</el-button>
+              element-loading-text="拼命加载中..."
+              @click="submitRealTicket">出票完成</el-button>
           </div>
           <img class="img" :src="imgStr" alt="" @click="enlarge">
         </div>
@@ -155,10 +147,10 @@
       title="是否确认票信息的内容？"
       :visible.sync="confirmFlag"
       width="30%"
-      center
       id="innerDialog"
       class="confirm-msg"
-      :close-on-click-modal="false">
+      :close-on-click-modal="false"
+      top="30vh">
       <p class="tip">确认后将推送到客户，并且不能修改！</p>
       <p class="edit-content">赔率数据异常有：<span>{{validateOdds}}</span></p>
       <span slot="footer" class="dialog-footer">
@@ -438,6 +430,9 @@ export default {
           this.openTimerId = false
           clearInterval(this.timerId)
         })
+        console.log('清除')
+        // 清除保存的图片信息
+        localStorage.removeItem('keepTicketInfo')
       }
     }
   },
@@ -493,7 +488,7 @@ export default {
     // 注册键盘事件
     const _this = this
     document.onkeydown = function (e) {
-      console.log('获取', e.keyCode)
+      // console.log('获取', e.keyCode)
       if (e.keyCode === 144) {
         return
       }
@@ -595,6 +590,9 @@ export default {
           break
         case 106:
           _this.$store.commit('setkeyboardCode', 106)
+          break
+        case 107:
+          _this.$store.commit('setkeyboardCode', 107)
           break
         case 109:
           _this.$store.commit('setkeyboardCode', 109)
@@ -836,9 +834,19 @@ export default {
             try {
               if (calcData.orderInfo.betType === 'single') {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
+                maxMoney = maxMoney >= 100000 ? 100000 : maxMoney
               } else {
                 let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
+                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
+                // 过关场次
+                let tablelen = calcData.betContextList.length
+                if (tablelen === 2 || tablelen === 3) {
+                  maxMoney = maxMoney >= 200000 ? 200000 : maxMoney
+                } else if (tablelen === 4 || tablelen === 5) {
+                  maxMoney = maxMoney >= 500000 ? 500000 : maxMoney
+                } else if (tablelen >= 6 && tablelen <= 8) {
+                  maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
+                }
               }
             } catch (error) {
               console.log(error, '过关方式与赛事场次对不上')
@@ -996,6 +1004,7 @@ export default {
             betContextOdds.push(obj)
           })
           let maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(betContextOdds, orderInfo.multiple)))
+          maxMoney = maxMoney >= 100000 ? 100000 : maxMoney
           this.$set(this.orderInfo, 'maxMoney', maxMoney)
         } else {
           let calcData = {
@@ -1004,7 +1013,17 @@ export default {
           }
           let editOddsFlag = true
           let dataInfo = ChangeBetContext.getPassMaxMoney(calcData, editOddsFlag)
-          let maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
+          // let maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
+          let maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
+          // 过关场次
+          let tablelen = calcData.betContextList.length
+          if (tablelen === 2 || tablelen === 3) {
+            maxMoney = maxMoney >= 200000 ? 200000 : maxMoney
+          } else if (tablelen === 4 || tablelen === 5) {
+            maxMoney = maxMoney >= 500000 ? 500000 : maxMoney
+          } else if (tablelen >= 6 && tablelen <= 8) {
+            maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
+          }
           this.$set(this.orderInfo, 'maxMoney', maxMoney)
         }
       } else {
@@ -1207,10 +1226,12 @@ export default {
           objMix[item.subPlayType] = arr
           if (item.score) {
             if (item.subPlayType === '64') {
-              objMix['totalScore'] = item.score
+              // objMix['totalScore'] = item.score
+              obj['totalScore'] = item.score
             }
             if (item.subPlayType === '61') {
-              objMix['score'] = item.score
+              // objMix['score'] = item.score
+              obj['score'] = item.score
             }
           }
           obj[item.matchUniqueId] = objMix
@@ -1267,7 +1288,6 @@ export default {
     },
     // 提交数据，出票完成
     confirmSumbit () {
-      console.log(1)
       this.sumbitDisabled = true
       try {
         latech.saveImageFromJS(this.ticketInfoNumber, this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
@@ -1284,7 +1304,6 @@ export default {
       req('editTicket', params)
         .then(res => {
           if (res.code === '00000') {
-            console.log(2)
             this.confirmFlag = false
             this.showOutPopover = false
             this.sumbitDisabled = false
@@ -1293,31 +1312,29 @@ export default {
                 this.$delete(this.tableData, index)
               }
             })
-            this.getData()
             // 出票成功，将保存的票信息删除
             localStorage.removeItem('keepTicketInfo')
             this.$message({
               type: 'success',
               message: '出票成功'
             })
+            this.getData()
           } else if (res.code === '20041') {
-            console.log(3)
+            this.confirmFlag = false
+            this.showOutPopover = true
+            this.sumbitDisabled = false
             this.$message({
               type: 'error',
               message: '此票已读票成功，请更换票据读票！'
             })
+          } else {
             this.confirmFlag = true
             this.showOutPopover = true
             this.sumbitDisabled = false
-          } else {
-            console.log(4)
             this.$message({
               type: 'error',
               message: res.msg
             })
-            this.confirmFlag = true
-            this.showOutPopover = true
-            this.sumbitDisabled = false
           }
         })
         .catch(error => {
@@ -1684,4 +1701,7 @@ export default {
   font-size: 16px!important;
   padding: 10px 20px!important;
 }
+// .fixed-popover{
+//   top: 100px !important;
+// }
 </style>

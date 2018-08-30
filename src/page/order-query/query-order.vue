@@ -140,11 +140,11 @@
           <el-col :span="12">最迟出票时间：<div class="grid-content">{{orderInfo.lastPrintDate}}</div></el-col>
         </el-row>
         <el-row class="tip" :gutter="20">
-          <el-col :span="7">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
+          <el-col :span="5">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
           <el-col :span="5">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
           <el-col :span="4">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
           <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="3">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
+          <el-col :span="5">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=100000?`${orderInfo.maxMoney/100000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
         </el-row>
       </div>
       <div class="contentBox">
@@ -160,7 +160,7 @@
             prop="assumption"
             label="预设"
             align="center"
-            v-if="orderInfo.subPlayType === '52' || orderInfo.subPlayType === '59'">
+            v-if="orderInfo.assumptionShow">
           </el-table-column>
           <el-table-column prop="assumption" label="投注项" width="240" align="center">
             <template slot-scope="scope">
@@ -261,6 +261,7 @@ export default {
       ],
       // 中奖状态
       awardFlagSelect: [
+        // {value: 0, label: '未算奖'},
         {value: 1, label: '已中奖'},
         {value: 2, label: '未中奖'}
       ],
@@ -319,6 +320,32 @@ export default {
     document.getElementById('outPopover').addEventListener('click', (event) => {
       event.stopPropagation()
     })
+    const _this = this
+    document.onkeydown = function (e) {
+      // console.log('获取', e.keyCode)
+      if (e.keyCode === 144) {
+        return
+      }
+      switch (e.keyCode) {
+        case 0:
+          _this.queryOrder()
+          break
+        case 111:
+          _this.$store.commit('setkeyboardCode', 111)
+          break
+        case 106:
+          _this.$store.commit('setkeyboardCode', 106)
+          break
+        case 107:
+          _this.$store.commit('setkeyboardCode', 107)
+          break
+        case 109:
+          _this.$store.commit('setkeyboardCode', 109)
+          break
+        default:
+          break
+      }
+    }
   },
   methods: {
     // 获取列表
@@ -355,7 +382,7 @@ export default {
               val.amount = val.amount / 100
               // val.awardAmount = val.awardAmount / 100
               val.calAwardAmount = val.calAwardAmount / 100
-              val.awardFlagWord = val.awardFlag === 1 ? '已中奖' : '未中奖'
+              val.awardFlagWord = ChangeBetContext.awardFlag(val.awardFlag)
               val.amountWord = (val.amount).toFixed(2)
               // val.awardAmountWord = (val.awardAmount).toFixed(2)
               val.awardAmountWord = (val.calAwardAmount).toFixed(2)
@@ -477,9 +504,19 @@ export default {
             try {
               if (calcData.orderInfo.betType === 'single') {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
+                maxMoney = maxMoney >= 100000 ? 100000 : maxMoney
               } else {
                 let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
+                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
+                // 过关场次
+                let tablelen = calcData.betContextList.length
+                if (tablelen === 2 || tablelen === 3) {
+                  maxMoney = maxMoney >= 200000 ? 200000 : maxMoney
+                } else if (tablelen === 4 || tablelen === 5) {
+                  maxMoney = maxMoney >= 500000 ? 500000 : maxMoney
+                } else if (tablelen >= 6 && tablelen <= 8) {
+                  maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
+                }
               }
             } catch (error) {
               console.log(error)
@@ -578,12 +615,11 @@ export default {
         if (latech.BCRSetScanModeFromJS(1) === true) { // eslint-disable-line
           // 条码枪开始扫描
           // latech.BCRStartScanFromJS() // eslint-disable-line
+          // console.log(1222222)
           const _this = this
           _this.timer = setInterval(function () {
-            let flag = latech.BCRScanIsCompleteFromJS() // eslint-disable-line
-            // let flag = latech.BCRIsReadlyFromJS() // eslint-disable-line
-            // console.log(flag) // eslint-disable-line
-            if (flag === true) { // 判断读票机是否读完票
+            // 判断扫描枪是否扫描完
+            if (latech.BCRScanIsCompleteFromJS() === true) { // eslint-disable-line
               // clearInterval(_this.timer)
               _this.scanTicket = latech.BCRGetTicketInfoFromJS() // eslint-disable-line
               latech.BCRStopScan() // eslint-disable-line
@@ -604,7 +640,7 @@ export default {
   destroyed () {
     try {
       clearInterval(this.timer)
-      latech.BCRDisableFromJS() // eslint-disable-line  
+      latech.BCRDisableFromJS() // eslint-disable-line
     } catch (error) {
       console.log('条码枪停止错误', error)
     }
@@ -797,5 +833,22 @@ export default {
 }
 .el-button+.el-button {
     margin-left: 40px;
+}
+.creatTime{
+  input { pointer-events: none; }
+}
+.el-picker-panel__body{
+  .el-date-range-picker__time-header{
+    .el-date-range-picker__editors-wrap{
+      .el-date-range-picker__time-picker-wrap:nth-of-type(2){
+        display: none;
+      }
+      .el-date-range-picker__time-picker-wrap:nth-of-type(1){
+        input{
+          text-align: center;
+        }
+      }
+    }
+  }
 }
 </style>

@@ -6,81 +6,85 @@
             <p>地址：{{storeInfo.storeAddress}}</p>
         </div>
         <div class="top-right">
-            <el-menu
-                :default-active="$route.path"
-                class="el-menu-vertical"
-                @open="handleOpen"
-                @close="handleClose"
-                @select="handleSelect">
-                <el-menu-item index="/order-query/order-List" class="flex-item" id="order-List" :disabled="$store.state.menuDisabled.orderList">
-                    <span class="icon-box" ref="orderList">
-                        <i class="icon iconfont icon-xiaofeimingxidan"></i>
-                        <span slot="title" class="icon-name">获取订单</span>
-                    </span>
-                </el-menu-item>
-                <button
-                  class="flex-item"
-                  :disabled="$store.state.menuDisabled.accountOrder"
-                  :class="{'examinDisabled': $store.state.menuDisabled.accountOrder}"
-                  @click="managerLogin">
-                    <span class="icon-box" ref="accountOrder">
-                        <i class="el-icon-printer i-color"></i>
-                        <span slot="title" class="icon-name">订单结算</span>
-                    </span>
-                </button>
-                <!-- <el-menu-item
-                  :disabled="$store.state.menuDisabled.queryOrder"
-                  id="query-order"
-                  index="/order-query/query-order"
-                  class="flex-item">
-                    <span class="icon-box" ref="queryOrder">
-                      <i class="icon iconfont icon-SQLshenhe"></i>
-                      <span slot="title" class="icon-name">查询</span>
-                    </span>
-                </el-menu-item> -->
+          <el-menu
+            :default-active="$route.path"
+            class="el-menu-vertical"
+            @open="handleOpen"
+            @close="handleClose"
+            @select="handleSelect">
+            <el-menu-item
+              index="/order-query/order-List"
+              class="flex-item"
+              id="order-List"
+              :disabled="$store.state.menuDisabled.orderList">
+              <span class="icon-box" ref="orderList">
+                <i class="icon iconfont icon-xiaofeimingxidan"></i>
+                <span slot="title" class="icon-name">获取订单</span>
+              </span>
+            </el-menu-item>
+            <button
+              class="flex-item"
+              :disabled="$store.state.menuDisabled.accountOrder"
+              :class="{'examinDisabled': $store.state.menuDisabled.accountOrder}"
+              @click="managerLogin">
+              <span class="icon-box" ref="accountOrder">
+                <i class="el-icon-printer i-color"></i>
+                <span slot="title" class="icon-name">订单结算</span>
+              </span>
+            </button>
+            <!-- <el-menu-item
+              :disabled="$store.state.menuDisabled.queryOrder"
+              id="query-order"
+              index="/order-query/query-order"
+              class="flex-item">
+              <span class="icon-box" ref="queryOrder">
+                <i class="icon iconfont icon-SQLshenhe"></i>
+                <span slot="title" class="icon-name">查询</span>
+              </span>
+            </el-menu-item> -->
 
-                <el-menu-item index="/order-query/query-order" class="flex-item">
-                    <span class="icon-box" ref="queryOrder">
-                        <i class="icon iconfont icon-SQLshenhe"></i>
-                        <span slot="title" class="icon-name">查询</span>
-                    </span>
-                </el-menu-item>
-                <el-menu-item
-                 :disabled="$store.state.menuDisabled.queryOrder"
-                 index="/order-query/prize-order"
-                 class="flex-item">
-                    <span class="icon-box" ref="prizeOrder">
-                        <i class="icon iconfont icon-accountbook"></i>
-                        <span slot="title" class="icon-name">兑奖</span>
-                    </span>
-                </el-menu-item>
-                <el-menu-item
-                  index=""
-                  class="flex-item bigger"
-                  v-if="$store.state.activeIndex==='/order-query/examine-order'">
-                    <span class="icon-box" @click="quit">
-                        <i class="icon iconfont icon-logout"></i>
-                        <span slot="title" class="icon-name">管理员登出</span>
-                    </span>
-                </el-menu-item>
-                <el-menu-item
-                index="quitSystem"
-                class="flex-item last-item"
-                :disabled="$store.state.menuDisabled.quitSystem">
-                    <span class="icon-box">
-                        <i class="icon iconfont icon-poweroff"></i>
-                        <span slot="title" class="icon-name">退出系统</span>
-                    </span>
-                </el-menu-item>
-            </el-menu>
-            <img class="logo" src="../assets/image/logo.png" alt="">
+            <el-menu-item index="/order-query/query-order" class="flex-item">
+              <span class="icon-box" ref="queryOrder">
+                <i class="icon iconfont icon-SQLshenhe"></i>
+                <span slot="title" class="icon-name">查询</span>
+              </span>
+            </el-menu-item>
+            <el-menu-item
+              :disabled="$store.state.menuDisabled.queryOrder"
+              index="/order-query/prize-order"
+              class="flex-item">
+              <span class="icon-box" ref="prizeOrder">
+                <i class="icon iconfont icon-accountbook"></i>
+                <span slot="title" class="icon-name">兑奖</span>
+              </span>
+            </el-menu-item>
+            <el-menu-item
+              index=""
+              class="flex-item bigger"
+              v-if="$store.state.activeIndex==='/order-query/examine-order'">
+              <span class="icon-box" @click="quit">
+                <i class="icon iconfont icon-logout"></i>
+                <span slot="title" class="icon-name">管理员登出</span>
+              </span>
+            </el-menu-item>
+            <el-menu-item
+              index="quitSystem"
+              class="flex-item last-item"
+              :disabled="$store.state.menuDisabled.quitSystem">
+              <span class="icon-box">
+                <i class="icon iconfont icon-poweroff"></i>
+                <span slot="title" class="icon-name">退出系统</span>
+              </span>
+            </el-menu-item>
+          </el-menu>
+          <img class="logo" src="../assets/image/logo.png" alt="">
         </div>
     </div>
 
     <div class="content">
-        <div class="content1">
-            <router-view></router-view>
-        </div>
+      <div class="content1">
+        <router-view></router-view>
+      </div>
     </div>
 
     <el-dialog
@@ -92,9 +96,7 @@
       class="login">
       <el-form :model="managerForm" label-width="100px" :rules="rules" ref="ruleForm">
         <el-form-item label="用户名" prop="userAccount">
-          <div ref="managerName">
-            <el-input v-model="managerForm.userAccount" auto-complete="off" maxlength="15"></el-input>
-          </div>
+          <el-input v-model="managerForm.userAccount" autofocus="autofocus" ref="userAccount" auto-complete="off" maxlength="15"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input type="password" v-model="managerForm.password" auto-complete="off" maxlength="15"></el-input>
@@ -152,11 +154,14 @@ export default {
         case 106:
           this.$refs.accountOrder.click()
           break
+        case 107:
+          this.$refs.prizeOrder.click()
+          break
         case 109:
           this.$refs.queryOrder.click()
           break
         case 8:
-          this.cancleMangerLogin()
+          // this.cancleMangerLogin()
           break
         case 0:
           this.sumbitManagerLogin('ruleForm')
@@ -184,14 +189,19 @@ export default {
         case 106:
           _this.$refs.accountOrder.click()
           break
+        case 107:
+          _this.$refs.prizeOrder.click()
+          break
         case 109:
           _this.$refs.queryOrder.click()
           break
         case 8:
-          _this.cancleMangerLogin()
+          // _this.cancleMangerLogin()
           break
         case 0:
-          _this.sumbitManagerLogin('ruleForm')
+          if (_this.managerDialogVisible) {
+            _this.sumbitManagerLogin('ruleForm')
+          }
           break
         default:
           break
@@ -250,10 +260,10 @@ export default {
     },
     managerLogin () {
       this.managerDialogVisible = true
-      this.validateCode = loginValidate.createCode()
       this.$nextTick(() => {
-        this.$refs.managerName.querySelector('input').focus()
+        this.$refs.userAccount.focus()
       })
+      this.validateCode = loginValidate.createCode()
       this.managerForm = {
         userAccount: '',
         password: '',

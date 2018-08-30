@@ -410,6 +410,23 @@ class changeBetContext {
     return orderNum
   }
 
+  static awardFlag (val) {
+    let awardFlag = ''
+    switch (val) {
+      case 0:
+        awardFlag = '未算奖'
+        break
+      case 1:
+        awardFlag = '已中奖'
+        break
+      case 2:
+        awardFlag = '未中奖'
+        break
+      default:
+        break
+    }
+    return awardFlag
+  }
   /**
    * 转换订单结算状态
    * @param {Number} val - 结算状态settleStatus
@@ -460,8 +477,8 @@ class changeBetContext {
         maxMoney += singleMax * 2
       })
     })
-    maxMoney = changeBetContext.evenRound(changeBetContext.evenRound(maxMoney, 2) * multiple, 2)
-    // console.log(maxMoney)
+    // maxMoney = changeBetContext.evenRound(changeBetContext.evenRound(maxMoney, 2) * multiple, 2)
+    maxMoney = changeBetContext.returnEvenRound(changeBetContext.returnEvenRound(maxMoney) * multiple)
     return maxMoney
   }
 
@@ -525,7 +542,7 @@ class changeBetContext {
   }
 
   /**
-   * 四舍五入六成双算法
+   * 四舍五入六成双算法(银行)
    * @param {Number} num - 要处理的数字
    * @param {Number} decimalPlaces - 保留的小数位
    */
@@ -535,11 +552,37 @@ class changeBetContext {
     let n = +(d ? num * m : num).toFixed(8) // Avoid rounding errors
     let i = Math.floor(n)
     let f = n - i
-    // let i = Math.floor(n),
-    //   f = n - i
     let e = 1e-8 // Allow for rounding errors in f
     let r = (f > 0.5 - e && f < 0.5 + e) ? ((i % 2 === 0) ? i : i + 1) : Math.round(n)
     return d ? r / m : r
+  }
+
+  /**
+   * 四舍五入六成双算法(不同于银行，如果第三位是5，只考虑第二位是奇偶的情况)
+   * @param {Number} num
+   */
+  static returnEvenRound (num) {
+    let numStr = String(num)
+    let res = 0
+    if (numStr.indexOf('.') > -1) {
+      let threeFloatNum = numStr.split('.')[1].substr(2, 1)
+      let twoFloatNum = numStr.split('.')[1].substr(1, 1)
+      if (Number(threeFloatNum) !== 5) {
+        res = +num.toFixed(2)
+      } else {
+        res = Number(twoFloatNum) % 2 === 0 ? Math.floor(num * 100) / 100 : Math.floor(num * 100 + 1) / 100
+        // if (Number(twoFloatNum) % 2 === 0) {
+        //   console.log(2)
+        //   res = Math.floor(num * 100) / 100
+        // } else {
+        //   console.log(3)
+        //   res = Math.floor(num * 100 + 1) / 100
+        // }
+      }
+    } else {
+      res = num
+    }
+    return res
   }
 
   /**
