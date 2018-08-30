@@ -51,7 +51,7 @@
           <el-col :span="4">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
           <el-col :span="3">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
           <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="7">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=100000?`${orderInfo.maxMoney/100000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
+          <el-col :span="7">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=10000?`${orderInfo.maxMoney/10000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
         </el-row>
       </div>
       <div class="contentBox">
@@ -159,7 +159,7 @@ export default {
       console.log(val, '落地票号')
       // 判断当前扫描的票是否已经审核完成
       let flag = true
-      // 判断扫描的票据是否存于待审核列表
+      // 判断扫描的票据是否存于待审核列表，默认不存在
       let exitFlag = true
       this.tableData.map(item => {
         if (item.ticketInfoVoList[0].qrInfo === val) {
@@ -296,14 +296,11 @@ export default {
               val.subPlayTypeWord = ChangeBetContext.subPlayType(val.subPlayType)
               val.settleStatusWord = ChangeBetContext.settleStatus(val.changeSettleStatus)
               val.amount = val.amount / 100
-              // val.awardAmount = val.awardAmount / 100
               val.calAwardAmount = val.calAwardAmount / 100
               val.amountWord = (val.amount).toFixed(2)
-              // val.awardAmountWord = (val.awardAmount).toFixed(2)
               val.awardAmountWord = (val.calAwardAmount).toFixed(2)
               val.flag = false
               amounts += val.amount
-              // awardAmounts += val.awardAmount
               awardAmounts += val.calAwardAmount
               val.typeWords = `${val.lotteryTypeWord}${val.subPlayTypeWord}`
             })
@@ -437,6 +434,7 @@ export default {
             }
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
+            // 竞彩篮球的让球胜负和大小分彩种才需要显示预设值
             if (this.orderInfo.subPlayType === '61' || this.orderInfo.subPlayType === '64' || this.orderInfo.subPlayType === '69') {
               this.orderInfo.assumptionShow = true
             } else {
@@ -455,6 +453,7 @@ export default {
                   obj[oddsKey] = val1[oddsKey]
                   val1[val.matchUniqueId] = obj
                   val1.odds = val1[oddsKey]
+                  // 遍历生成的popover必须添加唯一的显示与隐藏的标志
                   val1.flag = false
                   val1.key = ChangeBetContext.bet(val.subPlayType, oddsKey)
                 }

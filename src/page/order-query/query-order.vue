@@ -144,7 +144,7 @@
           <el-col :span="5">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
           <el-col :span="4">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
           <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="5">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=100000?`${orderInfo.maxMoney/100000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
+          <el-col :span="5">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=10000?`${orderInfo.maxMoney/10000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
         </el-row>
       </div>
       <div class="contentBox">
@@ -200,42 +200,48 @@ export default {
         {prop: 'printFlagWord', label: '出票', width: '90'},
         {prop: 'settleStatusWord', label: '结算', width: '100'}
       ],
+      // 列表数据
       tableData: [],
       pageIndex: 1,
       pageSize: 10,
+      // 列表总条数
       totalCount: 0,
+      // 控制票详情页是否打开
       showOutPopover: false,
+      // 票详情页的表格表头
       hoverTableColumn: [
         {prop: 'orderNum', label: '编号'},
         {prop: 'host', label: '主队'},
         {prop: 'guest', label: '客队'}
-        // {prop: 'assumption', label: '预设'}
       ],
+      // 票详情页的表格数据
       hoverData: [],
+      // 票详情页的基本信息
       orderInfo: {},
-      accountData: {
-        pages: 0,
-        amounts: 0,
-        awardAmounts: 0,
-        operateMoney: 0,
-        rebatePoint: 0,
-        accountList: []
-      },
-      // 提交时间
-      submitSettleTime: '',
+      // 扫码获取的落地票号
       scanTicket: '',
+      // 扫码枪的定时器
       timer: null,
+      // 图片
       imgStr: '',
       Mask: false,
       enlargeImg: false,
       loading: false,
+      // 查询的表单数据
       form: {
+        // 订单号
         serialNumber: '',
+        // 落地票号
         qrInfo: '',
+        // 彩种
         subPlayType: '',
+        // 出票状态
         printFlag: '',
+        // 中奖状态
         awardFlag: '',
+        // 结算状态
         settleStatus: '',
+        // 出票时间
         beginUploadTime: '',
         endUploadTime: ''
       },
@@ -255,13 +261,11 @@ export default {
       ],
       // 出票状态
       printFlagSelect: [
-        // {value: 1, label: '未出票'},
         {value: 2, label: '已出票'},
         {value: 3, label: '出票失败'}
       ],
       // 中奖状态
       awardFlagSelect: [
-        // {value: 0, label: '未算奖'},
         {value: 1, label: '已中奖'},
         {value: 2, label: '未中奖'}
       ],
@@ -275,9 +279,11 @@ export default {
       searchFlag: false,
       // 创建时间
       createDate: [],
+      // 落地票号
       lastqrInfo: '',
       // 屏幕高度
       winHeight: 0,
+      // 系统票号
       ticketInfoNumber: '',
       // 扫描枪初始化标志
       scanInitFlag: true
@@ -291,6 +297,7 @@ export default {
         this.queryOrder()
       })
     },
+    // 出票时间
     createDate (val) {
       if (val && val.length) {
         this.form.beginUploadTime = val[0]
@@ -330,7 +337,7 @@ export default {
       }
       switch (e.keyCode) {
         case 0:
-          _this.queryOrder()
+          _this.$store.state.managerFlag ? _this.$store.commit('setkeyboardCode', 0) : _this.queryOrder()
           break
         case 111:
           _this.$store.commit('setkeyboardCode', 111)
@@ -340,7 +347,8 @@ export default {
           break
         case 107:
           _this.$store.commit('setkeyboardCode', 107)
-          break
+          return false
+          break // eslint-disable-line
         case 109:
           _this.$store.commit('setkeyboardCode', 109)
           break
@@ -371,10 +379,6 @@ export default {
         .then(res => {
           if (res.code === '00000') {
             this.loading = false
-            this.submitSettleTime = res.data.submitSettleTime ? res.data.submitSettleTime : '无'
-            this.accountData.rebatePoint = res.data.store.rebatePoint / 100
-            let amounts = 0
-            let awardAmounts = 0
             res.data.orderList.result.map(val => {
               val.lotteryTypeWord = ChangeBetContext.lotteryType(val.lotteryType)
               val.changeSettleStatus = val.settleStatus
@@ -382,24 +386,15 @@ export default {
               val.settleStatusWord = ChangeBetContext.settleStatus(val.changeSettleStatus)
               val.printFlagWord = ChangeBetContext.printFlag(val.printFlag)
               val.amount = val.amount / 100
-              // val.awardAmount = val.awardAmount / 100
               val.calAwardAmount = val.calAwardAmount / 100
               val.awardFlagWord = ChangeBetContext.awardFlag(val.awardFlag)
               val.amountWord = (val.amount).toFixed(2)
-              // val.awardAmountWord = (val.awardAmount).toFixed(2)
               val.awardAmountWord = (val.calAwardAmount).toFixed(2)
               val.flag = false
-              amounts += val.amount
-              // awardAmounts += val.awardAmount
-              awardAmounts += val.calAwardAmount
               val.typeWords = `${val.lotteryTypeWord}${val.subPlayTypeWord}`
             })
             this.tableData = res.data.orderList.result
             this.totalCount = res.data.orderList.totalCount
-            this.accountData.pages = this.tableData.length
-            this.accountData.amounts = amounts
-            this.accountData.awardAmounts = awardAmounts
-            this.accountData.operateMoney = amounts - (awardAmounts + amounts * this.accountData.rebatePoint)
             if (this.scanInitFlag) {
               try {
                 this.scan()
@@ -540,6 +535,7 @@ export default {
             }
             this.orderInfo = orderInfo
             this.orderInfo.lotterykinds = `${orderInfo.lotteryTypeWord}${orderInfo.subPlayTypeWord}`
+            // 竞彩篮球的让球胜负和大小分彩种才需要显示预设值
             if (this.orderInfo.subPlayType === '61' || this.orderInfo.subPlayType === '64' || this.orderInfo.subPlayType === '69') {
               this.orderInfo.assumptionShow = true
             } else {

@@ -99,10 +99,10 @@
           <el-input v-model="managerForm.userAccount" autofocus="autofocus" ref="userAccount" auto-complete="off" maxlength="15"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input type="password" v-model="managerForm.password" auto-complete="off" maxlength="15"></el-input>
+          <el-input type="password" v-model="managerForm.password" ref="password" auto-complete="off" maxlength="15"></el-input>
         </el-form-item>
         <el-form-item label="验证码" prop="inputCode">
-          <el-input class="code" v-model="managerForm.inputCode" auto-complete="off" maxlength="4"></el-input>
+          <el-input class="code" v-model="managerForm.inputCode" ref="inputCode" auto-complete="off" maxlength="4"></el-input>
           <div @click="createCodeWord" class="managerLogin-right">{{validateCode}}</div>
         </el-form-item>
         <el-form-item class="last-item">
@@ -131,6 +131,7 @@ export default {
       // 验证码
       validateCode: '',
       validateFlag: false,
+      focusRecord: 0,
       rules: {
         userAccount: [
           { required: true, message: '请输入用户名', trigger: 'blur' }
@@ -155,7 +156,17 @@ export default {
           this.$refs.accountOrder.click()
           break
         case 107:
-          this.$refs.prizeOrder.click()
+          if (this.managerDialogVisible) {
+            this.focusRecord++
+            this.$store.commit('setkeyboardCode', -1)
+            if (this.focusRecord === 1) {
+              this.$refs.password.focus()
+            } else if (this.focusRecord === 2) {
+              this.$refs.inputCode.focus()
+            }
+          } else {
+            this.$refs.prizeOrder.click()
+          }
           break
         case 109:
           this.$refs.queryOrder.click()
@@ -171,6 +182,9 @@ export default {
       }
       this.$store.commit('setkeyboardCode', -1)
       // console.log('watch', val)
+    },
+    managerDialogVisible: function (val) {
+      this.$store.commit('setManagerFlag', val)
     }
   },
   created () {
@@ -184,16 +198,27 @@ export default {
       }
       switch (e.keyCode) {
         case 111:
-          _this.$refs.orderList.click()
+          _this.managerDialogVisible || _this.$refs.orderList.click()
           break
         case 106:
-          _this.$refs.accountOrder.click()
+          _this.managerDialogVisible || _this.$refs.accountOrder.click()
           break
         case 107:
-          _this.$refs.prizeOrder.click()
+          if (_this.managerDialogVisible) {
+            _this.focusRecord++
+            if (_this.focusRecord === 1) {
+              _this.$refs.password.focus()
+              return false
+            } else if (_this.focusRecord === 2) {
+              _this.$refs.inputCode.focus()
+              return false
+            }
+          } else {
+            _this.$refs.prizeOrder.click()
+          }
           break
         case 109:
-          _this.$refs.queryOrder.click()
+          _this.managerDialogVisible || _this.$refs.queryOrder.click()
           break
         case 8:
           // _this.cancleMangerLogin()
@@ -259,6 +284,7 @@ export default {
       }
     },
     managerLogin () {
+      this.focusRecord = 0
       this.managerDialogVisible = true
       this.$nextTick(() => {
         this.$refs.userAccount.focus()
@@ -272,6 +298,7 @@ export default {
     },
     // 管理员登陆
     sumbitManagerLogin (ruleForm) {
+      // this.focusRecord = 0
       this.$refs[ruleForm].validate(valid => {
         if (!valid) {
           this.$message({
@@ -315,6 +342,7 @@ export default {
     },
     cancleMangerLogin () {
       this.managerDialogVisible = false
+      // this.focusRecord = 0
       // this.$nextTick(() => {
       //   this.$refs.accountOrder.parentNode.classList.remove('is-active')
       //   let tuofengPath = this.getTuoFeng(this.$route.path.split('/')[2])

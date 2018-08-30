@@ -69,7 +69,7 @@
           <el-col :span="4">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
           <el-col :span="3">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
           <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="7">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=100000?`${orderInfo.maxMoney/100000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
+          <el-col :span="7">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=10000?`${orderInfo.maxMoney/10000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
         </el-row>
       </div>
       <div class="contentBox">
@@ -551,39 +551,42 @@ export default {
           _this.$store.commit('setkeyboardCode', 8)
           break
         case 0:
-          if (_this.keyOddFalg) { // 修改赔率完成enter
-            let obj = _this.hoverData[_this.oddIndex]
-            let idx = _this.$refs[obj.matchUniqueId][_this.oddIndexNum].dataset.idx
-            let odd = _this.$refs[obj.matchUniqueId][_this.oddIndexNum].dataset.odd
-            _this.getEditOdds(obj, parseInt(idx), odd)
-            return
-          }
-          if (_this.keyAssumptionFalg) { // 修改预设完成enter
-            let id = _this.hoverData[_this.AssumptionIndex].matchUniqueId
-            _this.getEditAssumption(id)
-            return
-          }
-          if (_this.confirmFlag) { // 修改赔率出票完成enter
-            _this.confirmSumbit()
-            return
-          }
-          if (_this.limitSaleData.limitSaleFlag) { // 修限售完成enter
-            _this.confirmLimitSale()
-            return
-          }
-          if (_this.showOutPopover) { // 详情弹框标志
-            if (_this.printVisible) { // 是否已打印enter
-              _this.printQuery(e)
-              _this.printVisible = false
-            } else {
-              if (_this.submitFlag) { // 限售和出票提交enter
-                _this.limitSale(_this.orderInfo.ticketInfoNumber)
+          if (_this.$store.state.managerFlag) {
+            _this.$store.commit('setkeyboardCode', 0)
+          } else {
+            if (_this.keyOddFalg) { // 修改赔率完成enter
+              let obj = _this.hoverData[_this.oddIndex]
+              let idx = _this.$refs[obj.matchUniqueId][_this.oddIndexNum].dataset.idx
+              let odd = _this.$refs[obj.matchUniqueId][_this.oddIndexNum].dataset.odd
+              _this.getEditOdds(obj, parseInt(idx), odd)
+              return
+            }
+            if (_this.keyAssumptionFalg) { // 修改预设完成enter
+              let id = _this.hoverData[_this.AssumptionIndex].matchUniqueId
+              _this.getEditAssumption(id)
+              return
+            }
+            if (_this.confirmFlag) { // 修改赔率出票完成enter
+              _this.confirmSumbit()
+              return
+            }
+            if (_this.limitSaleData.limitSaleFlag) { // 修限售完成enter
+              _this.confirmLimitSale()
+              return
+            }
+            if (_this.showOutPopover) { // 详情弹框标志
+              if (_this.printVisible) { // 是否已打印enter
+                _this.printQuery(e)
+                _this.printVisible = false
               } else {
-                _this.submitRealTicket()
+                if (_this.submitFlag) { // 限售和出票提交enter
+                  _this.limitSale(_this.orderInfo.ticketInfoNumber)
+                } else {
+                  _this.submitRealTicket()
+                }
               }
             }
           }
-          // _this.$store.commit('setkeyboardCode', 0)
           break
         case 111:
           _this.$store.commit('setkeyboardCode', 111)
@@ -593,7 +596,8 @@ export default {
           break
         case 107:
           _this.$store.commit('setkeyboardCode', 107)
-          break
+          return false
+          break // eslint-disable-line
         case 109:
           _this.$store.commit('setkeyboardCode', 109)
           break
@@ -1102,6 +1106,7 @@ export default {
               //  获取图片
               _this.imgStr = latech.ScannerGetOriginImage(size) // eslint-disable-line
               _this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
+              // console.log(1, _this.realTicketNumber)
               //  退票
               latech.ScannerRollBackFromJS() // eslint-disable-line
               _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr

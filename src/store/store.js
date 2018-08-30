@@ -11,7 +11,8 @@ const state = {
     queryOrder: false,
     quitSystem: false
   },
-  keyboardCode: ''
+  keyboardCode: '',
+  managerFlag: false
 }
 
 const mutations = {
@@ -28,6 +29,9 @@ const mutations = {
   },
   setkeyboardCode (state, param) {
     state.keyboardCode = param
+  },
+  setManagerFlag (state, param) {
+    state.managerFlag = param
   }
 }
 
