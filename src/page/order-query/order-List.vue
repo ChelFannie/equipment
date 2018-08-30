@@ -65,11 +65,11 @@
           <el-col :span="12">系统票号：<div class="grid-content">{{orderInfo.ticketInfoNumber}}</div></el-col>
         </el-row>
         <el-row class="tip" :gutter="20">
-          <el-col :span="7">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=100000?`${orderInfo.maxMoney/100000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
           <el-col :span="5">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
           <el-col :span="4">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
-          <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
           <el-col :span="3">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+          <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
+          <el-col :span="7">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=100000?`${orderInfo.maxMoney/100000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
         </el-row>
       </div>
       <div class="contentBox">

@@ -49,9 +49,9 @@
         <el-row class="tip" :gutter="20">
           <el-col :span="5">彩种：<div class="grid-content">{{orderInfo.lotterykinds}}</div></el-col>
           <el-col :span="4">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
-          <el-col :span="4">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
+          <el-col :span="3">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
           <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="6">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=100000?`${orderInfo.maxMoney/100000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
+          <el-col :span="7">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=100000?`${orderInfo.maxMoney/100000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
         </el-row>
       </div>
       <div class="contentBox">
@@ -426,6 +426,8 @@ export default {
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
             orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
             orderInfo.amount = (orderInfo.amount / 100).toFixed(2)
+            orderInfo.uploadTime = orderInfo.uploadTime ? orderInfo.uploadTime : '暂无'
+            orderInfo.lastPrintDate = orderInfo.lastPrintDate ? orderInfo.lastPrintDate : '暂无'
             if (orderInfo.betType === 'single') {
               orderInfo.betTypeWord = '单关'
             } else if (Object.prototype.toString.call(orderInfo.betType) === '[object String]') {

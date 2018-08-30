@@ -292,8 +292,10 @@ export default {
       })
     },
     createDate (val) {
-      this.form.beginUploadTime = val[0]
-      this.form.endUploadTime = val[1]
+      if (val && val.length) {
+        this.form.beginUploadTime = val[0]
+        this.form.endUploadTime = val[1]
+      }
     }
   },
   created () {
@@ -527,6 +529,8 @@ export default {
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
             orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
             orderInfo.amount = (orderInfo.amount / 100).toFixed(2)
+            orderInfo.uploadTime = orderInfo.uploadTime ? orderInfo.uploadTime : '暂无'
+            orderInfo.lastPrintDate = orderInfo.lastPrintDate ? orderInfo.lastPrintDate : '暂无'
             if (orderInfo.betType === 'single') {
               orderInfo.betTypeWord = '单关'
             } else if (Object.prototype.toString.call(orderInfo.betType) === '[object String]') {

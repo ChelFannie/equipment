@@ -7,7 +7,8 @@
             <el-button type="primary" @click="upDate">确定</el-button>
         </div>
     </div>
-    <div class="imgBox" :ticketInfoNumber="ticketInfoNumber">
+    <div class="imgBox">
+      <p class="ticketnum" v-show="!noticket">订单号：{{ticketInfoNumber}}</p>
       <img class="img" :src="imgStr" alt="">
       <p class="noticket" v-show="noticket">当前无可兑的票！</p>
     </div>
@@ -133,6 +134,9 @@ export default {
   }
   .imgBox{
     text-align: center;
+    .ticketnum{
+      font-size: 20px;
+    }
     .img{
       display: inline-block;
       width: 600px;
