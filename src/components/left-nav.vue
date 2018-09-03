@@ -49,7 +49,7 @@
                 <span slot="title" class="icon-name">查询</span>
               </span>
             </el-menu-item>
-            <el-menu-item
+            <!-- <el-menu-item
               :disabled="$store.state.menuDisabled.queryOrder"
               index="/order-query/prize-order"
               class="flex-item">
@@ -57,7 +57,7 @@
                 <i class="icon iconfont icon-accountbook"></i>
                 <span slot="title" class="icon-name">兑奖</span>
               </span>
-            </el-menu-item>
+            </el-menu-item> -->
             <el-menu-item
               index=""
               class="flex-item bigger"
@@ -165,7 +165,7 @@ export default {
               this.$refs.inputCode.focus()
             }
           } else {
-            this.$refs.prizeOrder.click()
+            // this.$refs.prizeOrder.click()
           }
           break
         case 109:
@@ -214,7 +214,7 @@ export default {
               return false
             }
           } else {
-            _this.$refs.prizeOrder.click()
+            // _this.$refs.prizeOrder.click()
           }
           break
         case 109:

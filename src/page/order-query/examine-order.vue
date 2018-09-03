@@ -30,6 +30,7 @@
       </el-table-column>
     </el-table>
 
+    <!-- 票详情页 -->
     <el-dialog
       :visible.sync="showOutPopover"
       width="80%"
@@ -51,7 +52,7 @@
           <el-col :span="4">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
           <el-col :span="3">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
           <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="7">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=10000?`${orderInfo.maxMoney/10000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
+          <el-col :span="7">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
         </el-row>
       </div>
       <div class="contentBox">
@@ -82,6 +83,7 @@
       </div>
     </el-dialog>
 
+    <!-- 图片放大 -->
     <div class="Mask" v-if="Mask" @click="maskClick"></div>
     <div class="enlarge" v-if="enlargeImg">
       <img :src="imgStr" alt="" @click="narrow">
@@ -414,6 +416,7 @@ export default {
                   maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
                 }
               }
+              maxMoney = ChangeBetContext.getQianfenWei(maxMoney)
             } catch (error) {
               console.log(error)
             }

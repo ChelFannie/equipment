@@ -90,6 +90,7 @@
       </div>
     </div>
 
+    <!-- 查询列表 -->
     <el-table
       :height="winHeight"
       ref="multipleTable"
@@ -110,6 +111,7 @@
       </el-table-column>
     </el-table>
 
+    <!-- 查询列表 -->
     <el-pagination
       v-if="tableData.length"
       class="page"
@@ -123,6 +125,7 @@
       :total="totalCount">
     </el-pagination>
 
+    <!-- 票详情页弹出框 -->
     <el-dialog
       :visible.sync="showOutPopover"
       width="80%"
@@ -144,7 +147,7 @@
           <el-col :span="5">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
           <el-col :span="4">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
           <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="5">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=10000?`${orderInfo.maxMoney/10000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
+          <el-col :span="5">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney || 0.00}}元</div></el-col>
         </el-row>
       </div>
       <div class="contentBox">
@@ -175,6 +178,7 @@
       </div>
     </el-dialog>
 
+    <!-- 图片放大功能 -->
     <div class="Mask" v-if="Mask" @click="maskClick"></div>
     <div class="enlarge" v-if="enlargeImg">
       <img :src="imgStr" alt="" @click="narrow">
@@ -290,6 +294,7 @@ export default {
     }
   },
   watch: {
+    // 监控扫码枪扫码获取的落地票号
     scanTicket (val) {
       console.log(val, '落地票号')
       this.$nextTick(() => {
@@ -379,6 +384,7 @@ export default {
         .then(res => {
           if (res.code === '00000') {
             this.loading = false
+            // 表格数据
             res.data.orderList.result.map(val => {
               val.lotteryTypeWord = ChangeBetContext.lotteryType(val.lotteryType)
               val.changeSettleStatus = val.settleStatus
@@ -420,6 +426,7 @@ export default {
       this.searchFlag = true
       this.getData()
     },
+    // 清空列表
     empty () {
       Object.keys(this.form).map(key => {
         this.form[key] = ''
@@ -434,6 +441,7 @@ export default {
       this.orderInfo = {}
       this.hoverData = []
       this.ticketInfoNumber = ''
+      // 打开对应的订单形心
       this.tableData.map(item => {
         if (item.serialNumber === rows.serialNumber) {
           this.$set(item, 'flag', true)
@@ -515,6 +523,7 @@ export default {
                   maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
                 }
               }
+              maxMoney = ChangeBetContext.getQianfenWei(maxMoney)
             } catch (error) {
               console.log(error)
             }
@@ -548,6 +557,7 @@ export default {
               val.assumption = !val.score ? '—' : val.score
               val.assumptionFlag = false
               val.orderNum = ChangeBetContext.changeMatchUniqueId(val.matchUniqueId)
+              // 转换票详情页列表数据
               val.betItemsObj.map(val1 => {
                 for (let oddsKey in val1) {
                   let obj = {}

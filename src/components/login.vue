@@ -34,6 +34,7 @@
               <el-button type="primary" size="medium" class="btn" @click="login">登录</el-button>
             </div>
           </div>
+          <button class="mimi" @click="exit"></button>
       </div>
   </div>
 </template>
@@ -211,6 +212,13 @@ export default {
           }
         })
       }
+    },
+    exit () {
+      try {
+        latech.exitApp() // eslint-disable-line
+      } catch (error) {
+        console.log('退出错误', error)
+      }
     }
   },
   destroyed () {
@@ -355,6 +363,17 @@ export default {
                 font-size: 22px;
               }
             }
+        }
+        .mimi{
+          position: absolute;
+          left: 10px;
+          top: 120px;
+          width: 10px;
+          height: 10px;
+          background: #aa30ff;
+          outline: none;
+          border: 1px solid #9f3eff;
+          border-radius: 5px;
         }
     }
 }

@@ -410,6 +410,10 @@ class changeBetContext {
     return orderNum
   }
 
+  /**
+   * 转换算奖
+   * @param {Number} val - 算奖状态码awardFlag
+   */
   static awardFlag (val) {
     let awardFlag = ''
     switch (val) {
@@ -571,13 +575,6 @@ class changeBetContext {
         res = +num.toFixed(2)
       } else {
         res = Number(twoFloatNum) % 2 === 0 ? Math.floor(num * 100) / 100 : Math.floor(num * 100 + 1) / 100
-        // if (Number(twoFloatNum) % 2 === 0) {
-        //   console.log(2)
-        //   res = Math.floor(num * 100) / 100
-        // } else {
-        //   console.log(3)
-        //   res = Math.floor(num * 100 + 1) / 100
-        // }
       }
     } else {
       res = num
@@ -593,11 +590,7 @@ class changeBetContext {
     let floatMaxMoney = 0
     let a = maxMoney.toString()
     if (a.indexOf('.') > -1 && a.split('.').length) {
-      if (a.split('.')[1].length === 1) {
-        floatMaxMoney = `${maxMoney}0`
-      } else {
-        floatMaxMoney = maxMoney
-      }
+      floatMaxMoney = a.split('.')[1].length === 1 ? `${maxMoney}0` : maxMoney
     } else if (a.indexOf('.') === -1) {
       floatMaxMoney = `${maxMoney}.00`
     }
@@ -619,6 +612,33 @@ class changeBetContext {
       }
     }
     return strArr.join('')
+  }
+
+  /**
+   * 将数字转为千分位的格式
+   * @param {Number} n
+   */
+  static getQianfenWei (n) {
+    let fen = []
+    let arr = []
+    if (n.toString().indexOf('.') > -1) {
+      fen = n.toString().split('.')[1]
+      arr = n.toString().split('.')[0].toString().split('')
+    } else {
+      fen = ['00']
+      arr = n.toString()
+    }
+    let result = []
+    let cs = 0
+    for (let i = arr.length - 1; i >= 0; i--) {
+      cs++
+      result.unshift(arr[i])
+      if (!(cs % 3) && i !== 0) {
+        result.unshift(',')
+      }
+    }
+    result = result.join('') + '.' + fen
+    return result
   }
 }
 

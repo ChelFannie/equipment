@@ -24,6 +24,7 @@
       </el-row>
     </div>
 
+    <!-- 订单列表 -->
     <el-table
       :height="winHeight"
       style="width: 100%"
@@ -51,6 +52,7 @@
       </el-table-column>
     </el-table>
 
+    <!-- 票详情弹出框 -->
     <el-dialog
       :visible.sync="showOutPopover"
       width="80%"
@@ -69,52 +71,77 @@
           <el-col :span="4">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
           <el-col :span="3">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
           <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="7">预计奖金：<div class="grid-content red">{{(orderInfo.maxMoney>=10000?`${orderInfo.maxMoney/10000}万`:orderInfo.maxMoney) || 0.00}}元</div></el-col>
+          <el-col :span="7">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney|| 0.00}}元</div></el-col>
         </el-row>
       </div>
       <div class="contentBox">
         <el-table :data="hoverData" border style="width: 70%">
-          <el-table-column
-            prop="orderNum"
-            label="编号"
-            align="center">
-          </el-table-column>
-          <el-table-column
-            prop="host"
-            label="主队"
-            align="center">
-          </el-table-column>
-          <el-table-column
-            prop="guest"
-            label="客队"
-            align="center">
-          </el-table-column>
+          <el-table-column prop="orderNum" label="编号" align="center"></el-table-column>
+          <el-table-column prop="host" label="主队" align="center"></el-table-column>
+          <el-table-column prop="guest" label="客队" align="center"></el-table-column>
           <el-table-column
             prop="assumption"
             label="预设"
             align="center"
             v-if="orderInfo.assumptionShow">
             <template slot-scope="scopeAssumption">
-              <el-popover ref="innerPopover" popper-class="edit-popover fixed-popover" placement="bottom" width="200" v-model="scopeAssumption.row.assumptionFlag">
+              <el-popover
+                popper-class="edit-popover fixed-popover"
+                placement="bottom"
+                width="200"
+                v-model="scopeAssumption.row.assumptionFlag">
                 <p>系统预设：<span>{{scopeAssumption.row.assumption}}</span></p>
                 <p>正确预设：</p>
-                <input class="editInputs" type="text" v-model="editAssumption" ref="focusAssumptionInput" placeholder="请输入内容"/>
-                <div>
-                  <el-button type="primary" size="mini" @click="getEditAssumption(scopeAssumption.row.matchUniqueId)">修改</el-button>
+                <input
+                  class="edictInput"
+                  type="text"
+                  v-model="editAssumption"
+                  ref="focusAssumptionInput"
+                  placeholder="请输入内容"
+                  autofocus="autofocus"
+                  v-if="scopeAssumption.row.assumptionFlag"/>
+                <div class="edictBtn">
+                  <el-button
+                    type="primary"
+                    size="mini"
+                    @click="getEditAssumption(scopeAssumption.row.matchUniqueId)">修改</el-button>
                 </div>
-                <el-button slot="reference" type="text" size="small" :disabled="!scopeAssumption.row.score || printFlag!==1" @click="showAssumptiondsPopover(scopeAssumption.row.matchUniqueId)">[{{scopeAssumption.row.assumption}}]</el-button>
+                <el-button
+                  slot="reference"
+                  type="text"
+                  size="small"
+                  :disabled="!scopeAssumption.row.score || printFlag!==1"
+                  @click="showAssumptiondsPopover(scopeAssumption.row.matchUniqueId)">[{{scopeAssumption.row.assumption}}]</el-button>
               </el-popover>
             </template>
           </el-table-column>
           <el-table-column label="投注项" width="300" align="center">
             <template slot-scope="scope">
               <span>{{scope.row.subPlayTypeWord}}</span>
-              <el-popover ref="innerPopover" popper-class="edit-popover fixed-popover" v-for="(item1, index1) in scope.row.betItemsObj" :key="index1" trigger="click" placement="bottom" width="200" v-model="item1.flag">
+              <el-popover
+                popper-class="edit-popover fixed-popover"
+                v-for="(item1, index1) in scope.row.betItemsObj"
+                :key="index1"
+                trigger="click"
+                placement="bottom"
+                width="200"
+                v-model="item1.flag">
                 <p>系统赔率：<span>{{item1.odds}}</span></p>
                 <p>正确赔率：</p>
-                <input class="edictInput" autofocus="autofocus" type="text" v-model="editOdds" ref="focusOddsInput" placeholder="请输入正确赔率"/>
+                <input
+                  class="edictInput"
+                  autofocus="autofocus"
+                  type="text"
+                  v-model="editOdds"
+                  ref="focusOddsInput"
+                  placeholder="请输入正确赔率"/>
                 <div class="edictBtn">
-                  <button :ref="scope.row.matchUniqueId" :data-idx="index1" :data-row="JSON.stringify(scope.row)" :data-odd="item1.odds" @click="getEditOdds(scope.row, index1, item1.odds)">修改</button>
+                  <button
+                    :ref="scope.row.matchUniqueId"
+                    :data-idx="index1"
+                    :data-row="JSON.stringify(scope.row)"
+                    :data-odd="item1.odds"
+                    @click="getEditOdds(scope.row, index1, item1.odds)">修改</button>
                 </div>
                 <el-button
                   slot="reference"
@@ -143,6 +170,7 @@
       </div>
     </el-dialog>
 
+    <!-- 赔率异常确认框 -->
     <el-dialog
       title="是否确认票信息的内容？"
       :visible.sync="confirmFlag"
@@ -166,11 +194,13 @@
       </span>
     </el-dialog>
 
+    <!-- 图片放大 -->
     <div class="Mask" v-if="Mask" @click="maskClick"></div>
     <div class="enlarge" v-if="enlargeImg">
       <img :src="imgStr" alt="" @click="narrow">
     </div>
 
+    <!-- 限售确认框 -->
     <el-dialog
       title="提示"
       :visible.sync="limitSaleData.limitSaleFlag"
@@ -192,6 +222,7 @@
       </span>
     </el-dialog>
 
+    <!-- 空间不足提交框 -->
     <el-dialog
       title="空间不足提示"
       :visible.sync="spaceVisible"
@@ -204,14 +235,17 @@
       </span>
     </el-dialog>
 
+    <!-- 文件导出提示框 -->
     <el-dialog :title="fileTitle" :visible.sync="fileVisible" width="585px" class="file">
       <export-file @fileCancel="fileCancel" @getFileName="getFileName"></export-file>
     </el-dialog>
 
+    <!-- 订单打印提示框 -->
     <el-dialog
       title="提示"
       :visible.sync="printVisible"
       :show-close="false"
+      id="printDialog"
       width="30%">
       <span>此订单已打印投注单, 是否继续打印?</span>
       <span slot="footer" class="dialog-footer">
@@ -336,6 +370,7 @@ export default {
     }
   },
   watch: {
+    // 监控路由的变化
     '$store.state.activeIndex' (val) {
       this.getSpaceSize()
       if (this.spaceFlag) {
@@ -351,6 +386,7 @@ export default {
         localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
         return
       }
+      // 如果路由不是'/'，是从其他页面调转的，先判定是否已经存在票
       if (val === '/order-query/order-List' && !this.exitNoOutTicketFlag) {
         this.takeOrderToPrint()
       }
@@ -365,7 +401,9 @@ export default {
         }
       }
     },
+    // 监控倒计时
     reaminingTime (val) {
+      // 定时器为零清除信息，不为0就开启定时器
       if (val === 0) {
         this.printList = []
         this.printVisible = false
@@ -413,6 +451,7 @@ export default {
         this.openTimerId = true
       }
     },
+    // 确定是否开启定时器
     openTimerId (val) {
       if (this.reaminingTime > 0) {
         this.timerId = setInterval(() => {
@@ -423,6 +462,7 @@ export default {
         }, 1000)
       }
     },
+    // 监控是否出票完成
     tableData (val) {
       if (this.tableDataLen !== val.length && val.length === 0 && this.reaminingTime >= 0) {
         this.$nextTick(() => {
@@ -430,7 +470,7 @@ export default {
           this.openTimerId = false
           clearInterval(this.timerId)
         })
-        console.log('清除')
+        // console.log('清除')
         // 清除保存的图片信息
         localStorage.removeItem('keepTicketInfo')
       }
@@ -451,8 +491,9 @@ export default {
       // 默认路由跳转到当前页面，初始化
       this.getData()
     }
-    // 倒计时定时器
+    // 获取倒计时定时器
     this.spans = document.getElementsByClassName('timer')[0].children
+    // 点击票详情弹出框的任何位置，让修改赔率弹出框和修改预设值弹框都关闭
     document.getElementById('outPopover').addEventListener('click', (event) => {
       let assumptionFlag = false
       this.hoverData.map(item => {
@@ -484,7 +525,9 @@ export default {
     document.getElementById('limitSaleDialog').addEventListener('click', (event) => {
       event.stopPropagation()
     })
-    // console.log('获取页面')
+    document.getElementById('printDialog').addEventListener('click', (event) => {
+      event.stopPropagation()
+    })
     // 注册键盘事件
     const _this = this
     document.onkeydown = function (e) {
@@ -520,11 +563,12 @@ export default {
         case 105:
           _this.showOutPopover || (_this.tableData.length > 8 && _this.getOutPopover(_this.tableData[8]))
           break
-        case 8:
+        case 8: // 返回
           if (_this.keyOddFalg || _this.keyAssumptionFalg) { // 关闭修改赔率弹框
             _this.editOdds = _this.editOdds.substr(0, _this.editOdds.length)
+            _this.editAssumption = _this.editAssumption.substr(0, _this.editAssumption.length)
             // 关闭修改预设值和赔率弹出框
-            if (!_this.editOdds.length) {
+            if (!_this.editOdds.length && !_this.editAssumption.length) {
               _this.hoverData.map(item => {
                 _this.$set(item, 'assumptionFlag', false)
                 item.betItemsObj.map(item1 => {
@@ -534,15 +578,9 @@ export default {
               _this.keyOddFalg = false
               _this.keyAssumptionFalg = false
             }
-            return
-          }
-          if (!_this.confirmFlag && !_this.limitSaleData.limitSaleFlag) { // 关闭限售确认框和提交确认框
+          } else if (!_this.confirmFlag && !_this.limitSaleData.limitSaleFlag) { // 关闭限售确认框和提交确认框
             if (_this.showOutPopover) {
-              if (_this.printVisible) {
-                _this.printVisible = false
-              } else {
-                _this.showOutPopover = false
-              }
+              _this.printVisible ? (_this.printVisible = false) : (_this.showOutPopover = false)
             }
           } else {
             _this.confirmFlag = false
@@ -550,7 +588,7 @@ export default {
           }
           _this.$store.commit('setkeyboardCode', 8)
           break
-        case 0:
+        case 0: // enter
           if (_this.$store.state.managerFlag) {
             _this.$store.commit('setkeyboardCode', 0)
           } else {
@@ -559,31 +597,19 @@ export default {
               let idx = _this.$refs[obj.matchUniqueId][_this.oddIndexNum].dataset.idx
               let odd = _this.$refs[obj.matchUniqueId][_this.oddIndexNum].dataset.odd
               _this.getEditOdds(obj, parseInt(idx), odd)
-              return
-            }
-            if (_this.keyAssumptionFalg) { // 修改预设完成enter
+            } else if (_this.keyAssumptionFalg) { // 修改预设完成enter
               let id = _this.hoverData[_this.AssumptionIndex].matchUniqueId
               _this.getEditAssumption(id)
-              return
-            }
-            if (_this.confirmFlag) { // 修改赔率出票完成enter
+            } else if (_this.confirmFlag) { // 修改赔率出票完成enter
               _this.confirmSumbit()
-              return
-            }
-            if (_this.limitSaleData.limitSaleFlag) { // 修限售完成enter
+            } else if (_this.limitSaleData.limitSaleFlag) { // 修限售完成enter
               _this.confirmLimitSale()
-              return
-            }
-            if (_this.showOutPopover) { // 详情弹框标志
+            } else if (_this.showOutPopover) { // 详情弹框标志
               if (_this.printVisible) { // 是否已打印enter
                 _this.printQuery(e)
                 _this.printVisible = false
-              } else {
-                if (_this.submitFlag) { // 限售和出票提交enter
-                  _this.limitSale(_this.orderInfo.ticketInfoNumber)
-                } else {
-                  _this.submitRealTicket()
-                }
+              } else { // 限售和出票提交enter
+                _this.submitFlag ? _this.limitSale(_this.orderInfo.ticketInfoNumber) : _this.submitRealTicket()
               }
             }
           }
@@ -605,12 +631,22 @@ export default {
           break
       }
     }
+    try {
+      // 读票机初始化
+      if (latech.ScannerInit() !== 0) { // eslint-disable-line
+        this.getTicketError()
+      }
+    } catch (error) {
+      console.log('读票机初始化错误', error)
+    }
   },
   methods: {
+    // 确定是否已经存在未出票
     takeOrderToPrint () {
       req('takeOrderToPrint')
         .then(res => {
           if (res.code === '00000') {
+            // 抢票成功，刷新列表
             this.getData()
           } else if (res.code === '20039') {
             // 已经存在未出票单据
@@ -637,6 +673,9 @@ export default {
     },
     // 获取订单列表
     getData () {
+      if (localStorage.getItem('keepTicketInfo')) {
+        localStorage.removeItem('keepTicketInfo')
+      }
       let memberParams = {
         page: this.pageIndex,
         pageSize: this.pageSize,
@@ -647,6 +686,7 @@ export default {
         .then(res => {
           if (res.code === '00000') {
             this.loading = false
+            // 销售与订单信息
             this.statisticData = res.data.statistic
             if (res.data.orderList.result.length) {
               this.exitNoOutTicketFlag = true
@@ -663,6 +703,7 @@ export default {
               if (res.data.reaminingTime > 0) {
                 this.reaminingTime = Math.ceil((res.data.reaminingTime + 1000) / 1000)
               }
+              // 列表数据
               res.data.orderList.result.map(val => {
                 val.lotteryType = ChangeBetContext.lotteryType(val.lotteryType)
                 val.printFlagWord = ChangeBetContext.printFlag(val.printFlag)
@@ -756,6 +797,7 @@ export default {
       this.ticketInfoNumber = ''
       // 出票状态
       this.printFlag = rows.printFlag
+      // 弹出当前点击的票详情框
       this.tableData.map(item => {
         if (item.serialNumber === rows.serialNumber) {
           this.$set(item, 'flag', true)
@@ -778,6 +820,7 @@ export default {
               })
               return
             }
+            // 订单中必须有票才能打开票详情弹出框
             this.getPopoverData(rows)
           } else {
             this.$message({
@@ -852,6 +895,7 @@ export default {
                   maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
                 }
               }
+              maxMoney = ChangeBetContext.getQianfenWei(maxMoney)
             } catch (error) {
               console.log(error, '过关方式与赛事场次对不上')
             }
@@ -859,6 +903,7 @@ export default {
             this.confirmDisabled = false
             // 获取信息
             let orderInfo = res.data.orderInfo
+            // let orderInfo = JSON.parse(localStorage.getItem('calcData')).orderInfo
             orderInfo.maxMoney = maxMoney
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
             orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
@@ -906,10 +951,12 @@ export default {
             }
             // 投注项
             let betContextList = res.data.betContextList
+            // let betContextList = JSON.parse(localStorage.getItem('calcData')).betContextList
             betContextList.map(val => {
               val.assumption = !val.score ? '—' : val.score
               val.assumptionFlag = false
               val.orderNum = ChangeBetContext.changeMatchUniqueId(val.matchUniqueId)
+              // 转换票详情页列表数据
               val.betItemsObj.map(val1 => {
                 for (let oddsKey in val1) {
                   let obj = {}
@@ -949,12 +996,23 @@ export default {
     getEditAssumption (matchUniqueId) {
       // 没有修改内容，就关闭弹框，如果修改了，则替换原数据
       if (this.editAssumption) {
+        let reg = /^[1-9-+]+([.]{1}[0-9]+){0,1}$/
+        let assumptionTestFlag = reg.test(this.editAssumption)
+        if (!assumptionTestFlag) {
+          this.$message({
+            type: 'error',
+            message: '请输入正确的赔率！'
+          })
+          this.editAssumption = ''
+          return
+        }
         // 如果获取用户输入的预设值数据没有'+',需要添加
         if (this.editAssumption > 0) {
           this.editAssumption = this.editAssumption.indexOf('+') > -1 ? this.editAssumption : `+${this.editAssumption}`
         }
         this.hoverData.map(item => {
           if (item.matchUniqueId === matchUniqueId) {
+            // 将对应的数据的预设值修改
             this.$set(item, 'assumption', this.editAssumption)
             this.$set(item, 'score', this.editAssumption)
             this.$set(item, 'assumptionFlag', false)
@@ -969,8 +1027,19 @@ export default {
     // 修改赔率
     getEditOdds (rows, betItemsObjIndex, editOdds) {
       if (this.editOdds) {
+        let reg = /^[1-9]+([.]{1}[0-9]+){0,1}$/
+        let oddsTestFlag = reg.test(this.editOdds)
+        if (!oddsTestFlag) {
+          this.$message({
+            type: 'error',
+            message: '请输入正确的赔率！'
+          })
+          this.editOdds = ''
+          return
+        }
         // 给修改的赔率自动补零
         this.editOdds = ChangeBetContext.returnFloat(this.editOdds)
+        // 修改对应的赔率值
         rows.betItemsObj.map((val, index) => {
           if (betItemsObjIndex === index) {
             Object.keys(val).map((val1, index1) => {
@@ -997,18 +1066,19 @@ export default {
               arr.push(item1[item.matchUniqueId])
             })
             obj[item.matchUniqueId] = arr
-            if (item.score) {
-              if (this.orderInfo.subPlayType === '64') {
-                obj['totalScore'] = item.score
-              }
-              if (this.orderInfo.subPlayType === '61') {
-                obj['score'] = item.score
-              }
+            // if (item.score) {
+            if (this.orderInfo.subPlayType === '64') {
+              obj['totalScore'] = item.score
             }
+            if (this.orderInfo.subPlayType === '61') {
+              obj['score'] = item.score
+            }
+            // }
             betContextOdds.push(obj)
           })
           let maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(betContextOdds, orderInfo.multiple)))
           maxMoney = maxMoney >= 100000 ? 100000 : maxMoney
+          maxMoney = ChangeBetContext.getQianfenWei(maxMoney)
           this.$set(this.orderInfo, 'maxMoney', maxMoney)
         } else {
           let calcData = {
@@ -1017,7 +1087,6 @@ export default {
           }
           let editOddsFlag = true
           let dataInfo = ChangeBetContext.getPassMaxMoney(calcData, editOddsFlag)
-          // let maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.evenRound(ChangeBetContext.evenRound(dataInfo.price, 2) * calcData.orderInfo.multiple, 2))
           let maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
           // 过关场次
           let tablelen = calcData.betContextList.length
@@ -1028,6 +1097,7 @@ export default {
           } else if (tablelen >= 6 && tablelen <= 8) {
             maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
           }
+          maxMoney = ChangeBetContext.getQianfenWei(maxMoney)
           this.$set(this.orderInfo, 'maxMoney', maxMoney)
         }
       } else {
@@ -1039,6 +1109,7 @@ export default {
       this.keyAssumptionFalg = false
       this.oddIndex = -1
     },
+    // 打开修改赔率的弹出框
     showOddsPopover (rows, odds, editIndex) {
       this.editOdds = ''
       let len = 0
@@ -1046,6 +1117,7 @@ export default {
         len += item.betItemsObj.length
         item.betItemsObj.map((item1, index1) => {
           this.$set(item1, 'flag', false)
+          // 展开对应赔率修改框
           if (item.matchUniqueId === rows.matchUniqueId && (index1 === editIndex) && (item1.odds === odds)) {
             this.$set(item1, 'flag', true)
             this.keyOddFalg = true
@@ -1054,15 +1126,16 @@ export default {
           }
         })
       })
+      // 赔率输入框获取焦点
       for (let i = 0; i < len; i++) {
         this.$nextTick(() => {
           this.$refs.focusOddsInput[i].focus()
         })
       }
     },
+    // 打开修改预设值的弹出框
     showAssumptiondsPopover (matchUniqueId) {
       this.editAssumption = ''
-      let len = this.hoverData.length
       this.hoverData.map((item, index) => {
         this.$set(item, 'assumptionFlag', false)
         if (item.matchUniqueId === matchUniqueId) {
@@ -1071,11 +1144,9 @@ export default {
           this.AssumptionIndex = index
         }
       })
-      for (let i = 0; i < len; i++) {
-        this.$nextTick(() => {
-          this.$refs.focusAssumptionInput[i].focus()
-        })
-      }
+      this.$nextTick(() => {
+        this.$refs.focusAssumptionInput.focus()
+      })
     },
     // 打印机
     printTicket (obj, orderNum) {
@@ -1092,58 +1163,58 @@ export default {
     },
     readTicket (ORnumber) {
       // 读票机初始化
-      if (latech.ScannerInit() === 0) { // eslint-disable-line
-        // 读票机开始
-        if (latech.ScannerStart() === true) { // eslint-disable-line
-          const _this = this
-          _this.timer = setInterval(function () {
-            let flag = latech.ScanIsComplete() // eslint-disable-line
-            // console.log(flag)
-            if (flag === true) { // 判断读票机是否读完票
-              // clearInterval(_this.timer)
-              // 获取图片大小
-              let size = latech.ScannerGetOriginImageSize() // eslint-disable-line
-              //  获取图片
-              _this.imgStr = latech.ScannerGetOriginImage(size) // eslint-disable-line
-              _this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
-              // console.log(1, _this.realTicketNumber)
-              //  退票
-              latech.ScannerRollBackFromJS() // eslint-disable-line
-              _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
-              let ORreg = /^OR\d{25}$/
-              let QRreg = /^\d{20}\s\d{8}$/
-              if (ORreg.test(_this.realTicketNumber)) {
-                if (ORnumber === _this.realTicketNumber) {
-                  _this.submitFlag = true
-                } else {
-                  _this.$message({
-                    type: 'error',
-                    message: '请投入与订单号一致的投资单'
-                  })
-                }
-              } else if (QRreg.test(_this.realTicketNumber)) { // 读票成功
-                _this.submitFlag = false
-                let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
-                if (_this.ticketInfoSerialNumber === keepTicketInfo.serialNumber) {
-                  keepTicketInfo.qrInfo = _this.realTicketNumber
-                  keepTicketInfo.imgStr = _this.imgStr
-                  localStorage.setItem('keepTicketInfo', JSON.stringify(keepTicketInfo))
-                }
+      // if (latech.ScannerInit() === 0) { // eslint-disable-line
+      // 读票机开始
+      if (latech.ScannerStart() === true) { // eslint-disable-line
+        const _this = this
+        _this.timer = setInterval(function () {
+          let flag = latech.ScanIsComplete() // eslint-disable-line
+          // console.log(flag)
+          if (flag === true) { // 判断读票机是否读完票
+            // clearInterval(_this.timer)
+            // 获取图片大小
+            let size = latech.ScannerGetOriginImageSize() // eslint-disable-line
+            //  获取图片
+            _this.imgStr = latech.ScannerGetOriginImage(size) // eslint-disable-line
+            _this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
+            // console.log(1, _this.realTicketNumber)
+            //  退票
+            latech.ScannerRollBackFromJS() // eslint-disable-line
+            _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
+            let ORreg = /^OR\d{25}$/
+            let QRreg = /^\d{20}\s\d{8}$/
+            if (ORreg.test(_this.realTicketNumber)) {
+              if (ORnumber === _this.realTicketNumber) {
+                _this.submitFlag = true
               } else {
                 _this.$message({
                   type: 'error',
-                  message: '请正常读票！'
+                  message: '请投入与订单号一致的投资单'
                 })
               }
-              console.log('QR码:' + _this.realTicketNumber)
+            } else if (QRreg.test(_this.realTicketNumber)) { // 读票成功
+              _this.submitFlag = false
+              let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
+              if (_this.ticketInfoSerialNumber === keepTicketInfo.serialNumber) {
+                keepTicketInfo.qrInfo = _this.realTicketNumber
+                keepTicketInfo.imgStr = _this.imgStr
+                localStorage.setItem('keepTicketInfo', JSON.stringify(keepTicketInfo))
+              }
+            } else {
+              _this.$message({
+                type: 'error',
+                message: '请正常读票！'
+              })
             }
-          }, 200)
-        } else {
-          this.getTicketError()
-        }
+            console.log('QR码:' + _this.realTicketNumber)
+          }
+        }, 200)
       } else {
         this.getTicketError()
       }
+      // } else {
+      //   this.getTicketError()
+      // }
     },
     // 获取读票机错误信息
     getTicketError () {
@@ -1229,16 +1300,16 @@ export default {
             arr.push(item1[item.matchUniqueId])
           })
           objMix[item.subPlayType] = arr
-          if (item.score) {
-            if (item.subPlayType === '64') {
-              // objMix['totalScore'] = item.score
-              obj['totalScore'] = item.score
-            }
-            if (item.subPlayType === '61') {
-              // objMix['score'] = item.score
-              obj['score'] = item.score
-            }
+          // if (item.score) {
+          if (item.subPlayType === '64') { // 篮球大小分
+            // objMix['totalScore'] = item.score
+            obj['totalScore'] = item.score
           }
+          if (item.subPlayType === '61') { // 篮球让分胜负
+            // objMix['score'] = item.score
+            obj['score'] = item.score
+          }
+          // }
           obj[item.matchUniqueId] = objMix
         } else {
           let arr = []
@@ -1246,14 +1317,14 @@ export default {
             arr.push(item1[item.matchUniqueId])
           })
           obj[item.matchUniqueId] = arr
-          if (item.score) {
-            if (this.orderInfo.subPlayType === '64') {
-              obj['totalScore'] = item.score
-            }
-            if (this.orderInfo.subPlayType === '61') {
-              obj['score'] = item.score
-            }
+          // if (item.score) {
+          if (this.orderInfo.subPlayType === '64') {
+            obj['totalScore'] = item.score
           }
+          if (this.orderInfo.subPlayType === '61') {
+            obj['score'] = item.score
+          }
+          // }
         }
         this.betContextOdds.push(obj)
       })
@@ -1261,6 +1332,8 @@ export default {
         subPlayType: this.orderInfo.subPlayType,
         betContextOdds: JSON.stringify(this.betContextOdds)
       }
+      // console.log(this.betContextOdds, 444)
+      console.log(JSON.stringify(this.betContextOdds), 444)
       this.validateOdds = ''
       req('validateTicketOdds', params)
         .then(res => {
@@ -1698,6 +1771,18 @@ export default {
       border-radius: 4px;
     }
   }
+  // loading样式
+  .is-fullscreen .el-loading-spinner .el-loading-text {
+    color: #2b2931;
+    font-size: 44px;
+  }
+  .el-loading-mask.is-fullscreen .el-loading-spinner .circular {
+    height: 70px;
+    width: 70px;
+  }
+  .el-loading-spinner .path {
+    stroke: #34393e;
+  }
 }
 .el-table{
   font-size: 20px;
@@ -1706,7 +1791,10 @@ export default {
   font-size: 16px!important;
   padding: 10px 20px!important;
 }
-// .fixed-popover{
-//   top: 100px !important;
-// }
+.fixed-popover{
+  top: 100px !important;
+}
+.el-message{
+  top: 100px;
+}
 </style>

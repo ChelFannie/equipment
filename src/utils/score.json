@@ -1,0 +1,104 @@
+{
+  "code": "00000",
+  "data": {
+    "betContextList": [
+      {
+        "betItemsObj": [
+          {
+            "1": "1.75"
+          }
+        ],
+        "guest": "康涅狄格太阳",
+        "host": "明尼苏达天猫",
+        "lotteryType": "61",
+        "matchUniqueId": "BB201808175301",
+        "score": "-8.5",
+        "subPlayType": "61"
+      },
+      {
+        "betItemsObj": [
+          {
+            "1": "1.75"
+          }
+        ],
+        "guest": "华盛顿神秘人",
+        "host": "洛杉矶火花",
+        "lotteryType": "61",
+        "matchUniqueId": "BB201808175302",
+        "score": "-3.5",
+        "subPlayType": "61"
+      },
+      {
+        "betItemsObj": [
+          {
+            "1": "1.68"
+          }
+        ],
+        "guest": "达拉斯飞马",
+        "host": "拉斯维加斯王牌",
+        "lotteryType": "61",
+        "matchUniqueId": "BB201808175303",
+        "score": "-3.5",
+        "subPlayType": "61"
+      },
+      {
+        "betItemsObj": [
+          {
+            "1": "1.68"
+          }
+        ],
+        "guest": "菲尼克斯水星",
+        "host": "亚特兰大梦想",
+        "lotteryType": "61",
+        "matchUniqueId": "BB201808175304",
+        "score": "-3.5",
+        "subPlayType": "61"
+      },
+      {
+        "betItemsObj": [
+          {
+            "0": "1.68"
+          }
+        ],
+        "guest": "西雅图风暴",
+        "host": "纽约自由",
+        "lotteryType": "61",
+        "matchUniqueId": "BB201808175305",
+        "score": "-15.5",
+        "subPlayType": "61"
+      }
+    ],
+    "orderInfo": {
+      "adCode": "440100",
+      "affix": 0,
+      "amount": 2000,
+      "awardAmount": 0,
+      "awardFlag": 0,
+      "betContext": "[{\"BB201808175301\":[\"1\"]},{\"BB201808175302\":[\"1\"]},{\"BB201808175303\":[\"1\"]},{\"BB201808175304\":[\"1\"]},{\"BB201808175305\":[\"0\"]}]",
+      "betContextOdds": "[{\"BB201808175301\":[{\"1\":\"1.75\"}],\"score\":\"-8.5\"},{\"BB201808175302\":[{\"1\":\"1.75\"}],\"score\":\"-3.5\"},{\"BB201808175303\":[{\"1\":\"1.68\"}],\"score\":\"-3.5\"},{\"BB201808175304\":[{\"1\":\"1.68\"}],\"score\":\"-3.5\"},{\"BB201808175305\":[{\"0\":\"1.68\"}],\"score\":\"-15.5\"}]",
+      "betType": "5x1",
+      "bigLotteryType": 1,
+      "calAwardAmount": 0,
+      "createDate": "2018-08-17 22:07:14",
+      "hasAward": 0,
+      "id": 27115,
+      "lastPrintDate": "2018-08-18 07:00:00",
+      "lotteryType": "61",
+      "memberId": "QXmUVsmB",
+      "multiPeriod": 0,
+      "multiple": 10,
+      "payFlag": 2,
+      "pot": 1,
+      "printFlag": 1,
+      "realTicketNumber": "",
+      "regFrom": 1,
+      "serialNumber": "OR2018081783319324063826247",
+      "storeId": "ST2018062162572374947528705",
+      "storeName": "东圃店铺啊",
+      "subPlayType": "61",
+      "takeTicketsFlag": 0,
+      "ticketInfoNumber": "TK2018081783319324428730696"
+    }
+  },
+  "msg": "订单操作成功"
+}

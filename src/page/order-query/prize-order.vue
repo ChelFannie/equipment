@@ -139,7 +139,7 @@ export default {
     }
     .img{
       display: inline-block;
-      width: 600px;
+      width: 400px;
     }
     .noticket{
       font-size: 28px;
