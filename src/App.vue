@@ -20,6 +20,11 @@ export default {
   mounted () {
     console.log = (function (oriLogFunc) {
       return function () {
+        // [...arguments].map(val => {
+        //   val.stack
+        //     ? localStorage.setItem('aaaaa', JSON.stringify(val.stack))
+        //     : localStorage.setItem('aaaaa', JSON.stringify(val))
+        // })
         oriLogFunc.call(console, ...arguments)
       }
     })(console.log)

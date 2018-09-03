@@ -3,16 +3,16 @@
     <div class="count-order">
         <div>
             <span>兑奖金额(元)：</span>
-            <input v-model="awardAmount" class="amount" type="number" @input="oninput" placeholder="请输入金额">
+            <input v-model="awardAmount" ref="input" autofocus="autofocus" class="amount" type="number" @input="oninput" placeholder="请输入金额">
             <el-button type="primary" @click="upDate">确定</el-button>
         </div>
     </div>
     <div class="imgBox">
       <p class="ticketnum" v-show="!noticket">订单号：{{ticketInfoNumber}}</p>
-      <img class="img" :src="imgStr" alt="">
+      <img class="img" v-show="!noticket" :src="imgStr" alt="">
       <p class="noticket" v-show="noticket">当前无可兑的票！</p>
     </div>
-    <el-dialog
+    <!-- <el-dialog
       title="提示"
       :visible.sync="dialogVisible"
       width="30%"
@@ -21,7 +21,7 @@
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
       </span>
-    </el-dialog>
+    </el-dialog> -->
   </div>
 </template>
 
@@ -31,7 +31,7 @@ export default {
   components: {},
   data () {
     return {
-      dialogVisible: false,
+      // dialogVisible: false,
       imgStr: '',
       ticketInfoNumber: '',
       awardAmount: '',
@@ -42,6 +42,8 @@ export default {
   },
   computed: {
 
+  },
+  mounted () {
   },
   created () {
     this.getData()
@@ -75,8 +77,11 @@ export default {
               message: res.msg
             })
           }
+          this.$nextTick(() => {
+            this.$refs.input.focus()
+          })
         })
-      this.dialogVisible = false
+      // this.dialogVisible = false
     },
     upDate () {
       let upDateParams = {
@@ -86,7 +91,12 @@ export default {
       req('updateAwardAmount', upDateParams)
         .then(res => {
           if (res.code === '00000') {
-            this.dialogVisible = true
+            // this.dialogVisible = true
+            this.$message({
+              type: 'success',
+              message: '兑奖成功！'
+            })
+            this.getData()
           } else {
             this.$message({
               type: 'error',

@@ -207,19 +207,6 @@ export default {
       winHeight: 0
     }
   },
-  watch: {
-    // '$store.state.activeIndex' (val) {
-    //   if (val === '/order-query/account-order') {
-    //     let setMenuDisabled = {
-    //       orderList: true,
-    //       accountOrder: false
-    //     }
-    //     this.$store.commit('setMenuDisabled', setMenuDisabled)
-    //     localStorage.setItem('setMenuDisabled', JSON.stringify(setMenuDisabled))
-    //     this.getData()
-    //   }
-    // }
-  },
   computed: {
     operationAccounts () {
       this.operationAccount()

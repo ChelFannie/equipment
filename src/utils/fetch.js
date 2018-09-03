@@ -32,7 +32,8 @@ let removePending = (config, cancleHandle) => {
   if (flagUrl.indexOf('http') !== 0) flagUrl = config.baseURL + flagUrl
   if (pending.indexOf(flagUrl) !== -1) { // 如果要检索的字符串值没有出现，则该方法indexOf返回 -1
     if (cancleHandle) {
-      cancleHandle('重复的请求') // 执行取消操作
+      console.log('重复的请求已取消')
+      cancleHandle() // 执行取消操作
     } else {
       pending.splice(pending.indexOf(flagUrl), 1) // 把这条记录从数组中移除
     }
@@ -40,6 +41,7 @@ let removePending = (config, cancleHandle) => {
     pending.push(flagUrl)
   }
   // console.log(pending)
+  // console.log(pending.length)
 }
 
 // axios请求拦截器

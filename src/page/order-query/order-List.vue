@@ -6,14 +6,14 @@
         <el-col :span="6"><div>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</div></el-col>
         <el-col :span="12">
           <div class="timer">订单剩余时间：
-            <span class="remaining-time">0</span>
-            <span class="remaining-time">0</span>
-            <span class="remaining-time">:</span>
-            <span class="remaining-time">0</span>
-            <span class="remaining-time">0</span>
-            <span class="remaining-time">:</span>
-            <span class="remaining-time">0</span>
-            <span class="remaining-time">0</span>
+            <span>0</span>
+            <span>0</span>
+            <span>:</span>
+            <span>0</span>
+            <span>0</span>
+            <span>:</span>
+            <span>0</span>
+            <span>0</span>
           </div>
         </el-col>
       </el-row>
@@ -996,12 +996,13 @@ export default {
     getEditAssumption (matchUniqueId) {
       // 没有修改内容，就关闭弹框，如果修改了，则替换原数据
       if (this.editAssumption) {
-        let reg = /^[1-9-+]+([.]{1}[0-9]+){0,1}$/
+        // let reg = /^[1-9-+]+([.]{1}[0-9]+){0,1}$/
+        let reg = /(^[+-][1-9]+[.]{1}\d+$)|(^\d+[.]{1}\d+$)|(^[1-9]\d{0,}$)|(^[+-][1-9]+$)/
         let assumptionTestFlag = reg.test(this.editAssumption)
         if (!assumptionTestFlag) {
           this.$message({
             type: 'error',
-            message: '请输入正确的赔率！'
+            message: '请输入正确的预设值！'
           })
           this.editAssumption = ''
           return
@@ -1027,7 +1028,8 @@ export default {
     // 修改赔率
     getEditOdds (rows, betItemsObjIndex, editOdds) {
       if (this.editOdds) {
-        let reg = /^[1-9]+([.]{1}[0-9]+){0,1}$/
+        // let reg = /^[1-9]+([.]{1}[0-9]+){0,1}$/
+        let reg = /(^\d+[.]{1}\d+$)|(^[1-9]\d{0,}$)/
         let oddsTestFlag = reg.test(this.editOdds)
         if (!oddsTestFlag) {
           this.$message({
@@ -1153,10 +1155,11 @@ export default {
       // let printStatus = latech.printStatusFromJS() // eslint-disable-line
       // console.log(1, printStatus)
       if (obj.status === '1') {
-        latech.printBMPFromJS(obj.resultStr, orderNum) // eslint-disable-line
+        latech.printBMPFromJS(obj.resultStr, orderNum, orderNum) // eslint-disable-line
       } else {
         // latech.printInit() // eslint-disable-line
-        latech.printStringFormJS(obj.resultStr, orderNum) // eslint-disable-line
+        // latech.printStringFormJS(orderNum + obj.resultStr, orderNum) // eslint-disable-line
+        latech.printStringBMPFromJS(`订单号: ${orderNum}\n${obj.resultStr}`, orderNum) // eslint-disable-line
         // latech.printFeedLineFromJS(10) // eslint-disable-line
         // latech.printCutPaperFromJS() // eslint-disable-line
       }
@@ -1332,8 +1335,6 @@ export default {
         subPlayType: this.orderInfo.subPlayType,
         betContextOdds: JSON.stringify(this.betContextOdds)
       }
-      // console.log(this.betContextOdds, 444)
-      console.log(JSON.stringify(this.betContextOdds), 444)
       this.validateOdds = ''
       req('validateTicketOdds', params)
         .then(res => {
@@ -1795,6 +1796,6 @@ export default {
   top: 100px !important;
 }
 .el-message{
-  top: 100px;
+  top: 90px;
 }
 </style>
