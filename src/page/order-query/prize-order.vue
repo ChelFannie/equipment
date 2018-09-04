@@ -9,8 +9,13 @@
     </div>
     <div class="imgBox">
       <p class="ticketnum" v-show="!noticket">订单号：{{ticketInfoNumber}}</p>
-      <img class="img" v-show="!noticket" :src="imgStr" alt="">
+      <img class="img" v-show="!noticket" :src="imgStr" alt=""  @click="enlarge">
       <p class="noticket" v-show="noticket">当前无可兑的票！</p>
+    </div>
+    <!-- 图片放大缩小 -->
+    <div class="mask" v-if="Mask" @click="maskClick"></div>
+    <div class="enlarge" v-if="enlargeImg">
+      <img :src="imgStr" alt="" @click="narrow">
     </div>
     <!-- <el-dialog
       title="提示"
@@ -35,6 +40,8 @@ export default {
       imgStr: '',
       ticketInfoNumber: '',
       awardAmount: '',
+      Mask: false,
+      enlargeImg: false,
       noticket: false
     }
   },
@@ -61,16 +68,17 @@ export default {
             if (res.data && res.data.ticketInfoNumber) {
               console.log('getdata')
               this.ticketInfoNumber = res.data.ticketInfoNumber
+              this.imgStr = res.data.printResult
               this.noticket = false
             } else {
               this.noticket = true
               return
             }
-            try {
-              this.imgStr = 'data:image/bmp;base64,' + latech.getPDF417BMPFromJS(res.data.qrInfo) // eslint-disable-line
-            } catch (error) {
-              console.log('图片错误', error)
-            }
+            // try {
+            //   this.imgStr = 'data:image/bmp;base64,' + latech.getPDF417BMPFromJS(res.data.qrInfo) // eslint-disable-line
+            // } catch (error) {
+            //   console.log('图片错误', error)
+            // }
           } else {
             this.$message({
               type: 'error',
@@ -104,6 +112,25 @@ export default {
             })
           }
         })
+    },
+    // 图片放大
+    enlarge () {
+      if (this.imgStr === '') {
+        return
+      }
+      this.Mask = true
+      this.enlargeImg = true
+    },
+    // 图片缩小
+    narrow (event) {
+      event.stopPropagation()
+      this.Mask = false
+      this.enlargeImg = false
+    },
+    maskClick (event) {
+      event.stopPropagation()
+      this.Mask = false
+      this.enlargeImg = false
     },
     oninput (e) {
       // 通过正则过滤小数点后两位
@@ -149,11 +176,37 @@ export default {
     }
     .img{
       display: inline-block;
-      width: 400px;
+      height: 300px;
     }
     .noticket{
       font-size: 28px;
     }
+  }
+  .mask{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: .5;
+    background: #000;
+    z-index: 999;
+  }
+  .enlarge{
+    width: 300px;
+    height: 100%;
+    overflow: scroll;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    margin-left: -150px;
+    z-index: 99999;
+    img{
+      width: 100%;
+    }
+  }
+  .enlarge::-webkit-scrollbar {
+    display: none;
   }
   .el-dialog__body{
       font-size: 20px;

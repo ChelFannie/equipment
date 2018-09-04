@@ -1726,9 +1726,14 @@ export default {
     width: 300px;
     position: absolute;
     top: 0;
+    bottom: 0;
     left: 50%;
     margin-left: -150px;
     z-index: 99999;
+    overflow: auto;
+    &::-webkit-scrollbar {
+    display: none;
+    }
     img{
       width: 100%;
     }
