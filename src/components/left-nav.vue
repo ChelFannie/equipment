@@ -32,7 +32,7 @@
                 <span slot="title" class="icon-name">订单结算</span>
               </span>
             </button>
-            <el-menu-item
+            <!-- <el-menu-item
               :disabled="$store.state.menuDisabled.queryOrder"
               id="query-order"
               index="/order-query/query-order"
@@ -41,14 +41,14 @@
                 <i class="icon iconfont icon-SQLshenhe"></i>
                 <span slot="title" class="icon-name">查询</span>
               </span>
-            </el-menu-item>
+            </el-menu-item> -->
 
-            <!-- <el-menu-item index="/order-query/query-order" class="flex-item">
+            <el-menu-item index="/order-query/query-order" class="flex-item">
               <span class="icon-box" ref="queryOrder">
                 <i class="icon iconfont icon-SQLshenhe"></i>
                 <span slot="title" class="icon-name">查询</span>
               </span>
-            </el-menu-item> -->
+            </el-menu-item>
             <el-menu-item
               :disabled="$store.state.menuDisabled.queryOrder"
               index="/order-query/prize-order"
@@ -153,7 +153,12 @@ export default {
           this.$refs.orderList.click()
           break
         case 106:
-          this.$refs.accountOrder.click()
+          if (this.managerDialogVisible) {
+            this.cancleMangerLogin()
+          } else {
+            this.$refs.accountOrder.click()
+          }
+          // this.managerDialogVisible && this.cancleMangerLogin()
           break
         case 107:
           if (this.managerDialogVisible) {
@@ -163,13 +168,28 @@ export default {
               this.$refs.password.focus()
             } else if (this.focusRecord === 2) {
               this.$refs.inputCode.focus()
+            } else if (this.focusRecord === 3) {
+              this.focusRecord = 2
             }
           } else {
             this.$refs.prizeOrder.click()
           }
           break
         case 109:
-          this.$refs.queryOrder.click()
+          if (this.managerDialogVisible) {
+            this.focusRecord--
+            this.$store.commit('setkeyboardCode', -1)
+            if (this.focusRecord === 0) {
+              this.$refs.userAccount.focus()
+            } else if (this.focusRecord === 1) {
+              this.$refs.password.focus()
+            } else if (this.focusRecord === -1) {
+              this.focusRecord = 0
+            }
+          } else {
+            this.$refs.queryOrder.click()
+          }
+          // this.$refs.queryOrder.click()
           break
         case 8:
           // this.cancleMangerLogin()
@@ -201,7 +221,11 @@ export default {
           _this.managerDialogVisible || _this.$refs.orderList.click()
           break
         case 106:
-          _this.managerDialogVisible || _this.$refs.accountOrder.click()
+          if (_this.managerDialogVisible) {
+            _this.cancleMangerLogin()
+          } else {
+            _this.$refs.accountOrder.click()
+          }
           break
         case 107:
           if (_this.managerDialogVisible) {
@@ -212,13 +236,31 @@ export default {
             } else if (_this.focusRecord === 2) {
               _this.$refs.inputCode.focus()
               return false
+            } else if (_this.focusRecord === 3) {
+              _this.focusRecord = 2
+              return false
             }
           } else {
             _this.$refs.prizeOrder.click()
           }
           break
         case 109:
-          _this.managerDialogVisible || _this.$refs.queryOrder.click()
+          if (_this.managerDialogVisible) {
+            _this.focusRecord--
+            if (_this.focusRecord === 0) {
+              _this.$refs.userAccount.focus()
+              return false
+            } else if (_this.focusRecord === 1) {
+              _this.$refs.password.focus()
+              return false
+            } else if (_this.focusRecord === -1) {
+              _this.focusRecord = 0
+              return false
+            }
+          } else {
+            _this.$refs.queryOrder.click()
+          }
+          // _this.managerDialogVisible || _this.$refs.queryOrder.click()
           break
         case 8:
           // _this.cancleMangerLogin()

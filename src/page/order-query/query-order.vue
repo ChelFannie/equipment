@@ -356,6 +356,8 @@ export default {
           break // eslint-disable-line
         case 109:
           _this.$store.commit('setkeyboardCode', 109)
+          return false
+          break // eslint-disable-line
           break
         default:
           break

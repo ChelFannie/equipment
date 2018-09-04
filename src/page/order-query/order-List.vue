@@ -615,18 +615,20 @@ export default {
           }
           break
         case 111:
-          _this.$store.commit('setkeyboardCode', 111)
+          _this.showOutPopover || _this.$store.commit('setkeyboardCode', 111)
           break
         case 106:
-          _this.$store.commit('setkeyboardCode', 106)
-          break
+          _this.showOutPopover || _this.$store.commit('setkeyboardCode', 106)
+          return false
+          break // eslint-disable-line
         case 107:
-          _this.$store.commit('setkeyboardCode', 107)
+          _this.showOutPopover || _this.$store.commit('setkeyboardCode', 107)
           return false
           break // eslint-disable-line
         case 109:
-          _this.$store.commit('setkeyboardCode', 109)
-          break
+          _this.showOutPopover || _this.$store.commit('setkeyboardCode', 109)
+          return false
+          break // eslint-disable-line
         default:
           break
       }
@@ -673,9 +675,9 @@ export default {
     },
     // 获取订单列表
     getData () {
-      if (localStorage.getItem('keepTicketInfo')) {
-        localStorage.removeItem('keepTicketInfo')
-      }
+      // if (localStorage.getItem('keepTicketInfo')) {
+      //   localStorage.removeItem('keepTicketInfo')
+      // }
       let memberParams = {
         page: this.pageIndex,
         pageSize: this.pageSize,
@@ -784,6 +786,7 @@ export default {
       // 保存读票的订单号
       this.ticketInfoSerialNumber = rows.serialNumber
       let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
+      console.log(keepTicketInfo, 7)
       if (!keepTicketInfo || !keepTicketInfo.serialNumber) {
         keepTicketInfo = {
           serialNumber: rows.serialNumber,
@@ -1206,7 +1209,7 @@ export default {
               } else {
                 _this.$message({
                   type: 'error',
-                  message: '请投入与订单号一致的投资单'
+                  message: '请投入与订单号一致的投注单'
                 })
               }
             } else if (QRreg.test(_this.realTicketNumber)) { // 读票成功
@@ -1372,6 +1375,7 @@ export default {
           this.confirmDisabled = false
         })
         .catch(error => {
+          this.confirmDisabled = false
           console.log(error)
         })
     },
@@ -1399,7 +1403,6 @@ export default {
           if (res.code === '00000') {
             this.confirmFlag = false
             this.showOutPopover = false
-            this.sumbitDisabled = false
             this.tableData.map((item, index) => {
               if (item.serialNumber === this.orderInfo.serialNumber) {
                 this.$delete(this.tableData, index)
@@ -1415,7 +1418,6 @@ export default {
           } else if (res.code === '20041') {
             this.confirmFlag = false
             this.showOutPopover = true
-            this.sumbitDisabled = false
             this.$message({
               type: 'error',
               message: '此票已读票成功，请更换票据读票！'
@@ -1423,14 +1425,16 @@ export default {
           } else {
             this.confirmFlag = true
             this.showOutPopover = true
-            this.sumbitDisabled = false
+            // this.sumbitDisabled = false
             this.$message({
               type: 'error',
               message: res.msg
             })
           }
+          this.sumbitDisabled = false
         })
         .catch(error => {
+          this.sumbitDisabled = false
           console.log(error)
         })
     },
@@ -1451,7 +1455,6 @@ export default {
               }
             })
             this.limitSaleData.limitSaleFlag = false
-            this.limitSaleData.limitDisabled = false
             this.showOutPopover = false
             this.$message({
               type: 'success',
@@ -1463,11 +1466,12 @@ export default {
               message: res.msg
             })
             this.limitSaleData.limitSaleFlag = true
-            this.limitSaleData.limitDisabled = false
             this.showOutPopover = true
           }
+          this.limitSaleData.limitDisabled = false
         })
         .catch(error => {
+          this.limitSaleData.limitDisabled = false
           console.log(error)
         })
     },
