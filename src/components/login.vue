@@ -9,7 +9,7 @@
                       <el-input class="user" ref="user" v-model="form.userAccount" autofocus="autofocus" placeholder="请输入用户名"></el-input>
                   </el-form-item>
                   <el-form-item  label="密   码：">
-                      <el-input class="pass" type="password" v-model="form.password" placeholder="请输入密码"></el-input>
+                      <el-input class="pass" type="password" ref="password" v-model="form.password" placeholder="请输入密码"></el-input>
                   </el-form-item>
                   <!-- <div class="code">
                     <el-form-item>
@@ -51,7 +51,8 @@ export default {
       QRcode: '',
       timer: null,
       latechFlag: false,
-      statusCheckFlag: false
+      statusCheckFlag: false,
+      focusRecord: 0
     }
   },
   created () {
@@ -66,6 +67,30 @@ export default {
         case 0:
           _this.login()
           break
+        case 109:
+          _this.focusRecord--
+          if (_this.focusRecord === 0) {
+            _this.$refs.user.focus()
+            return false
+          } else if (_this.focusRecord === -1) {
+            _this.focusRecord = 0
+            return false
+          }
+          break
+        case 107:
+          _this.focusRecord++
+          if (_this.focusRecord === 1) {
+            _this.$refs.password.focus()
+            return false
+          } else if (_this.focusRecord === 2) {
+            _this.focusRecord = 1
+            return false
+          }
+          break
+        case 106:
+          _this.statusCheck()
+          return false
+          break // eslint-disable-line
         default:
           break
       }
@@ -88,7 +113,7 @@ export default {
         })
         return
       }
-      this.statusCheckFlag = true
+      // this.statusCheckFlag = true
       if (this.statusCheckFlag) {
         req('login', this.form).then(res => {
           if (res.code === '00000') {

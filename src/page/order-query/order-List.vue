@@ -1004,7 +1004,11 @@ export default {
             type: 'error',
             message: '请输入正确的预设值！'
           })
+          // 清除输入错误的赔率，获取焦点
           this.editAssumption = ''
+          this.$nextTick(() => {
+            this.$refs.focusAssumptionInput.focus()
+          })
           return
         }
         // 如果获取用户输入的预设值数据没有'+',需要添加
@@ -1036,7 +1040,17 @@ export default {
             type: 'error',
             message: '请输入正确的赔率！'
           })
+          // 清除输入错误的赔率，获取焦点
           this.editOdds = ''
+          let len = 0
+          this.hoverData.map(item => {
+            len += item.betItemsObj.length
+          })
+          for (let i = 0; i < len; i++) {
+            this.$nextTick(() => {
+              this.$refs.focusOddsInput[i].focus()
+            })
+          }
           return
         }
         // 给修改的赔率自动补零
