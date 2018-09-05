@@ -119,7 +119,7 @@
             <template slot-scope="scope">
               <span>{{scope.row.subPlayTypeWord}}</span>
               <el-popover
-                popper-class="edit-popover fixed-popover"
+                popper-class="edit-popover"
                 v-for="(item1, index1) in scope.row.betItemsObj"
                 :key="index1"
                 trigger="click"
@@ -1034,6 +1034,7 @@ export default {
     },
     // 修改预设值
     getEditAssumption (matchUniqueId) {
+      this.editAssumption = this.editAssumption.replace(/(^\s*)|(\s*$)/g, '')
       // 没有修改内容，就关闭弹框，如果修改了，则替换原数据
       if (this.editAssumption) {
         // let reg = /^[1-9-+]+([.]{1}[0-9]+){0,1}$/
@@ -1071,6 +1072,7 @@ export default {
     },
     // 修改赔率
     getEditOdds (rows, betItemsObjIndex, editOdds) {
+      this.editOdds = this.editOdds.replace(/(^\s*)|(\s*$)/g, '')
       if (this.editOdds) {
         // let reg = /^[1-9]+([.]{1}[0-9]+){0,1}$/
         let reg = /(^\d+[.]{1}\d+$)|(^[1-9]\d{0,}$)/
@@ -1260,7 +1262,6 @@ export default {
               }
               let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
               if (!keepTicketInfo) { // 保存第一次读票时的信息
-                console.log(1)
                 keepTicketInfo = {
                   qrInfo: _this.realTicketNumber,
                   serialNumber: _this.ticketInfoSerialNumber,
@@ -1888,9 +1889,9 @@ export default {
   font-size: 16px!important;
   padding: 10px 20px!important;
 }
-.fixed-popover{
-  top: 100px !important;
-}
+// .fixed-popover{
+//   top: 100px !important;
+// }
 .el-message{
   top: 90px;
 }
