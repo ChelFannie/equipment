@@ -143,12 +143,17 @@
                     :data-odd="item1.odds"
                     @click="getEditOdds(scope.row, index1, item1.odds)">修改</button>
                 </div>
-                <el-button
+                <button
+                  ref="oddsBtn"
+                  :data-idx="index1"
+                  :data-row="JSON.stringify(scope.row)"
+                  :data-odd="item1.odds"
+                  class="oddBtn"
                   slot="reference"
                   type="text"
                   size="small"
                   @click="showOddsPopover(scope.row, item1.odds, index1)"
-                  :disabled="printFlag!==1">[{{item1.key}}&nbsp;({{item1.odds}})]</el-button>
+                  :disabled="printFlag!==1">[{{item1.key}}&nbsp;({{item1.odds}})]</button>
               </el-popover>
             </template>
           </el-table-column>
@@ -366,7 +371,11 @@ export default {
       // 记录修改的场次赔率是哪一个
       oddIndexNum: -1,
       // 记录修改的是那一场预设
-      AssumptionIndex: -1
+      AssumptionIndex: -1,
+      // 记录键盘当前选中的值
+      oddRecord: -1,
+      // 选择修改赔率标志
+      selectOddFlag: false
     }
   },
   watch: {
@@ -578,6 +587,11 @@ export default {
               _this.keyOddFalg = false
               _this.keyAssumptionFalg = false
             }
+          } else if (_this.selectOddFlag) { // 关闭键盘选择赔率
+            _this.selectOddFlag = false
+            for (let i = 0; i < _this.$refs.oddsBtn.length; i++) {
+              _this.$refs.oddsBtn[i].style.background = '#fff'
+            }
           } else if (!_this.confirmFlag && !_this.limitSaleData.limitSaleFlag) { // 关闭限售确认框和提交确认框
             if (_this.showOutPopover) {
               _this.printVisible ? (_this.printVisible = false) : (_this.showOutPopover = false)
@@ -604,6 +618,9 @@ export default {
               _this.confirmSumbit()
             } else if (_this.limitSaleData.limitSaleFlag) { // 修限售完成enter
               _this.confirmLimitSale()
+            } else if (_this.selectOddFlag) { // 键盘选择赔率
+              let obj = _this.$refs.oddsBtn[_this.oddRecord].dataset
+              _this.$refs.oddsBtn[_this.oddRecord].click(JSON.parse(obj.row), obj.odd, obj.idx)
             } else if (_this.showOutPopover) { // 详情弹框标志
               if (_this.printVisible) { // 是否已打印enter
                 _this.printQuery(e)
@@ -622,12 +639,39 @@ export default {
           return false
           break // eslint-disable-line
         case 107:
-          _this.showOutPopover || _this.$store.commit('setkeyboardCode', 107)
-          return false
+          if (_this.showOutPopover) {
+            let len = _this.$refs.oddsBtn.length
+            _this.selectOddFlag = true
+            _this.oddRecord++
+            if (_this.oddRecord === len) {
+              _this.oddRecord = 0
+            }
+            for (let i = 0; i < len; i++) {
+              _this.$refs.oddsBtn[i].style.background = '#fff'
+            }
+            _this.$refs.oddsBtn[_this.oddRecord].style.background = '#ccc'
+          } else {
+            _this.$store.commit('setkeyboardCode', 107)
+            return false
+          }
           break // eslint-disable-line
         case 109:
-          _this.showOutPopover || _this.$store.commit('setkeyboardCode', 109)
-          return false
+          if (_this.showOutPopover) {
+            if (_this.selectOddFlag) {
+              let len1 = _this.$refs.oddsBtn.length
+              _this.oddRecord--
+              if (_this.oddRecord === -1) {
+                _this.oddRecord = len1 - 1
+              }
+              for (let i = 0; i < len1; i++) {
+                _this.$refs.oddsBtn[i].style.background = '#fff'
+              }
+              _this.$refs.oddsBtn[_this.oddRecord].style.background = '#ccc'
+            }
+          } else {
+            _this.$store.commit('setkeyboardCode', 109)
+            return false
+          }
           break // eslint-disable-line
         default:
           break
@@ -786,7 +830,6 @@ export default {
       // 保存读票的订单号
       this.ticketInfoSerialNumber = rows.serialNumber
       let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
-      console.log(keepTicketInfo, 7)
       if (!keepTicketInfo || !keepTicketInfo.serialNumber) {
         keepTicketInfo = {
           serialNumber: rows.serialNumber,
@@ -844,7 +887,9 @@ export default {
     // 获取票面信息
     getPopoverData (rows) {
       this.imgStr = ''
+      this.oddRecord = -1
       this.submitFlag = false
+      this.selectOddFlag = false
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
@@ -1192,11 +1237,11 @@ export default {
           // console.log(flag)
           if (flag === true) { // 判断读票机是否读完票
             // clearInterval(_this.timer)
+            _this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
             // 获取图片大小
             let size = latech.ScannerGetOriginImageSize() // eslint-disable-line
             //  获取图片
             _this.imgStr = latech.ScannerGetOriginImage(size) // eslint-disable-line
-            _this.realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
             // console.log(1, _this.realTicketNumber)
             //  退票
             latech.ScannerRollBackFromJS() // eslint-disable-line
@@ -1409,7 +1454,10 @@ export default {
               }
             })
             // 出票成功，将保存的票信息删除
-            localStorage.removeItem('keepTicketInfo')
+            let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
+            if (keepTicketInfo.serialNumber === this.ticketInfoSerialNumber) {
+              localStorage.removeItem('keepTicketInfo')
+            }
             this.$message({
               type: 'success',
               message: '出票成功'
@@ -1820,5 +1868,11 @@ export default {
 }
 .el-message{
   top: 90px;
+}
+.oddBtn{
+  background: #fff;
+  border: none;
+  font-size: 20px;
+  color: #409EFF;
 }
 </style>
