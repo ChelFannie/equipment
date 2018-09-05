@@ -708,6 +708,9 @@ export default {
     *{
       font-size: 20px!important;
     }
+    .el-select .el-input {
+      width: 200px;
+    }
   }
   .el-table{
     font-size: 20px;

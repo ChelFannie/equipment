@@ -46,7 +46,7 @@ export default {
       }
       switch (e.keyCode) {
         case 0:
-          // _this.$store.state.managerFlag ? _this.$store.commit('setkeyboardCode', 0) : _this.queryOrder()
+          _this.upDate()
           break
         case 111:
           _this.$store.commit('setkeyboardCode', 111)
@@ -73,6 +73,7 @@ export default {
     this.getHeight()
   },
   methods: {
+    // 获取页面高度
     getHeight () {
       this.height.height = window.innerHeight - 220 + 'px'
     },
@@ -100,6 +101,7 @@ export default {
           }
         })
     },
+    // 提交兑奖数据
     upDate () {
       let upDateParams = {
         ticketInfoNumber: this.ticketInfoNumber,

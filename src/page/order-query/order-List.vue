@@ -640,16 +640,18 @@ export default {
           break // eslint-disable-line
         case 107:
           if (_this.showOutPopover) {
-            let len = _this.$refs.oddsBtn.length
-            _this.selectOddFlag = true
-            _this.oddRecord++
-            if (_this.oddRecord === len) {
-              _this.oddRecord = 0
+            if (!_this.keyAssumptionFalg) {
+              let len = _this.$refs.oddsBtn.length
+              _this.selectOddFlag = true
+              _this.oddRecord++
+              if (_this.oddRecord === len) {
+                _this.oddRecord = 0
+              }
+              for (let i = 0; i < len; i++) {
+                _this.$refs.oddsBtn[i].style.background = '#fff'
+              }
+              _this.$refs.oddsBtn[_this.oddRecord].style.background = '#ccc'
             }
-            for (let i = 0; i < len; i++) {
-              _this.$refs.oddsBtn[i].style.background = '#fff'
-            }
-            _this.$refs.oddsBtn[_this.oddRecord].style.background = '#ccc'
           } else {
             _this.$store.commit('setkeyboardCode', 107)
             return false
@@ -657,16 +659,18 @@ export default {
           break // eslint-disable-line
         case 109:
           if (_this.showOutPopover) {
-            if (_this.selectOddFlag) {
-              let len1 = _this.$refs.oddsBtn.length
-              _this.oddRecord--
-              if (_this.oddRecord === -1) {
-                _this.oddRecord = len1 - 1
+            if (!_this.keyAssumptionFalg) {
+              if (_this.selectOddFlag) {
+                let len1 = _this.$refs.oddsBtn.length
+                _this.oddRecord--
+                if (_this.oddRecord === -1) {
+                  _this.oddRecord = len1 - 1
+                }
+                for (let i = 0; i < len1; i++) {
+                  _this.$refs.oddsBtn[i].style.background = '#fff'
+                }
+                _this.$refs.oddsBtn[_this.oddRecord].style.background = '#ccc'
               }
-              for (let i = 0; i < len1; i++) {
-                _this.$refs.oddsBtn[i].style.background = '#fff'
-              }
-              _this.$refs.oddsBtn[_this.oddRecord].style.background = '#ccc'
             }
           } else {
             _this.$store.commit('setkeyboardCode', 109)
@@ -719,9 +723,6 @@ export default {
     },
     // 获取订单列表
     getData () {
-      // if (localStorage.getItem('keepTicketInfo')) {
-      //   localStorage.removeItem('keepTicketInfo')
-      // }
       let memberParams = {
         page: this.pageIndex,
         pageSize: this.pageSize,
@@ -829,15 +830,6 @@ export default {
     getOutPopover (rows, event, column) {
       // 保存读票的订单号
       this.ticketInfoSerialNumber = rows.serialNumber
-      let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
-      if (!keepTicketInfo || !keepTicketInfo.serialNumber) {
-        keepTicketInfo = {
-          serialNumber: rows.serialNumber,
-          qrInfo: '',
-          imgStr: ''
-        }
-        localStorage.setItem('keepTicketInfo', JSON.stringify(keepTicketInfo))
-      }
       this.orderInfo = {}
       this.hoverData = []
       this.ticketInfoNumber = ''
@@ -951,7 +943,6 @@ export default {
             this.confirmDisabled = false
             // 获取信息
             let orderInfo = res.data.orderInfo
-            // let orderInfo = JSON.parse(localStorage.getItem('calcData')).orderInfo
             orderInfo.maxMoney = maxMoney
             orderInfo.lotteryTypeWord = ChangeBetContext.lotteryType(orderInfo.lotteryType)
             orderInfo.subPlayTypeWord = ChangeBetContext.subPlayType(orderInfo.subPlayType)
@@ -989,9 +980,11 @@ export default {
               }
               // 如果此票已经读票成功，就显示图片
               let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
-              if (keepTicketInfo.serialNumber === rows.serialNumber && keepTicketInfo.qrInfo) {
-                this.imgStr = keepTicketInfo.imgStr
-                this.realTicketNumber = keepTicketInfo.qrInfo
+              if (keepTicketInfo) {
+                if (keepTicketInfo.serialNumber === rows.serialNumber && keepTicketInfo.qrInfo) {
+                  this.imgStr = keepTicketInfo.imgStr
+                  this.realTicketNumber = keepTicketInfo.qrInfo
+                }
               }
             } else {
               this.latechFlag = false
@@ -999,7 +992,6 @@ export default {
             }
             // 投注项
             let betContextList = res.data.betContextList
-            // let betContextList = JSON.parse(localStorage.getItem('calcData')).betContextList
             betContextList.map(val => {
               val.assumption = !val.score ? '—' : val.score
               val.assumptionFlag = false
@@ -1205,6 +1197,8 @@ export default {
         if (item.matchUniqueId === matchUniqueId) {
           this.$set(item, 'assumptionFlag', true)
           this.keyAssumptionFalg = true
+          this.selectOddFlag = false
+          this.oddRecord = -1
           this.AssumptionIndex = index
         }
       })
@@ -1259,11 +1253,42 @@ export default {
               }
             } else if (QRreg.test(_this.realTicketNumber)) { // 读票成功
               _this.submitFlag = false
+              _this.selectOddFlag = false
+              _this.oddRecord = -1
+              for (let i = 0; i < _this.$refs.oddsBtn.length; i++) {
+                _this.$refs.oddsBtn[i].style.background = '#fff'
+              }
               let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
-              if (_this.ticketInfoSerialNumber === keepTicketInfo.serialNumber) {
-                keepTicketInfo.qrInfo = _this.realTicketNumber
-                keepTicketInfo.imgStr = _this.imgStr
+              if (!keepTicketInfo) { // 保存第一次读票时的信息
+                console.log(1)
+                keepTicketInfo = {
+                  qrInfo: _this.realTicketNumber,
+                  serialNumber: _this.ticketInfoSerialNumber,
+                  imgStr: _this.imgStr
+                }
                 localStorage.setItem('keepTicketInfo', JSON.stringify(keepTicketInfo))
+              } else {
+                // 本地已经存储，如果当前列表中没有改订单号，则保存全部信息，如果有，则保存图片和落地票号
+                let keepInfoFlag = true
+                for (let i = 0; i < _this.tableData.length; i++) {
+                  if (_this.tableData[i].serialNumber === keepTicketInfo.serialNumber) {
+                    keepInfoFlag = false
+                    break
+                  }
+                }
+                if (keepInfoFlag) {
+                  keepTicketInfo = {
+                    qrInfo: _this.realTicketNumber,
+                    serialNumber: _this.ticketInfoSerialNumber,
+                    imgStr: _this.imgStr
+                  }
+                  localStorage.setItem('keepTicketInfo', JSON.stringify(keepTicketInfo))
+                }
+                if (_this.ticketInfoSerialNumber === keepTicketInfo.serialNumber) {
+                  keepTicketInfo.qrInfo = _this.realTicketNumber
+                  keepTicketInfo.imgStr = _this.imgStr
+                  localStorage.setItem('keepTicketInfo', JSON.stringify(keepTicketInfo))
+                }
               }
             } else {
               _this.$message({
