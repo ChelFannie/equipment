@@ -40,7 +40,7 @@ export default {
     this.$refs.input.focus()
     const _this = this
     document.onkeydown = function (e) {
-      // console.log('获取', e.keyCode)
+      console.log('获取', e.keyCode)
       if (e.keyCode === 144) {
         return
       }
@@ -55,8 +55,8 @@ export default {
           _this.$store.commit('setkeyboardCode', 106)
           break
         case 107:
-          // _this.$store.commit('setkeyboardCode', 107)
-          // return false
+          _this.$store.commit('setkeyboardCode', 107)
+          return false
           break // eslint-disable-line
         case 109:
           _this.$store.commit('setkeyboardCode', 109)

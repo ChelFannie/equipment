@@ -113,7 +113,7 @@ export default {
         })
         return
       }
-      this.statusCheckFlag = true
+      // this.statusCheckFlag = true
       if (this.statusCheckFlag) {
         req('login', this.form).then(res => {
           if (res.code === '00000') {
@@ -121,8 +121,10 @@ export default {
             this.$store.commit('token', res.data.token)
             let storeInfo = {
               storeAddress: res.data.storeAddress,
-              storeName: res.data.storeName
+              storeName: res.data.storeName,
+              storeType: res.data.storeType
             }
+            // 店铺类型:1.集中出票点 2.散铺
             sessionStorage.setItem('storeInfo', JSON.stringify(storeInfo))
             this.$store.commit('setActiveIndex', '')
             localStorage.setItem('setActiveIndex', '')

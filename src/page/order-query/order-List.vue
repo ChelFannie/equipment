@@ -375,7 +375,9 @@ export default {
       // 记录键盘当前选中的值
       oddRecord: -1,
       // 选择修改赔率标志
-      selectOddFlag: false
+      selectOddFlag: false,
+      // 店铺类型
+      storeType: null
     }
   },
   watch: {
@@ -479,9 +481,9 @@ export default {
           this.openTimerId = false
           clearInterval(this.timerId)
         })
-        // console.log('清除')
         // 清除保存的图片信息
         localStorage.removeItem('keepTicketInfo')
+        this.getData()
       }
     }
   },
@@ -491,6 +493,7 @@ export default {
       this.showOutPopover = false
     })
     this.winHeight = localStorage.getItem('winHeight') - 285
+    this.storeType = JSON.parse(sessionStorage.getItem('storeInfo')).storeType
   },
   mounted () {
     if (this.$store.state.activeIndex === '/order-query/order-List') {
@@ -784,6 +787,7 @@ export default {
                 val['sequenceNumber'] = sequenceNumberObj['value']
               })
               localStorage.setItem('sequenceNumber', JSON.stringify({value: sequenceNumberObj['value'], date: sequenceNumberObj['date']}))
+              this.getOutPopover(this.tableData[0])
             } else {
               // 不存在票
               this.$message({
@@ -1484,11 +1488,20 @@ export default {
             if (keepTicketInfo.serialNumber === this.ticketInfoSerialNumber) {
               localStorage.removeItem('keepTicketInfo')
             }
-            this.$message({
-              type: 'success',
-              message: '出票成功'
-            })
-            this.getData()
+            let _this = this
+            if (this.storeType === 1) { // 集中出票点
+              console.log('集中出票点')
+              this.$message({
+                type: 'success',
+                message: '出票成功',
+                onClose: _this.getOutPopover(_this.tableData[0])
+              })
+            } else if (this.storeType === 2) { // 散铺
+              this.$message({
+                type: 'success',
+                message: '出票成功'
+              })
+            }
           } else if (res.code === '20041') {
             this.confirmFlag = false
             this.showOutPopover = true
