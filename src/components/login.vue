@@ -95,11 +95,6 @@ export default {
           break
       }
     }
-    // try {
-    //   this.scan()
-    // } catch (error) {
-    //   console.log('扫描枪错误', error)
-    // }
   },
   mounted () {
     this.$refs.user.focus()
@@ -167,10 +162,13 @@ export default {
     },
     // 打印机
     printTicket (QRcode) {
-      // let printStatus = latech.printStatusFromJS() // eslint-disable-line
-      // console.log(3, printStatus)
-      // console.log(QRcode)
-      latech.printSampleBMPFromJS(QRcode) // eslint-disable-line
+      let printStatus = latech.printStatusFromJS() // eslint-disable-line
+      if (printStatus === 0) {
+        latech.printSampleBMPFromJS(QRcode) // eslint-disable-line
+      } else {
+        let str = `打印机异常，异常code: ${printStatus}`
+        this.getTicketError(str)
+      }
     },
     readTicket () {
       // 读票机初始化
@@ -196,17 +194,20 @@ export default {
             }
           }, 200)
         } else {
-          this.getTicketError()
+          let errCode = latech.ScannerGetLastErrorCodeFromJS() // eslint-disable-line
+          let str = `读票机异常，异常code: ${errCode}`
+          this.getTicketError(str)
         }
       } else {
-        this.getTicketError()
+        let errCode = latech.ScannerGetLastErrorCodeFromJS() // eslint-disable-line
+        let str = `读票机异常，异常code: ${errCode}`
+        this.getTicketError(str)
       }
     },
     // 获取读票机错误信息
-    getTicketError () {
-      let errCode = latech.ScannerGetLastErrorCodeFromJS() // eslint-disable-line
+    getTicketError (str) {
       this.reload()
-      this.$confirm(`读票机异常，代码:${errCode}`, '错误', {
+      this.$confirm(str, '错误', {
         confirmButtonText: '确定',
         showCancelButton: false,
         type: 'error',
@@ -217,28 +218,6 @@ export default {
           this.$router.push({path: '/login'})
         }
       })
-    },
-    scan () {
-      // 条码枪初始化
-      let code = latech.BCRInitFromJS() // eslint-disable-line
-      if (code === 0) { // eslint-disable-line
-        // 条码枪设置扫描模式 参数： 1 手动模式， 2 自动模式
-        if (latech.BCRSetScanModeFromJS(1) === true) { // eslint-disable-line
-          console.log('扫描枪初始化成功')
-        }
-      } else {
-        this.$confirm(`扫描枪异常，代码:${code}`, '错误', {
-          confirmButtonText: '确定',
-          showCancelButton: false,
-          type: 'error',
-          closeOnClickModal: false,
-          callback: action => {
-            sessionStorage.removeItem('token')
-            this.$store.commit('token', '')
-            this.$router.push({path: '/login'})
-          }
-        })
-      }
     },
     exit () {
       try {

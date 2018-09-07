@@ -735,6 +735,7 @@ export default {
       req('getOrderList', memberParams)
         .then(res => {
           if (res.code === '00000') {
+            this.printList = []
             this.loading = false
             // 销售与订单信息
             this.statisticData = res.data.statistic
@@ -1214,16 +1215,23 @@ export default {
     },
     // 打印机
     printTicket (obj, orderNum) {
-      // let printStatus = latech.printStatusFromJS() // eslint-disable-line
-      // console.log(1, printStatus)
-      if (obj.status === '1') {
-        latech.printBMPFromJS(obj.resultStr, orderNum, orderNum) // eslint-disable-line
+      let printStatus = latech.printStatusFromJS() // eslint-disable-line
+      if (printStatus === 0) {
+        if (obj.status === '1') {
+          latech.printBMPFromJS(obj.resultStr, orderNum, orderNum) // eslint-disable-line
+        } else {
+          latech.printStringBMPFromJS(`订单号: ${orderNum}\n${obj.resultStr}`, orderNum) // eslint-disable-line
+        }
       } else {
-        // latech.printInit() // eslint-disable-line
-        // latech.printStringFormJS(orderNum + obj.resultStr, orderNum) // eslint-disable-line
-        latech.printStringBMPFromJS(`订单号: ${orderNum}\n${obj.resultStr}`, orderNum) // eslint-disable-line
-        // latech.printFeedLineFromJS(10) // eslint-disable-line
-        // latech.printCutPaperFromJS() // eslint-disable-line
+        this.$confirm(`打印机异常，异常code: ${printStatus}`, '错误', {
+          confirmButtonText: '确定',
+          showCancelButton: false,
+          type: 'error',
+          closeOnClickModal: false,
+          callback: action => {
+            this.printList = []
+          }
+        })
       }
     },
     readTicket (ORnumber) {
