@@ -1,13 +1,14 @@
 <template>
   <div class="prize-order">
     <div class="count-order">
-        <div>
-            <span>兑奖金额(元)：</span>
-            <input v-model="awardAmount" ref="input" autofocus="autofocus" class="amount" type="number" @input="oninput" placeholder="请输入金额">
-            <el-button type="primary" @click="upDate">确定</el-button>
-        </div>
+      <span>兑奖金额(元)：</span>
+      <input v-model="awardAmount" ref="input" autofocus="autofocus" class="amount" type="number" @input="oninput" placeholder="请输入金额">
+      <el-button type="primary" @click="upDate">确定</el-button>
     </div>
-    <p class="ticketnum" v-show="!noticket">订单号：{{ticketInfoNumber}}</p>
+    <div class="ticketnum" v-show="!noticket">
+      订单号：<span>{{serialNumber}}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      系统算奖金额：<span>{{(calAwardAmount/ 100).toFixed(2) || 0 }}</span> 元
+    </div>
     <div class="imgBox" :style="height">
       <img class="img" v-show="!noticket" :src="imgStr" alt="">
       <p class="noticket" v-show="noticket">当前无可兑的票！</p>
@@ -22,8 +23,9 @@ export default {
   data () {
     return {
       imgStr: '',
-      ticketInfoNumber: '',
+      serialNumber: '',
       awardAmount: '',
+      calAwardAmount: '',
       // 屏幕高度
       height: {
         height: ''
@@ -40,7 +42,7 @@ export default {
     this.$refs.input.focus()
     const _this = this
     document.onkeydown = function (e) {
-      console.log('获取', e.keyCode)
+      // console.log('获取', e.keyCode)
       if (e.keyCode === 144) {
         return
       }
@@ -87,8 +89,9 @@ export default {
         .then(res => {
           if (res.code === '00000') {
             if (res.data) {
-              this.ticketInfoNumber = res.data.ticketInfoNumber
+              this.serialNumber = res.data.serialNumber
               this.imgStr = res.data.printResult
+              this.calAwardAmount = res.data.calAwardAmount
               this.noticket = false
             } else {
               this.noticket = true
@@ -104,7 +107,7 @@ export default {
     // 提交兑奖数据
     upDate () {
       let upDateParams = {
-        ticketInfoNumber: this.ticketInfoNumber,
+        serialNumber: this.serialNumber,
         awardAmount: this.awardAmount
       }
       req('updateAwardAmount', upDateParams)
@@ -147,6 +150,7 @@ export default {
     z-index: 998;
     border-bottom: 1px solid #4dafdb;
     text-align: center;
+    overflow: hidden;
     .amount{
         font-size: 20px;
         margin-right: 20px;
@@ -165,6 +169,9 @@ export default {
     text-align: center;
     font-size: 20px;
     margin: 10px 0 20px;
+    span{
+      color: #f71e11;
+    }
   }
   .imgBox{
     box-sizing: border-box;

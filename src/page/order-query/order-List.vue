@@ -782,11 +782,11 @@ export default {
                   }
                 }
               }
+              localStorage.setItem('sequenceNumber', JSON.stringify({value: sequenceNumberObj['value'] + this.tableData.length, date: sequenceNumberObj['date']}))
               this.tableData.map(val => {
                 sequenceNumberObj['value'] = sequenceNumberObj['value'] + 1
                 val['sequenceNumber'] = sequenceNumberObj['value']
               })
-              localStorage.setItem('sequenceNumber', JSON.stringify({value: sequenceNumberObj['value'], date: sequenceNumberObj['date']}))
               this.getOutPopover(this.tableData[0])
             } else {
               // 不存在票
@@ -1609,6 +1609,15 @@ export default {
       } catch (error) {
         console.log(error)
       }
+    }
+  },
+  beforeDestroy () {
+    clearInterval(this.timerId)
+    try {
+      clearInterval(this.timer)
+      this.latechFlag && latech.ScannerStopFromJS() // eslint-disable-line
+    } catch (error) {
+      console.log('读票机关闭错误', error)
     }
   },
   destroyed () {

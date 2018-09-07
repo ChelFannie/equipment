@@ -113,7 +113,7 @@ export default {
         })
         return
       }
-      // this.statusCheckFlag = true
+      this.statusCheckFlag = true
       if (this.statusCheckFlag) {
         req('login', this.form).then(res => {
           if (res.code === '00000') {
