@@ -15,6 +15,7 @@
             <el-menu-item
               index="/order-query/order-List"
               class="flex-item"
+              :class="{'clear-style': clearStyle}"
               id="order-List"
               :disabled="$store.state.menuDisabled.orderList">
               <span class="icon-box" ref="orderList">
@@ -25,7 +26,7 @@
             <button
               class="flex-item"
               :disabled="$store.state.menuDisabled.accountOrder"
-              :class="{'examinDisabled': $store.state.menuDisabled.accountOrder}"
+              :class="{'examinDisabled': $store.state.menuDisabled.accountOrder, 'clear-style': clearStyle}"
               @click="managerLogin">
               <span class="icon-box" ref="accountOrder">
                 <i class="el-icon-printer i-color"></i>
@@ -36,28 +37,30 @@
               :disabled="$store.state.menuDisabled.queryOrder"
               id="query-order"
               index="/order-query/query-order"
-              class="flex-item">
+              class="flex-item"
+              :class="{'clear-style': clearStyle}">
               <span class="icon-box" ref="queryOrder">
                 <i class="icon iconfont icon-SQLshenhe"></i>
                 <span slot="title" class="icon-name">查询</span>
               </span>
             </el-menu-item> -->
 
-            <el-menu-item index="/order-query/query-order" class="flex-item">
+            <el-menu-item index="/order-query/query-order" class="flex-item" :class="{'clear-style': clearStyle}">
               <span class="icon-box" ref="queryOrder">
                 <i class="icon iconfont icon-SQLshenhe"></i>
                 <span slot="title" class="icon-name">查询</span>
               </span>
             </el-menu-item>
-            <el-menu-item
+            <button
+              class="flex-item"
               :disabled="$store.state.menuDisabled.queryOrder"
-              index="/order-query/prize-order"
-              class="flex-item">
+              :class="{'examinDisabled': $store.state.menuDisabled.queryOrder, 'hand-active': handActive}"
+              @click="prizeDialogShow">
               <span class="icon-box" ref="prizeOrder">
                 <i class="icon iconfont icon-accountbook"></i>
                 <span slot="title" class="icon-name">兑奖</span>
               </span>
-            </el-menu-item>
+            </button>
             <el-menu-item
               index=""
               class="flex-item bigger"
@@ -70,7 +73,8 @@
             <el-menu-item
               index="quitSystem"
               class="flex-item last-item"
-              :disabled="$store.state.menuDisabled.quitSystem">
+              :disabled="$store.state.menuDisabled.quitSystem"
+              :class="{'clear-style': clearStyle}">
               <span class="icon-box">
                 <i class="icon iconfont icon-poweroff"></i>
                 <span slot="title" class="icon-name">退出系统</span>
@@ -111,6 +115,38 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+
+    <!-- 兑奖输入原始金额弹框 start -->
+    <el-dialog
+      title="输入原始累积金额（元）："
+      :visible.sync="prizeDialogVisible"
+      :show-close="false"
+      width="30%"
+      :close-on-click-modal="false"
+      class="prize-dialog">
+      <input v-model="originalAmount" ref="inputMoney" class="amount" placeholder="请输入金额">
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="prizeDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="toPrizeOrder">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 兑奖输入原始金额弹框 start -->
+
+    <!-- 兑奖退出统一提示 start -->
+    <el-dialog
+      title="提示"
+      :visible.sync="prizeExitVisible"
+      :show-close="false"
+      width="30%"
+      :close-on-click-modal="false"
+      class="prize-dialog">
+      <span>当前兑奖票<span class="xuan">{{totalTicket}}</span>张，兑奖总金额<span class="xuan">{{totalMoney}}</span> 元</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="canclePrize">取 消</el-button>
+        <el-button type="primary" @click="prizeExit">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 兑奖退出统一提示 end -->
   </div>
 </template>
 <script>
@@ -123,6 +159,19 @@ export default {
       storeInfo: {},
       // 管理员登陆弹出框
       managerDialogVisible: false,
+      // 兑奖前弹框
+      prizeDialogVisible: false,
+      prizeExitVisible: false,
+      // 原始金额
+      originalAmount: '',
+      // 兑奖后总金额及票数
+      totalTicket: '',
+      totalMoney: '',
+      // 更改选中样式
+      handActive: false,
+      clearStyle: false,
+      // 兑奖转到订单结算开关
+      decidePrizeExit: false,
       managerForm: {
         userAccount: '',
         password: '',
@@ -209,7 +258,6 @@ export default {
   },
   created () {
     this.storeInfo = JSON.parse(sessionStorage.getItem('storeInfo'))
-    // console.log('nav页面')
     const _this = this
     document.onkeydown = function (e) {
       // console.log('nav', e.keyCode)
@@ -279,7 +327,14 @@ export default {
   },
   methods: {
     handleSelect (index, indexPath) {
-      // console.log(index, indexPath)
+      this.toIndex = index
+      if (localStorage.getItem('setActiveIndex') === '/order-query/prize-order') {
+        // 获取兑奖页面传回的累积总金额及累积兑奖票
+        this.totalTicket = sessionStorage.getItem('totalTicket')
+        this.totalMoney = sessionStorage.getItem('totalMoney')
+        this.prizeExitVisible = true
+        return
+      }
       if (index === '/order-query/examine-order') {
         this.managerDialogVisible = true
         this.validateCode = loginValidate.createCode()
@@ -326,6 +381,15 @@ export default {
       }
     },
     managerLogin () {
+      // this.toIndex = '/order-query/examine-order'
+      this.toIndex = '/order-query/examine'
+      if (localStorage.getItem('setActiveIndex') === '/order-query/prize-order') {
+        // 获取兑奖页面传回的累积总金额及累积兑奖票
+        this.totalTicket = sessionStorage.getItem('totalTicket')
+        this.totalMoney = sessionStorage.getItem('totalMoney')
+        this.prizeExitVisible = true
+        return
+      }
       this.focusRecord = 0
       this.managerDialogVisible = true
       this.$nextTick(() => {
@@ -359,6 +423,9 @@ export default {
           req1('toggleLogin', form).then(res => {
             if (res.code === '00000') {
               this.managerDialogVisible = false
+              // 考虑从兑奖页面跳转
+              this.handActive = false
+              this.clearStyle = false
               sessionStorage.setItem('lastToken', sessionStorage.getItem('token'))
               sessionStorage.setItem('token', res.data.token)
               this.$store.commit('token', res.data.token)
@@ -383,6 +450,10 @@ export default {
       })
     },
     cancleMangerLogin () {
+      console.log(this.toIndex)
+      if (this.decidePrizeExit) {
+        this.handActive = true
+      }
       this.managerDialogVisible = false
       // this.focusRecord = 0
       // this.$nextTick(() => {
@@ -415,6 +486,72 @@ export default {
       sessionStorage.removeItem('token')
       this.$store.commit('token', '')
       this.$router.push({name: '登录'})
+    },
+    toPrizeOrder () {
+      this.originalAmount = this.originalAmount.replace(/(^\s*)|(\s*$)/g, '')
+      let reg = /(^[0]{1}[.]{1}([0]{0,1}[1-9]{0,2})$)|(^[1-9]\d{0,}[.]{1}\d{1,2}$)|(^[1-9]\d{0,}$)/
+      let flag = reg.test(this.originalAmount)
+      if (!flag) {
+        this.$message({
+          type: 'error',
+          message: '请输入正确的数字！',
+          onClose: () => {
+            this.$refs.inputMoney.focus()
+            this.$refs.inputMoney.value = ''
+          }
+        })
+        this.originalAmount = ''
+        return
+      // e.target.value = (e.target.value.match(/^\d*(\.?\d{0,2})/g)[0]) || null
+      }
+      if (this.originalAmount) {
+        sessionStorage.setItem('originalAmount', this.originalAmount)
+        this.$router.push({name: '兑奖页面'})
+        this.$store.commit('setActiveIndex', '/order-query/prize-order')
+        localStorage.setItem('setActiveIndex', '/order-query/prize-order')
+        this.handActive = true
+        this.clearStyle = true
+        this.prizeDialogVisible = false
+      } else {
+        this.$message({
+          type: 'error',
+          message: '请输入原始金额！'
+        })
+      }
+    },
+    prizeExit () {
+      if (this.toIndex === '/order-query/examine') {
+        this.managerDialogVisible = true
+        this.prizeExitVisible = false
+        this.decidePrizeExit = true
+        this.validateCode = loginValidate.createCode()
+      } else if (this.toIndex === 'quitSystem') {
+        sessionStorage.removeItem('token')
+        this.$store.commit('token', '')
+        this.$router.push({name: '登录'})
+      } else {
+        console.log(this.toIndex)
+        this.$router.push(this.toIndex)
+        this.handActive = false
+        this.clearStyle = false
+        this.prizeExitVisible = false
+        this.$store.commit('setActiveIndex', this.toIndex)
+        localStorage.setItem('setActiveIndex', this.toIndex)
+      }
+    },
+    prizeDialogShow () {
+      if (localStorage.getItem('setActiveIndex') !== '/order-query/prize-order') {
+        this.prizeDialogVisible = true
+        this.$nextTick(() => {
+          this.$refs.inputMoney.focus()
+          this.$refs.inputMoney.value = ''
+        })
+      }
+    },
+    canclePrize () {
+      this.prizeExitVisible = false
+      this.$store.commit('setPrizeCancelFlag', true)
+      console.log(22222)
     }
   }
 }
@@ -424,6 +561,10 @@ export default {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    // 仿element-menu的active样式
+    .hand-active{
+      background: #035bda !important;
+    }
     .top{
         width: 100%;
         height: 110px;
@@ -478,6 +619,7 @@ export default {
                     margin: 5px 10px;
                     border: 3px solid hsl(0, 0%, 100%);
                     background: #04285c;
+                    outline: none;
                     &.bigger{
                       width: 130px;
                       position: absolute;
@@ -512,6 +654,10 @@ export default {
                     &.examinDisabled{
                       background: #04285c;
                       opacity: 0.25;
+                      cursor: not-allowed;
+                    }
+                    &.clear-style{
+                      background: #04285c !important;
                     }
                 }
                 .last-item{
@@ -614,12 +760,39 @@ export default {
         }
       }
     }
+    .prize-dialog{
+      .el-dialog__body{
+        text-align: center;
+      }
+      .el-dialog__footer{
+        text-align: center;
+        .el-button+.el-button {
+          margin-left: 50px;
+        }
+      }
+      .amount{
+      font-size: 20px;
+      margin-right: 20px;
+      line-height: 40px;
+      padding: 0 10px;
+      }
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+      }
+      input[type="number"]{
+          -moz-appearance: textfield;
+      }
+    }
     .el-menu-item.is-active{
         background-color: rgba(255,  255, 255, .5) !important;
-        // color: #333333 !important;
-        // i{
-        //     color: #909399!important;
-        // }
+    }
+    .el-dialog__body{
+      font-size: 20px;
+      .xuan{
+        margin: 0 10px;
+        color: red;
+      }
     }
 }
 </style>

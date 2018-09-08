@@ -1079,8 +1079,10 @@ export default {
     getEditOdds (rows, betItemsObjIndex, editOdds) {
       this.editOdds = this.editOdds.replace(/(^\s*)|(\s*$)/g, '')
       if (this.editOdds) {
-        // let reg = /^[1-9]+([.]{1}[0-9]+){0,1}$/
-        let reg = /(^\d+[.]{1}\d+$)|(^[1-9]\d{0,}$)/
+        let reg = /^[1-9]+([.]{1}[0-9]+){0,1}$/
+        // let reg = /(^\d+[.]{1}\d+$)|(^[1-9]\d{0,}$)/
+        // let reg = /(^[0]{1}[.]{1}([0]{0,}[1-9]+)$)|(^[1-9]+[.]{1}\d+$)|(^[1-9]\d{0,}$)/
+        // let reg = /(^[0]{1}[.]{1}([0]+[1-9]+)$)|(^[1-9]\d{0,}[.]{1}\d+$)|(^[1-9]\d{0,}$)/
         let oddsTestFlag = reg.test(this.editOdds)
         if (!oddsTestFlag) {
           this.$message({

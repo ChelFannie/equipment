@@ -12,7 +12,8 @@ const state = {
     quitSystem: false
   },
   keyboardCode: '',
-  managerFlag: false
+  managerFlag: false,
+  prizeCancelFlag: false
 }
 
 const mutations = {
@@ -32,6 +33,9 @@ const mutations = {
   },
   setManagerFlag (state, param) {
     state.managerFlag = param
+  },
+  setPrizeCancelFlag (state, param) {
+    state.prizeCancelFlag = param
   }
 }
 
