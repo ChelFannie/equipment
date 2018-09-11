@@ -477,10 +477,10 @@ class changeBetContext {
             singleMax = numVal > singleMax ? numVal : singleMax
           }
         })
-        // maxMoney += singleMax * 2
-        maxMoney += (singleMax * 2) > 100000 ? 100000 : (singleMax * 2)
+        maxMoney += singleMax * 2
       })
     })
+    maxMoney = maxMoney > 100000 ? 100000 : maxMoney
     // maxMoney = changeBetContext.evenRound(changeBetContext.evenRound(maxMoney, 2) * multiple, 2)
     maxMoney = changeBetContext.returnEvenRound(changeBetContext.returnEvenRound(maxMoney) * multiple)
     return maxMoney
