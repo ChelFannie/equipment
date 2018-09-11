@@ -477,8 +477,8 @@ class changeBetContext {
             singleMax = numVal > singleMax ? numVal : singleMax
           }
         })
-        // maxMoney += singleMax * multiple * 2
-        maxMoney += singleMax * 2
+        // maxMoney += singleMax * 2
+        maxMoney += (singleMax * 2) > 100000 ? 100000 : (singleMax * 2)
       })
     })
     // maxMoney = changeBetContext.evenRound(changeBetContext.evenRound(maxMoney, 2) * multiple, 2)
@@ -531,10 +531,13 @@ class changeBetContext {
     }
     let dataInfo = {}
     if (calcData.orderInfo.subPlayType === '59' || calcData.orderInfo.subPlayType === '69') {
+      // console.log(betTypeArr, 'betTypeArr')
+      // betTypeArr = ['6x57']
       dataInfo = hunheComputeHunhe(obj, betTypeArr)
+      console.log(dataInfo, 'dataInfo')
     } else {
       // console.log(obj, 'obj')
-      // console.log(betTypeArr, 'betTypeArr')
+      betTypeArr = ['3x3']
       dataInfo = getCalculate(obj, betTypeArr)
     }
     // console.log(dataInfo)

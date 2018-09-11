@@ -342,7 +342,11 @@ export default {
       }
       switch (e.keyCode) {
         case 0:
-          _this.$store.state.managerFlag ? _this.$store.commit('setkeyboardCode', 0) : _this.queryOrder()
+          if (_this.$store.state.managerFlag || _this.$store.state.originalPrizeFlag || _this.$store.state.prizeExitFlag) {
+            _this.$store.commit('setkeyboardCode', 0)
+          } else {
+            _this.queryOrder()
+          }
           break
         case 111:
           _this.$store.commit('setkeyboardCode', 111)
@@ -622,7 +626,8 @@ export default {
     },
     scan () {
       // 条码枪初始化
-      if (latech.BCRInitFromJS() === 0) { // eslint-disable-line
+      let code = latech.BCRInitFromJS() // eslint-disable-line
+      if (code === 0) {
         // 条码枪设置扫描模式 参数： 1 手动模式， 2 自动模式
         if (latech.BCRSetScanModeFromJS(1) === true) { // eslint-disable-line
           // 条码枪开始扫描
@@ -646,6 +651,15 @@ export default {
             }
           }, 200)
         }
+      } else {
+        this.$confirm(`扫描枪异常，异常code: ${code}`, '错误', {
+          confirmButtonText: '确定',
+          showCancelButton: false,
+          type: 'error',
+          closeOnClickModal: false,
+          callback: action => {
+          }
+        })
       }
     }
   },

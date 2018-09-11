@@ -1,3 +1,4 @@
+// import * as math from 'mathjs'
 var spArr = []
 var isDg = false
 function computeZHu (dataObj, bunch) {
@@ -813,7 +814,6 @@ function gusuan(ggWay) {
                 var minPass = passType.passMatchs[0];
                 minPassCount[minPass]++;
                 var arr = gusuangg(ggWay[passWay], min);
-
                 tempMinArr.push(arr[0] * mul);
                 maxprize += arr[1] * mul;
                 if (isdc) {
@@ -882,6 +882,9 @@ function Hash() {
 function gusuangg(ggWay, minPassAll) {
     var passType = ptHash.get(ggWay);
     var minPass = passType.passMatchs[0];
+    console.log(minPass, 'minPass')
+    var passNum = Number(passType.text.substr(0, 1))
+    console.log(passNum, '过关场次')
     /*是不是串1的*/
     var mp = parseInt(ggWay.split("-")[1]) == 1;
     /*取出所有的奖金数组*/
@@ -946,13 +949,13 @@ function gusuangg(ggWay, minPassAll) {
     }
     minArr.sort(asc);
     maxArr.sort(desc);
-    if (isDg) {
+    if (isDg) { // 是否为单关
         minAward = minArr[0];
         maxAward = 0;
         for (var i = 0; i < minArr.length; i++) {
             maxAward += maxArr[i];
         }
-    } else if (mp) {
+    } else if (mp) { // 是串1的情况
         var pass = minPass;
         var danSize = danMinArr.length;
         var undanSize = minArr.length;
@@ -993,13 +996,23 @@ function gusuangg(ggWay, minPassAll) {
                     var pos2 = 0;
                     for (var k2 = 0; k2 < n2; k2++) {
                         if (comb2[k2] == true) {
+                            console.log(maxArr[k2], '数字相乘')
                             award2 *= maxArr[k2];
+                            // console.log(award2, 3333333333)
                             pos2++;
                             if (pos2 == m2)
                                 break;
                         }
                     }
                     award2 *= 2;
+                    if (passNum === 2 || passNum === 3) {
+                      award2 = award2 > 200000 ? 200000 : award2
+                    } else if (passNum === 4 || passNum === 5) {
+                      award2 = award2 > 500000 ? 500000 : award2
+                    } else if (passNum === 6 || passNum === 7 || passNum === 8) {
+                      award2 = award2 > 1000000 ? 1000000 : award2
+                    }
+                    console.log(award2, 'award1是串1 的情况')
                     maxAward += award2;
                 });
             });
@@ -1008,7 +1021,7 @@ function gusuangg(ggWay, minPassAll) {
         for (var dan = danMinHit; dan <= danSize; dan++) {
             countMaxFn(dan);
         }
-    } else {
+    } else { // 不是串1的情况
         minAward = 1;
         for (var i = 0; i < minPass; i++) {
             minAward *= minArr[i];
@@ -1049,6 +1062,14 @@ function gusuangg(ggWay, minPassAll) {
                         }
                     }
                     award *= 2;
+                    if (passNum === 2 || passNum === 3) {
+                        award = award > 200000 ? 200000 : award
+                    } else if (passNum === 4 || passNum === 5) {
+                        award = award > 500000 ? 500000 : award
+                    } else if (passNum === 6 || passNum === 7 || passNum === 8) {
+                        award = award > 1000000 ? 1000000 : award
+                    }
+                    console.log(award, 'award2过关方式是非串1，但排列组合的组合方式的长度等于场次数')
                     maxAward += award;
                 } else { //小于串的情况继续拆
                     C3(chuan, passType.passMatchs[i], function (comb2, n, m) {
@@ -1063,6 +1084,14 @@ function gusuangg(ggWay, minPassAll) {
                             }
                         }
                         award *= 2;
+                        if (minPass === 2 || minPass === 3) {
+                            award = award > 200000 ? 200000 : award
+                        } else if (minPass === 4 || minPass === 5) {
+                            award = award > 500000 ? 500000 : award
+                        } else if (minPass === 6 || minPass === 7 || minPass === 8) {
+                            award = award > 1000000 ? 1000000 : award
+                        }
+                        console.log(award, 'award3过关方式是非串1，但排列组合的组合方式的长度小于场次数')
                         maxAward += award;
                     });
                 }

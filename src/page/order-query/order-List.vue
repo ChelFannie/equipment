@@ -606,7 +606,7 @@ export default {
           _this.$store.commit('setkeyboardCode', 8)
           break
         case 0: // enter
-          if (_this.$store.state.managerFlag) {
+          if (_this.$store.state.managerFlag || _this.$store.state.originalPrizeFlag || _this.$store.state.prizeExitFlag) {
             _this.$store.commit('setkeyboardCode', 0)
           } else {
             if (_this.keyOddFalg) { // 修改赔率完成enter
@@ -788,7 +788,9 @@ export default {
                 sequenceNumberObj['value'] = sequenceNumberObj['value'] + 1
                 val['sequenceNumber'] = sequenceNumberObj['value']
               })
-              this.getOutPopover(this.tableData[0])
+              if (this.storeType === 1) { // 集中票点
+                this.getOutPopover(this.tableData[0])
+              }
             } else {
               // 不存在票
               this.$message({
@@ -926,21 +928,11 @@ export default {
             try {
               if (calcData.orderInfo.betType === 'single') {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
-                maxMoney = maxMoney >= 100000 ? 100000 : maxMoney
               } else {
                 let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
                 maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
-                // 过关场次
-                let tablelen = calcData.betContextList.length
-                if (tablelen === 2 || tablelen === 3) {
-                  maxMoney = maxMoney >= 200000 ? 200000 : maxMoney
-                } else if (tablelen === 4 || tablelen === 5) {
-                  maxMoney = maxMoney >= 500000 ? 500000 : maxMoney
-                } else if (tablelen >= 6 && tablelen <= 8) {
-                  maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
-                }
               }
-              maxMoney = ChangeBetContext.getQianfenWei(maxMoney)
+              maxMoney = maxMoney > 1000000 ? maxMoney / 10000 + '万' : ChangeBetContext.getQianfenWei(maxMoney)
             } catch (error) {
               console.log(error, '过关方式与赛事场次对不上')
             }
@@ -1079,8 +1071,8 @@ export default {
     getEditOdds (rows, betItemsObjIndex, editOdds) {
       this.editOdds = this.editOdds.replace(/(^\s*)|(\s*$)/g, '')
       if (this.editOdds) {
-        let reg = /^[1-9]+([.]{1}[0-9]+){0,1}$/
-        // let reg = /(^\d+[.]{1}\d+$)|(^[1-9]\d{0,}$)/
+        // let reg = /^[1-9]+([.]{1}[0-9]+){0,1}$/
+        let reg = /(^\d+[.]{1}\d+$)|(^[1-9]\d{0,}$)/
         // let reg = /(^[0]{1}[.]{1}([0]{0,}[1-9]+)$)|(^[1-9]+[.]{1}\d+$)|(^[1-9]\d{0,}$)/
         // let reg = /(^[0]{1}[.]{1}([0]+[1-9]+)$)|(^[1-9]\d{0,}[.]{1}\d+$)|(^[1-9]\d{0,}$)/
         let oddsTestFlag = reg.test(this.editOdds)
@@ -1142,8 +1134,7 @@ export default {
             betContextOdds.push(obj)
           })
           let maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(betContextOdds, orderInfo.multiple)))
-          maxMoney = maxMoney >= 100000 ? 100000 : maxMoney
-          maxMoney = ChangeBetContext.getQianfenWei(maxMoney)
+          maxMoney = maxMoney > 1000000 ? maxMoney / 10000 + '万' : ChangeBetContext.getQianfenWei(maxMoney)
           this.$set(this.orderInfo, 'maxMoney', maxMoney)
         } else {
           let calcData = {
@@ -1153,16 +1144,7 @@ export default {
           let editOddsFlag = true
           let dataInfo = ChangeBetContext.getPassMaxMoney(calcData, editOddsFlag)
           let maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
-          // 过关场次
-          let tablelen = calcData.betContextList.length
-          if (tablelen === 2 || tablelen === 3) {
-            maxMoney = maxMoney >= 200000 ? 200000 : maxMoney
-          } else if (tablelen === 4 || tablelen === 5) {
-            maxMoney = maxMoney >= 500000 ? 500000 : maxMoney
-          } else if (tablelen >= 6 && tablelen <= 8) {
-            maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
-          }
-          maxMoney = ChangeBetContext.getQianfenWei(maxMoney)
+          maxMoney = maxMoney > 1000000 ? maxMoney / 10000 + '万' : ChangeBetContext.getQianfenWei(maxMoney)
           this.$set(this.orderInfo, 'maxMoney', maxMoney)
         }
       } else {
@@ -1500,7 +1482,6 @@ export default {
             }
             let _this = this
             if (this.storeType === 1) { // 集中出票点
-              console.log('集中出票点')
               this.$message({
                 type: 'success',
                 message: '出票成功',
@@ -1553,10 +1534,23 @@ export default {
             })
             this.limitSaleData.limitSaleFlag = false
             this.showOutPopover = false
-            this.$message({
-              type: 'success',
-              message: '限售成功'
-            })
+            // this.$message({
+            //   type: 'success',
+            //   message: '限售成功'
+            // })
+            let _this = this
+            if (this.storeType === 1) { // 集中出票点
+              this.$message({
+                type: 'success',
+                message: '限售成功',
+                onClose: _this.getOutPopover(_this.tableData[0])
+              })
+            } else if (this.storeType === 2) { // 散铺
+              this.$message({
+                type: 'success',
+                message: '限售成功'
+              })
+            }
           } else {
             this.$message({
               type: 'error',

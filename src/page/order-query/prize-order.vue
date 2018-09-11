@@ -1,8 +1,8 @@
 <template>
   <div class="prize-order">
     <div class="count-order">
-      <span class="mr">累积兑换票：{{totalTicket}} 张</span>
-      <span class="mr">累积兑换金额：{{totalMoney.toFixed(2)}} 元</span>
+      <span class="mr">票机兑换票：{{totalTicket}} 张</span>
+      <span class="mr">票机兑换金额：{{totalMoney.toFixed(2)}} 元</span>
       <span>兑奖金额(元)：</span>
       <input v-model="awardAmount" ref="input" class="amount" type="number" @input="oninput" placeholder="请输入金额">
       <el-button type="primary" @click="upDate">确定</el-button>
@@ -12,31 +12,20 @@
       系统算奖金额：<span class="bigger">{{(calAwardAmount/ 100).toFixed(2) || 0 }}</span> 元
     </div>
     <div class="imgBox" :style="height">
-      <img class="img" v-show="!noticket" :src="imgStr" alt="">
+      <img class="img" :class="{'img-animation':imgAnimation}" v-show="!noticket" :src="imgStr" alt="">
       <p class="noticket" v-show="noticket">当前无可兑数据！</p>
     </div>
     <el-dialog
       title="提示"
       :visible.sync="dialogVisible"
-      width="30%">
+      width="30%"
+      @close="cancelCommit">
       <span>输入金额与算奖金额不一致<br>是否继续提交？</span>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button @click="cancelCommit">取 消</el-button>
         <el-button type="primary" @click="sureUpDate">确 定</el-button>
       </span>
     </el-dialog>
-    <!-- <el-dialog
-      title="输入原始累积金额（元）："
-      :visible.sync="inputVisible"
-      :show-close="false"
-      width="30%"
-      :close-on-click-modal="false">
-      <input v-model="originalAmount" ref="input1" class="amount" type="number" @input="oninput2" placeholder="请输入金额">
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="returnSrc">取 消</el-button>
-        <el-button type="primary" @click="addInputAmount">确 定</el-button>
-      </span>
-    </el-dialog> -->
   </div>
 </template>
 
@@ -55,11 +44,12 @@ export default {
       totalMoney: 0,
       originalAmount: 0,
       dialogVisible: false,
-      inputVisible: true,
       // 屏幕高度
       height: {
         height: ''
       },
+      // 图片动画效果
+      imgAnimation: true,
       noticket: false
     }
   },
@@ -97,7 +87,22 @@ export default {
       }
       switch (e.keyCode) {
         case 0:
-          _this.upDate()
+          if (!_this.dialogVisible) {
+            if (_this.$store.state.managerFlag || _this.$store.state.prizeExitFlag) {
+              _this.$store.commit('setkeyboardCode', 0)
+            } else {
+              _this.upDate()
+            }
+          } else {
+            _this.sureUpDate()
+          }
+          break
+        case 8:
+          if (!_this.dialogVisible) {
+            _this.$store.commit('setkeyboardCode', 8)
+          } else {
+            _this.cancelCommit()
+          }
           break
         case 111:
           _this.$store.commit('setkeyboardCode', 111)
@@ -136,6 +141,7 @@ export default {
               this.serialNumber = res.data.serialNumber
               this.ticketInfoNumber = res.data.ticketInfoNumber
               this.imgStr = res.data.printResult
+              this.imgAnimation = true
               this.calAwardAmount = res.data.calAwardAmount
               this.noticket = false
             } else {
@@ -175,6 +181,7 @@ export default {
     },
     sureUpDate () {
       this.dialogVisible = false
+      this.imgAnimation = false
       let upDateParams = {
         ticketInfoNumber: this.ticketInfoNumber,
         awardAmount: this.awardAmount
@@ -199,6 +206,11 @@ export default {
             })
           }
         })
+    },
+    cancelCommit () {
+      this.dialogVisible = false
+      this.awardAmount = ''
+      this.$refs.input.focus()
     },
     oninput (e) {
       // 通过正则过滤小数点后两位
@@ -264,9 +276,12 @@ export default {
       position: absolute;
       left: 0;
       right: 0;
+      bottom: 50%;
       margin: auto;
       display: inline-block;
       width: 500px;
+    }
+    .img-animation{
       animation:myfirst 1s forwards;
     }
     @keyframes myfirst{

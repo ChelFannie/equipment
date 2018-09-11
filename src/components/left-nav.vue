@@ -118,7 +118,7 @@
 
     <!-- 兑奖输入原始金额弹框 start -->
     <el-dialog
-      title="输入原始累积金额（元）："
+      title="输入票机余额（元）："
       :visible.sync="prizeDialogVisible"
       :show-close="false"
       width="30%"
@@ -140,7 +140,7 @@
       width="30%"
       :close-on-click-modal="false"
       class="prize-dialog">
-      <span>当前兑奖票<span class="xuan">{{totalTicket}}</span>张，兑奖总金额<span class="xuan">{{totalMoney}}</span> 元</span>
+      <span>请核对当前票机兑奖票共<span class="xuan">{{totalTicket}}</span>张<br>票机兑奖金额为<span class="xuan">{{totalMoney}}</span> 元</span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="canclePrize">取 消</el-button>
         <el-button type="primary" @click="prizeExit">确 定</el-button>
@@ -199,13 +199,17 @@ export default {
       // console.log('watch', val)
       switch (val) {
         case 111:
-          this.$refs.orderList.click()
+          if (!this.prizeDialogVisible) {
+            this.managerDialogVisible || this.$refs.orderList.click()
+          }
           break
         case 106:
-          if (this.managerDialogVisible) {
-            this.cancleMangerLogin()
-          } else {
-            this.$refs.accountOrder.click()
+          if (!this.prizeDialogVisible) {
+            if (this.managerDialogVisible) {
+              this.cancleMangerLogin()
+            } else {
+              this.$refs.accountOrder.click()
+            }
           }
           // this.managerDialogVisible && this.cancleMangerLogin()
           break
@@ -220,31 +224,44 @@ export default {
             } else if (this.focusRecord === 3) {
               this.focusRecord = 2
             }
+          } else if (this.prizeDialogVisible) {
+            this.prizeDialogVisible = false
           } else {
             this.$refs.prizeOrder.click()
           }
           break
         case 109:
-          if (this.managerDialogVisible) {
-            this.focusRecord--
-            this.$store.commit('setkeyboardCode', -1)
-            if (this.focusRecord === 0) {
-              this.$refs.userAccount.focus()
-            } else if (this.focusRecord === 1) {
-              this.$refs.password.focus()
-            } else if (this.focusRecord === -1) {
-              this.focusRecord = 0
+          if (!this.prizeDialogVisible) {
+            if (this.managerDialogVisible) {
+              this.focusRecord--
+              this.$store.commit('setkeyboardCode', -1)
+              if (this.focusRecord === 0) {
+                this.$refs.userAccount.focus()
+              } else if (this.focusRecord === 1) {
+                this.$refs.password.focus()
+              } else if (this.focusRecord === -1) {
+                this.focusRecord = 0
+              }
+            } else {
+              this.$refs.queryOrder.click()
             }
-          } else {
-            this.$refs.queryOrder.click()
           }
           // this.$refs.queryOrder.click()
           break
         case 8:
           // this.cancleMangerLogin()
+          if (this.prizeExitVisible) {
+            this.canclePrize()
+          }
           break
         case 0:
-          this.sumbitManagerLogin('ruleForm')
+          if (this.managerDialogVisible) {
+            this.sumbitManagerLogin('ruleForm')
+          } else if (this.prizeDialogVisible) {
+            this.toPrizeOrder()
+          } else if (this.prizeExitVisible) {
+            this.prizeExit()
+          }
           break
         default:
           break
@@ -254,6 +271,12 @@ export default {
     },
     managerDialogVisible: function (val) {
       this.$store.commit('setManagerFlag', val)
+    },
+    prizeDialogVisible: function (val) {
+      this.$store.commit('setOriginalPrizeFlag', val)
+    },
+    prizeExitVisible: function (val) {
+      this.$store.commit('setPrizeExitFlag', val)
     }
   },
   created () {
@@ -266,16 +289,21 @@ export default {
       }
       switch (e.keyCode) {
         case 111:
-          _this.managerDialogVisible || _this.$refs.orderList.click()
+          if (!_this.prizeDialogVisible) {
+            _this.managerDialogVisible || _this.$refs.orderList.click()
+          }
           break
         case 106:
-          if (_this.managerDialogVisible) {
-            _this.cancleMangerLogin()
-          } else {
-            _this.$refs.accountOrder.click()
+          if (!_this.prizeDialogVisible) {
+            if (_this.managerDialogVisible) {
+              _this.cancleMangerLogin()
+            } else {
+              _this.$refs.accountOrder.click()
+            }
           }
           break
         case 107:
+          // console.log(1232)
           if (_this.managerDialogVisible) {
             _this.focusRecord++
             if (_this.focusRecord === 1) {
@@ -288,34 +316,45 @@ export default {
               _this.focusRecord = 2
               return false
             }
+          } else if (_this.prizeDialogVisible) {
+            _this.prizeDialogVisible = false
           } else {
             _this.$refs.prizeOrder.click()
           }
           break
         case 109:
-          if (_this.managerDialogVisible) {
-            _this.focusRecord--
-            if (_this.focusRecord === 0) {
-              _this.$refs.userAccount.focus()
-              return false
-            } else if (_this.focusRecord === 1) {
-              _this.$refs.password.focus()
-              return false
-            } else if (_this.focusRecord === -1) {
-              _this.focusRecord = 0
-              return false
+          if (!_this.prizeDialogVisible) {
+            if (_this.managerDialogVisible) {
+              _this.focusRecord--
+              if (_this.focusRecord === 0) {
+                _this.$refs.userAccount.focus()
+                return false
+              } else if (_this.focusRecord === 1) {
+                _this.$refs.password.focus()
+                return false
+              } else if (_this.focusRecord === -1) {
+                _this.focusRecord = 0
+                return false
+              }
+            } else {
+              _this.$refs.queryOrder.click()
             }
-          } else {
-            _this.$refs.queryOrder.click()
           }
           // _this.managerDialogVisible || _this.$refs.queryOrder.click()
           break
         case 8:
           // _this.cancleMangerLogin()
+          if (_this.prizeExitVisible) {
+            _this.canclePrize()
+          }
           break
         case 0:
           if (_this.managerDialogVisible) {
             _this.sumbitManagerLogin('ruleForm')
+          } else if (_this.prizeDialogVisible) {
+            _this.toPrizeOrder()
+          } else if (_this.prizeExitVisible) {
+            _this.prizeExit()
           }
           break
         default:
@@ -525,6 +564,14 @@ export default {
         this.prizeExitVisible = false
         this.decidePrizeExit = true
         this.validateCode = loginValidate.createCode()
+        this.managerForm = {
+          userAccount: '',
+          password: '',
+          inputCode: ''
+        }
+        this.$nextTick(() => {
+          this.$refs.userAccount.focus()
+        })
       } else if (this.toIndex === 'quitSystem') {
         sessionStorage.removeItem('token')
         this.$store.commit('token', '')
@@ -551,7 +598,6 @@ export default {
     canclePrize () {
       this.prizeExitVisible = false
       this.$store.commit('setPrizeCancelFlag', true)
-      console.log(22222)
     }
   }
 }
