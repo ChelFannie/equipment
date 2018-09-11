@@ -20,7 +20,18 @@
       <el-row>
         <el-col :span="6"><span>当前订单： {{statisticData.unPrintOrderCount || 0}} 张</span></el-col>
         <el-col :span="6"><span>订单总额： {{(statisticData.unPrintOrderAmount / 100) || 0}} 元</span></el-col>
-        <el-col :span="12"><span>获取时间： {{statisticData.assginTime ? statisticData.assginTime : '无'}}</span></el-col>
+        <el-col :span="6"><span>获取时间： {{statisticData.assginTime ? statisticData.assginTime : '无'}}</span></el-col>
+        <el-col :span="6" v-if="storeType===1">
+          <el-switch
+            v-model="autocommitTickets"
+            active-color="#13ce66"
+            inactive-color="#dcdfe6"
+            :width="60"
+            active-text="开"
+            inactive-text="关"
+            @change="changeAutoCommit">
+          </el-switch>
+        </el-col>
       </el-row>
     </div>
 
@@ -377,7 +388,11 @@ export default {
       // 选择修改赔率标志
       selectOddFlag: false,
       // 店铺类型
-      storeType: null
+      storeType: null,
+      // 是否开启自动提交模式
+      autocommitTickets: false,
+      // 是否是自动提交模式的限售
+      autoLimitFlag: false
     }
   },
   watch: {
@@ -484,6 +499,13 @@ export default {
         // 清除保存的图片信息
         localStorage.removeItem('keepTicketInfo')
         this.getData()
+      }
+    },
+    // 是否是自动提交模式的限售
+    autoLimitFlag (val) {
+      if (this.autocommitTickets && this.autoLimitFlag) {
+        console.log('自动限售')
+        this.autoLimitSale()
       }
     }
   },
@@ -694,6 +716,10 @@ export default {
     }
   },
   methods: {
+    // 是否开启自动提交模式
+    changeAutoCommit (val) {
+      this.autocommitTickets = val
+    },
     // 确定是否已经存在未出票
     takeOrderToPrint () {
       req('takeOrderToPrint')
@@ -1243,6 +1269,8 @@ export default {
             if (ORreg.test(_this.realTicketNumber)) {
               if (ORnumber === _this.realTicketNumber) {
                 _this.submitFlag = true
+                // 自动提交限售
+                _this.autoLimitFlag = true
               } else {
                 _this.$message({
                   type: 'error',
@@ -1571,6 +1599,37 @@ export default {
         'limitSaleFlag': true,
         'ticketInfoNumber': ticketInfoNumber
       }
+    },
+    // 自动提交限售
+    autoLimitSale () {
+      req('limitSale', {'ticketInfoNumber': this.orderInfo.ticketInfoNumber})
+        .then(res => {
+          if (res.code === '00000') {
+            this.tableData.map((item, index) => {
+              if (item.serialNumber === this.orderInfo.serialNumber) {
+                this.$delete(this.tableData, index)
+              }
+            })
+            this.showOutPopover = false
+            let _this = this
+            this.$message({
+              type: 'success',
+              message: '限售成功',
+              onClose: _this.getOutPopover(_this.tableData[0])
+            })
+          } else {
+            this.$message({
+              type: 'error',
+              message: res.msg
+            })
+            this.showOutPopover = true
+          }
+          this.autoLimitFlag = false
+        })
+        .catch(error => {
+          this.autoLimitFlag = false
+          console.log(error)
+        })
     },
     // 导出事件
     exportClick () {

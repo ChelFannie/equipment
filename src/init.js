@@ -4,7 +4,7 @@ import 'element-ui/lib/theme-chalk/index.css'
 import './style/index.css'
 import router from './router'
 import store from './store/store'
-import {Button, Row, Dialog, Col, Menu, MenuItem, Table, TableColumn, Popover, Form, FormItem, Icon, Loading, Message, MessageBox, Pagination, Input, Select, Option, DatePicker} from 'element-ui'
+import {Button, Row, Dialog, Col, Menu, MenuItem, Table, TableColumn, Popover, Form, FormItem, Icon, Loading, Message, MessageBox, Pagination, Input, Select, Option, DatePicker, Switch} from 'element-ui'
 require('./utils/vconsole.js')
 
 // Vue.use(ElementUI)
@@ -27,6 +27,7 @@ Vue.use(Option)
 Vue.use(DatePicker)
 Vue.use(Row)
 Vue.use(Col)
+Vue.use(Switch)
 // Vue.use(DateTimePicker)
 // Vue.use(MessageBox)
 
