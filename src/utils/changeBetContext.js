@@ -537,7 +537,7 @@ class changeBetContext {
       console.log(dataInfo, 'dataInfo')
     } else {
       // console.log(obj, 'obj')
-      betTypeArr = ['3x3']
+      // betTypeArr = ['3x3']
       dataInfo = getCalculate(obj, betTypeArr)
     }
     // console.log(dataInfo)

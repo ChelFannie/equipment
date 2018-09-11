@@ -361,6 +361,8 @@ export default {
           break
       }
     }
+    this.handActive = sessionStorage.getItem('handActive')
+    this.clearStyle = sessionStorage.getItem('clearStyle')
   },
   mounted () {
   },
@@ -528,28 +530,29 @@ export default {
     },
     toPrizeOrder () {
       this.originalAmount = this.originalAmount.replace(/(^\s*)|(\s*$)/g, '')
-      let reg = /(^[0]{1}[.]{1}([0]{0,1}[1-9]{0,2})$)|(^[1-9]\d{0,}[.]{1}\d{1,2}$)|(^[1-9]\d{0,}$)/
+      let reg = /(^[0]{1}[.]{1}([0]{0,1}[1-9]{0,2})$)|(^[1-9]\d{0,}[.]{1}\d{1,2}$)|(^[0-9]\d{0,}$)/
       let flag = reg.test(this.originalAmount)
       if (!flag) {
         this.$message({
           type: 'error',
-          message: '请输入正确的数字！',
+          message: '请输入正确的金额数字！',
           onClose: () => {
             this.$refs.inputMoney.focus()
-            this.$refs.inputMoney.value = ''
+            this.originalAmount = ''
           }
         })
         this.originalAmount = ''
         return
-      // e.target.value = (e.target.value.match(/^\d*(\.?\d{0,2})/g)[0]) || null
       }
       if (this.originalAmount) {
         sessionStorage.setItem('originalAmount', this.originalAmount)
         this.$router.push({name: '兑奖页面'})
         this.$store.commit('setActiveIndex', '/order-query/prize-order')
         localStorage.setItem('setActiveIndex', '/order-query/prize-order')
-        this.handActive = true
-        this.clearStyle = true
+        sessionStorage.setItem('handActive', true)
+        sessionStorage.setItem('clearStyle', true)
+        this.handActive = sessionStorage.getItem('handActive')
+        this.clearStyle = sessionStorage.getItem('clearStyle')
         this.prizeDialogVisible = false
       } else {
         this.$message({
@@ -591,7 +594,7 @@ export default {
         this.prizeDialogVisible = true
         this.$nextTick(() => {
           this.$refs.inputMoney.focus()
-          this.$refs.inputMoney.value = ''
+          this.originalAmount = ''
         })
       }
     },

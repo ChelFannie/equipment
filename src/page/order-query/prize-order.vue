@@ -74,6 +74,8 @@ export default {
     this.totalMoney = Number(this.originalAmount)
     sessionStorage.setItem('totalTicket', this.totalTicket)
     sessionStorage.setItem('totalMoney', this.totalMoney)
+    sessionStorage.setItem('handActive', true)
+    sessionStorage.setItem('clearStyle', true)
   },
   mounted () {
     this.$nextTick(() => {

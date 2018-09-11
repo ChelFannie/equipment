@@ -23,7 +23,7 @@
         <el-col :span="6"><span>获取时间： {{statisticData.assginTime ? statisticData.assginTime : '无'}}</span></el-col>
         <el-col :span="6" v-if="storeType===1">
           <el-switch
-            v-model="autocommitTickets"
+            v-model="automaticMode"
             active-color="#13ce66"
             inactive-color="#dcdfe6"
             :width="60"
@@ -171,7 +171,14 @@
         </el-table>
         <div class="uploadImg">
           <div class="btn">
-            <el-button class="small" type="warning" :disabled="!submitFlag" @click="limitSale(orderInfo.ticketInfoNumber)">限售</el-button>
+            <el-button
+              class="small"
+              type="warning"
+              :disabled="!submitFlag"
+              @click="limitSale(orderInfo.ticketInfoNumber)"
+              v-loading.fullscreen.lock="autoLimitFlag"
+              element-loading-background="rgba(0,0,0,0.4)"
+              element-loading-text="拼命加载中...">限售</el-button>
             <el-button
               class="submit-btn"
               type="success"
@@ -390,9 +397,11 @@ export default {
       // 店铺类型
       storeType: null,
       // 是否开启自动提交模式
-      autocommitTickets: false,
+      automaticMode: false,
       // 是否是自动提交模式的限售
-      autoLimitFlag: false
+      autoLimitFlag: false,
+      // 是否是自动提交模式的出票
+      autoSubmitTicketsFlag: false
     }
   },
   watch: {
@@ -503,9 +512,16 @@ export default {
     },
     // 是否是自动提交模式的限售
     autoLimitFlag (val) {
-      if (this.autocommitTickets && this.autoLimitFlag) {
+      if (this.automaticMode && val) {
         console.log('自动限售')
         this.autoLimitSale()
+      }
+    },
+    // 是否是自动提交模式的出票
+    autoSubmitTicketsFlag (val) {
+      if (this.automaticMode && val) {
+        console.log('自动出票')
+        this.autoSubmitTick()
       }
     }
   },
@@ -718,7 +734,10 @@ export default {
   methods: {
     // 是否开启自动提交模式
     changeAutoCommit (val) {
-      this.autocommitTickets = val
+      this.automaticMode = val
+      if (val && this.storeType === 1) {
+        this.getOutPopover(this.tableData[0])
+      }
     },
     // 确定是否已经存在未出票
     takeOrderToPrint () {
@@ -814,9 +833,9 @@ export default {
                 sequenceNumberObj['value'] = sequenceNumberObj['value'] + 1
                 val['sequenceNumber'] = sequenceNumberObj['value']
               })
-              if (this.storeType === 1) { // 集中票点
-                this.getOutPopover(this.tableData[0])
-              }
+              // if (this.storeType === 1) { // 集中票点
+              //   this.getOutPopover(this.tableData[0])
+              // }
             } else {
               // 不存在票
               this.$message({
@@ -1270,7 +1289,11 @@ export default {
               if (ORnumber === _this.realTicketNumber) {
                 _this.submitFlag = true
                 // 自动提交限售
-                _this.autoLimitFlag = true
+                if (_this.storeType === 1 && _this.automaticMode) {
+                  _this.autoLimitFlag = true
+                }
+                // console.log(this.automaticMode, 'this.automaticMode')
+                // console.log(this.autoLimitFlag, 'this.autoLimitFlag')
               } else {
                 _this.$message({
                   type: 'error',
@@ -1278,6 +1301,10 @@ export default {
                 })
               }
             } else if (QRreg.test(_this.realTicketNumber)) { // 读票成功
+              // 自动提交出票
+              if (_this.storeType === 1 && _this.automaticMode) {
+                _this.autoSubmitTicketsFlag = true
+              }
               _this.submitFlag = false
               _this.selectOddFlag = false
               _this.oddRecord = -1
@@ -1481,9 +1508,10 @@ export default {
     // 提交数据，出票完成
     confirmSumbit () {
       this.sumbitDisabled = true
+      let imageStr = ''
       try {
         latech.saveImageFromJS(this.ticketInfoNumber, this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
-        this.imgStr = latech.getBinaryzationBMP(this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
+        imageStr = latech.getBinaryzationBMP(this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
       } catch (error) {
         console.log('保存图片错误', error)
       }
@@ -1491,7 +1519,7 @@ export default {
         ticketInfoNumber: this.ticketInfoNumber,
         qrInfo: this.realTicketNumber,
         betContextOdds: JSON.stringify(this.betContextOdds),
-        printResult: this.imgStr
+        printResult: imageStr
       }
       req('editTicket', params)
         .then(res => {
@@ -1544,11 +1572,118 @@ export default {
           console.log(error)
         })
     },
+    // 自动提交出票
+    autoSubmitTick () {
+      let reg = /^\d{20}\s\d{8}$/
+      if (!reg.test(this.realTicketNumber)) {
+        this.$message({
+          type: 'error',
+          message: '请投入正确票单！'
+        })
+        this.realTicketNumber = ''
+        return
+      }
+      // 必须读票后，获取到图片和落地票号才能提交
+      if (!this.realTicketNumber || !this.imgStr) {
+        this.$message({
+          type: 'error',
+          message: '请正常读票！'
+        })
+        return
+      }
+      let imageStr = ''
+      try {
+        latech.saveImageFromJS(this.ticketInfoNumber, this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
+        imageStr = latech.getBinaryzationBMP(this.imgStr.substr(21, this.imgStr.length-1)) // eslint-disable-line
+      } catch (error) {
+        console.log('保存图片错误', error)
+      }
+      this.confirmDisabled = true
+      let betContextOdds = []
+      this.hoverData.map(item => {
+        let obj = {}
+        if (this.orderInfo.subPlayType === '59' || this.orderInfo.subPlayType === '69') {
+          let arr = []
+          let objMix = {}
+          item.betItemsObj.map(item1 => {
+            arr.push(item1[item.matchUniqueId])
+          })
+          objMix[item.subPlayType] = arr
+          if (item.subPlayType === '64') { // 篮球大小分
+            obj['totalScore'] = item.score
+          }
+          if (item.subPlayType === '61') { // 篮球让分胜负
+            obj['score'] = item.score
+          }
+          obj[item.matchUniqueId] = objMix
+        } else {
+          let arr = []
+          item.betItemsObj.map(item1 => {
+            arr.push(item1[item.matchUniqueId])
+          })
+          obj[item.matchUniqueId] = arr
+          if (this.orderInfo.subPlayType === '64') {
+            obj['totalScore'] = item.score
+          }
+          if (this.orderInfo.subPlayType === '61') {
+            obj['score'] = item.score
+          }
+        }
+        betContextOdds.push(obj)
+      })
+      let params = {
+        ticketInfoNumber: this.ticketInfoNumber,
+        qrInfo: this.realTicketNumber,
+        betContextOdds: JSON.stringify(betContextOdds),
+        printResult: imageStr
+      }
+      req('editTicket', params)
+        .then(res => {
+          if (res.code === '00000') {
+            this.showOutPopover = false
+            this.tableData.map((item, index) => {
+              if (item.serialNumber === this.orderInfo.serialNumber) {
+                this.$delete(this.tableData, index)
+              }
+            })
+            // 出票成功，将保存的票信息删除
+            let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
+            if (keepTicketInfo.serialNumber === this.ticketInfoSerialNumber) {
+              localStorage.removeItem('keepTicketInfo')
+            }
+            let _this = this
+            this.$message({
+              type: 'success',
+              message: '出票成功',
+              onClose: _this.getOutPopover(_this.tableData[0])
+            })
+          } else if (res.code === '20041') {
+            this.showOutPopover = true
+            this.$message({
+              type: 'error',
+              message: '此票已读票成功，请更换票据读票！'
+            })
+          } else {
+            this.showOutPopover = true
+            this.$message({
+              type: 'error',
+              message: res.msg
+            })
+          }
+          this.confirmDisabled = false
+          this.autoSubmitTicketsFlag = false
+        })
+        .catch(error => {
+          this.autoSubmitTicketsFlag = false
+          this.confirmDisabled = false
+          console.log(error)
+        })
+    },
     // 取消限售
     cancelLimitSale () {
       this.limitSaleData.limitSaleFlag = false
     },
-    // 限售
+    // 提交限售
     confirmLimitSale () {
       this.limitSaleData.limitDisabled = true
       req('limitSale', {'ticketInfoNumber': this.limitSaleData.ticketInfoNumber})
@@ -1557,15 +1692,11 @@ export default {
             this.tableData.map((item, index) => {
               if (item.serialNumber === this.orderInfo.serialNumber) {
                 this.$delete(this.tableData, index)
-                this.getData()
+                // this.getData()
               }
             })
             this.limitSaleData.limitSaleFlag = false
             this.showOutPopover = false
-            // this.$message({
-            //   type: 'success',
-            //   message: '限售成功'
-            // })
             let _this = this
             if (this.storeType === 1) { // 集中出票点
               this.$message({
@@ -1594,6 +1725,7 @@ export default {
           console.log(error)
         })
     },
+    // 点击限售
     limitSale (ticketInfoNumber) {
       this.limitSaleData = {
         'limitSaleFlag': true,
