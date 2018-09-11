@@ -280,6 +280,9 @@ export default {
     }
   },
   created () {
+    if (localStorage.getItem('setActiveIndex') === '/order-query/prize-order') {
+      this.handActive = true
+    }
     this.storeInfo = JSON.parse(sessionStorage.getItem('storeInfo'))
     const _this = this
     document.onkeydown = function (e) {
@@ -361,8 +364,6 @@ export default {
           break
       }
     }
-    this.handActive = sessionStorage.getItem('handActive')
-    this.clearStyle = sessionStorage.getItem('clearStyle')
   },
   mounted () {
   },
@@ -549,10 +550,8 @@ export default {
         this.$router.push({name: '兑奖页面'})
         this.$store.commit('setActiveIndex', '/order-query/prize-order')
         localStorage.setItem('setActiveIndex', '/order-query/prize-order')
-        sessionStorage.setItem('handActive', true)
-        sessionStorage.setItem('clearStyle', true)
-        this.handActive = sessionStorage.getItem('handActive')
-        this.clearStyle = sessionStorage.getItem('clearStyle')
+        this.handActive = true
+        this.clearStyle = true
         this.prizeDialogVisible = false
       } else {
         this.$message({
