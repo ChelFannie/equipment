@@ -83,7 +83,7 @@
           <el-col :span="4">过关方式：<div class="grid-content">{{orderInfo.betTypeWord}}</div></el-col>
           <el-col :span="3">倍数：<div class="grid-content">{{orderInfo.multiple}}倍</div></el-col>
           <el-col :span="5">金额：<div class="grid-content">{{orderInfo.amount}}元</div></el-col>
-          <el-col :span="7">预计奖金：<div class="grid-content red">{{orderInfo.maxMoney|| 0.00}}元</div></el-col>
+          <el-col :span="7">预计最高奖金：<div class="grid-content red">{{orderInfo.maxMoney|| 0.00}}元</div></el-col>
         </el-row>
       </div>
       <div class="contentBox">
@@ -947,7 +947,6 @@ export default {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
               } else {
                 let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-                // maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
                 maxMoney = mul(dataInfo.price, calcData.orderInfo.multiple)
                 maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(maxMoney))
               }

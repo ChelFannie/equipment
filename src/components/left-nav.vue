@@ -140,7 +140,7 @@
       width="30%"
       :close-on-click-modal="false"
       class="prize-dialog">
-      <span>请核对当前票机兑奖票共<span class="xuan">{{totalTicket}}</span>张<br>票机兑奖金额为<span class="xuan">{{totalMoney}}</span> 元</span>
+      <span>请核对当前票机兑奖票共<span class="xuan">{{totalTicket || 0}}</span>张<br>票机兑奖金额为<span class="xuan">{{totalMoney}}</span> 元</span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="canclePrize">取 消</el-button>
         <el-button type="primary" @click="prizeExit">确 定</el-button>
@@ -495,6 +495,7 @@ export default {
         this.handActive = true
       }
       this.managerDialogVisible = false
+      this.$store.commit('setPrizeCancelFlag', true)
     },
     handleOpen (val) {
     },

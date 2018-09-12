@@ -532,13 +532,13 @@ class changeBetContext {
     }
     let dataInfo = {}
     if (calcData.orderInfo.subPlayType === '59' || calcData.orderInfo.subPlayType === '69') {
-      // betTypeArr = ['7x1']
+      // betTypeArr = ['7x120']
       dataInfo = hunheComputeHunhe(obj, betTypeArr)
     } else {
       // betTypeArr = ['5x26']
       dataInfo = getCalculate(obj, betTypeArr)
     }
-    console.log(dataInfo, 'dataInfo')
+    // console.log(dataInfo, 'dataInfo')
     // 注数
     // let zhushu = dataInfo.zhu
     // 投注金额
