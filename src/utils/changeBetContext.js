@@ -1,4 +1,4 @@
-import {getCalculate, hunheComputeHunhe} from './fastCombine'
+import {getCalculate, hunheComputeHunhe, mul, FloatAdd} from './fastCombine'
 class changeBetContext {
   /**
    * 转换彩种
@@ -477,12 +477,13 @@ class changeBetContext {
             singleMax = numVal > singleMax ? numVal : singleMax
           }
         })
-        maxMoney += singleMax * 2
+        // maxMoney += singleMax * 2
+        singleMax = mul(singleMax, 2) > 100000 ? 100000 : mul(singleMax, 2)
+        maxMoney = FloatAdd(changeBetContext.returnEvenRound(maxMoney), changeBetContext.returnEvenRound(singleMax))
       })
     })
-    maxMoney = maxMoney > 100000 ? 100000 : maxMoney
-    // maxMoney = changeBetContext.evenRound(changeBetContext.evenRound(maxMoney, 2) * multiple, 2)
-    maxMoney = changeBetContext.returnEvenRound(changeBetContext.returnEvenRound(maxMoney) * multiple)
+    maxMoney = mul(changeBetContext.returnEvenRound(maxMoney), multiple)
+    maxMoney = changeBetContext.returnEvenRound(changeBetContext.returnEvenRound(maxMoney))
     return maxMoney
   }
 
@@ -531,16 +532,13 @@ class changeBetContext {
     }
     let dataInfo = {}
     if (calcData.orderInfo.subPlayType === '59' || calcData.orderInfo.subPlayType === '69') {
-      // console.log(betTypeArr, 'betTypeArr')
-      // betTypeArr = ['6x57']
+      // betTypeArr = ['7x1']
       dataInfo = hunheComputeHunhe(obj, betTypeArr)
-      console.log(dataInfo, 'dataInfo')
     } else {
-      // console.log(obj, 'obj')
-      // betTypeArr = ['3x3']
+      // betTypeArr = ['5x26']
       dataInfo = getCalculate(obj, betTypeArr)
     }
-    // console.log(dataInfo)
+    console.log(dataInfo, 'dataInfo')
     // 注数
     // let zhushu = dataInfo.zhu
     // 投注金额

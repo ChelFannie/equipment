@@ -1,4 +1,50 @@
-// import * as math from 'mathjs'
+// mathjs库
+function returnEvenRound(num) {
+    let numStr = String(num)
+    let res = 0
+    if (numStr.indexOf('.') > -1) {
+      let threeFloatNum = numStr.split('.')[1].substr(2, 1)
+      let twoFloatNum = numStr.split('.')[1].substr(1, 1)
+      if (Number(threeFloatNum) !== 5) {
+        res = +num.toFixed(2)
+      } else {
+        res = Number(twoFloatNum) % 2 === 0 ? Math.floor(num * 100) / 100 : Math.floor(num * 100 + 1) / 100
+      }
+    } else {
+      res = num
+    }
+    return res
+}
+// 处理浮点数的乘法
+function mul(a, b) {
+    var c = 0,
+    d = a.toString(),
+    e = b.toString();
+    try {
+    c += d.split(".")[1].length;
+    } catch (f) {}
+    try {
+    c += e.split(".")[1].length;
+    } catch (f) {}
+    return Number(d.replace(".", "")) * Number(e.replace(".", "")) / Math.pow(10, c);
+}
+
+// 处理浮点数的加法
+function FloatAdd(a, b) {
+    var c, d, e;
+    try {
+    c = a.toString().split(".")[1].length;
+    } catch (f) {
+    c = 0;
+    }
+    try {
+    d = b.toString().split(".")[1].length;
+    } catch (f) {
+    d = 0;
+    }
+    return e = Math.pow(10, Math.max(c, d)), (mul(a, e) + mul(b, e)) / e;
+}
+
 var spArr = []
 var isDg = false
 function computeZHu (dataObj, bunch) {
@@ -882,9 +928,9 @@ function Hash() {
 function gusuangg(ggWay, minPassAll) {
     var passType = ptHash.get(ggWay);
     var minPass = passType.passMatchs[0];
-    console.log(minPass, 'minPass')
+    // console.log(minPass, 'minPass')
     var passNum = Number(passType.text.substr(0, 1))
-    console.log(passNum, '过关场次')
+    // console.log(passNum, '过关场次')
     /*是不是串1的*/
     var mp = parseInt(ggWay.split("-")[1]) == 1;
     /*取出所有的奖金数组*/
@@ -996,15 +1042,15 @@ function gusuangg(ggWay, minPassAll) {
                     var pos2 = 0;
                     for (var k2 = 0; k2 < n2; k2++) {
                         if (comb2[k2] == true) {
-                            console.log(maxArr[k2], '数字相乘')
-                            award2 *= maxArr[k2];
-                            // console.log(award2, 3333333333)
+                            // award2 *= maxArr[k2];
+                            award2 = mul(award2, maxArr[k2])
                             pos2++;
                             if (pos2 == m2)
                                 break;
                         }
                     }
-                    award2 *= 2;
+                    // award2 *= 2;
+                    award2 = mul(award2, 2);
                     if (passNum === 2 || passNum === 3) {
                       award2 = award2 > 200000 ? 200000 : award2
                     } else if (passNum === 4 || passNum === 5) {
@@ -1012,8 +1058,9 @@ function gusuangg(ggWay, minPassAll) {
                     } else if (passNum === 6 || passNum === 7 || passNum === 8) {
                       award2 = award2 > 1000000 ? 1000000 : award2
                     }
-                    console.log(award2, 'award1是串1 的情况')
-                    maxAward += award2;
+                    // console.log(award2, 'award1是串1 的情况')
+                    // maxAward += award2;
+                    maxAward = FloatAdd(maxAward, returnEvenRound(award2));
                 });
             });
         };
@@ -1055,13 +1102,15 @@ function gusuangg(ggWay, minPassAll) {
                     var pos = 0;
                     for (var k = 0; k < maxArr.length; k++) {
                         if (comb1[k] == true) {
-                            award *= maxArr[k];
+                            // award *= maxArr[k];
+                            award = mul(award, maxArr[k])
                             pos++;
                             if (pos == m)
                                 break;
                         }
                     }
-                    award *= 2;
+                    // award *= 2;
+                    award = mul(award, 2)
                     if (passNum === 2 || passNum === 3) {
                         award = award > 200000 ? 200000 : award
                     } else if (passNum === 4 || passNum === 5) {
@@ -1069,21 +1118,24 @@ function gusuangg(ggWay, minPassAll) {
                     } else if (passNum === 6 || passNum === 7 || passNum === 8) {
                         award = award > 1000000 ? 1000000 : award
                     }
-                    console.log(award, 'award2过关方式是非串1，但排列组合的组合方式的长度等于场次数')
-                    maxAward += award;
+                    // console.log(award, 'award2过关方式是非串1，但排列组合的组合方式的长度等于场次数')
+                    // maxAward += award;
+                    maxAward = FloatAdd(maxAward, returnEvenRound(award));
                 } else { //小于串的情况继续拆
                     C3(chuan, passType.passMatchs[i], function (comb2, n, m) {
                         var award = 1;
                         var pos = 0;
                         for (var k = 0; k < n; k++) {
                             if (comb2[k] == true) {
-                                award *= maxTempArr[k];
+                                // award *= maxTempArr[k];
+                                award = mul(award, maxArr[k])
                                 pos++;
                                 if (pos == m)
                                     break;
                             }
                         }
-                        award *= 2;
+                        // award *= 2;
+                        award = mul(award, 2)
                         if (minPass === 2 || minPass === 3) {
                             award = award > 200000 ? 200000 : award
                         } else if (minPass === 4 || minPass === 5) {
@@ -1091,14 +1143,16 @@ function gusuangg(ggWay, minPassAll) {
                         } else if (minPass === 6 || minPass === 7 || minPass === 8) {
                             award = award > 1000000 ? 1000000 : award
                         }
-                        console.log(award, 'award3过关方式是非串1，但排列组合的组合方式的长度小于场次数')
-                        maxAward += award;
+                        // console.log(award, 'award3过关方式是非串1，但排列组合的组合方式的长度小于场次数')
+                        // maxAward += award;
+                        maxAward = FloatAdd(maxAward, returnEvenRound(award));
                     });
                 }
             }
         });
     }
-    /*算出来的最大最小奖金开始进行计算*/
+    // /*算出来的最大最小奖金开始进行计算*/
+    // console.log(maxAward, 'maxAward')
     return [minAward, maxAward, mintimes];
 }
 
@@ -1898,4 +1952,4 @@ function dgRecon(arr,mcn,danmaArr){
     }
     return newdgAr;
 }
-export {hunheComputeHunhe, getCalculate}
+export {hunheComputeHunhe, getCalculate ,mul, FloatAdd}

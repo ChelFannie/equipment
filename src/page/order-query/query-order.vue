@@ -187,6 +187,7 @@
 </template>
 
 <script>
+import {mul} from '../../utils/fastCombine'
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import req from '../../api/order-list/index.js'
 export default {
@@ -484,52 +485,16 @@ export default {
           if (res.code === '00000') {
             let maxMoney = 0
             let calcData = JSON.parse(JSON.stringify(res.data))
-            // 数据出现异常
-            // if (calcData.orderInfo.betType !== 'single') {
-            //   // 判断后台拆票是否出现问题
-            //   let ticketErrorFlag = false
-            //   let betLen = Number(calcData.orderInfo.betType.split('x')[0])
-            //   let tablelen = calcData.betContextList.length
-            //   betLen !== tablelen && (ticketErrorFlag = true)
-            //   // 判断是否拆票时，有重复的matchUniqueId
-            //   let repeatIdFlag = false
-            //   for (let i = 0; i < calcData.betContextList.length - 1; i++) {
-            //     if (calcData.betContextList[i].matchUniqueId === calcData.betContextList[i + 1].matchUniqueId) {
-            //       repeatIdFlag = true
-            //       break
-            //     }
-            //   }
-            //   if (ticketErrorFlag || repeatIdFlag) {
-            //     this.$alert('数据出现异常，请联系开发人员！', '错误提示', {
-            //       confirmButtonText: '确定',
-            //       type: 'error',
-            //       showClose: false,
-            //       callback: action => {
-            //         console.log('后台数据出现异常，请检查！')
-            //       }
-            //     })
-            //     // return
-            //   }
-            // }
             // 计算最高奖金
             try {
               if (calcData.orderInfo.betType === 'single') {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
-                maxMoney = maxMoney >= 100000 ? 100000 : maxMoney
               } else {
                 let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
-                // 过关场次
-                let tablelen = calcData.betContextList.length
-                if (tablelen === 2 || tablelen === 3) {
-                  maxMoney = maxMoney >= 200000 ? 200000 : maxMoney
-                } else if (tablelen === 4 || tablelen === 5) {
-                  maxMoney = maxMoney >= 500000 ? 500000 : maxMoney
-                } else if (tablelen >= 6 && tablelen <= 8) {
-                  maxMoney = maxMoney >= 1000000 ? 1000000 : maxMoney
-                }
+                maxMoney = mul(dataInfo.price, calcData.orderInfo.multiple)
+                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(maxMoney))
               }
-              maxMoney = ChangeBetContext.getQianfenWei(maxMoney)
+              maxMoney = (maxMoney > 1000000 && maxMoney % 1000000 === 0) ? maxMoney / 10000 + '万' : ChangeBetContext.getQianfenWei(maxMoney)
             } catch (error) {
               console.log(error)
             }

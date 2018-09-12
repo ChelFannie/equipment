@@ -33,7 +33,7 @@
                 <span slot="title" class="icon-name">订单结算</span>
               </span>
             </button>
-            <!-- <el-menu-item
+            <el-menu-item
               :disabled="$store.state.menuDisabled.queryOrder"
               id="query-order"
               index="/order-query/query-order"
@@ -43,14 +43,14 @@
                 <i class="icon iconfont icon-SQLshenhe"></i>
                 <span slot="title" class="icon-name">查询</span>
               </span>
-            </el-menu-item> -->
+            </el-menu-item>
 
-            <el-menu-item index="/order-query/query-order" class="flex-item" :class="{'clear-style': clearStyle}">
+            <!-- <el-menu-item index="/order-query/query-order" class="flex-item" :class="{'clear-style': clearStyle}">
               <span class="icon-box" ref="queryOrder">
                 <i class="icon iconfont icon-SQLshenhe"></i>
                 <span slot="title" class="icon-name">查询</span>
               </span>
-            </el-menu-item>
+            </el-menu-item> -->
             <button
               class="flex-item"
               :disabled="$store.state.menuDisabled.queryOrder"
@@ -423,7 +423,6 @@ export default {
       }
     },
     managerLogin () {
-      // this.toIndex = '/order-query/examine-order'
       this.toIndex = '/order-query/examine'
       if (localStorage.getItem('setActiveIndex') === '/order-query/prize-order') {
         // 获取兑奖页面传回的累积总金额及累积兑奖票
@@ -492,17 +491,10 @@ export default {
       })
     },
     cancleMangerLogin () {
-      console.log(this.toIndex)
       if (this.decidePrizeExit) {
         this.handActive = true
       }
       this.managerDialogVisible = false
-      // this.focusRecord = 0
-      // this.$nextTick(() => {
-      //   this.$refs.accountOrder.parentNode.classList.remove('is-active')
-      //   let tuofengPath = this.getTuoFeng(this.$route.path.split('/')[2])
-      //   this.$refs[tuofengPath].parentNode.classList.add('is-active')
-      // })
     },
     handleOpen (val) {
     },
@@ -579,7 +571,6 @@ export default {
         this.$store.commit('token', '')
         this.$router.push({name: '登录'})
       } else {
-        console.log(this.toIndex)
         this.$router.push(this.toIndex)
         this.handActive = false
         this.clearStyle = false

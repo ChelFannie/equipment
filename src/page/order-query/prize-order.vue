@@ -72,8 +72,6 @@ export default {
     this.getHeight()
     this.originalAmount = JSON.parse(sessionStorage.getItem('originalAmount'))
     this.totalMoney = Number(this.originalAmount)
-    sessionStorage.setItem('totalTicket', this.totalTicket)
-    sessionStorage.setItem('totalMoney', this.totalMoney)
   },
   mounted () {
     this.$nextTick(() => {

@@ -21,14 +21,15 @@
         <el-col :span="6"><span>当前订单： {{statisticData.unPrintOrderCount || 0}} 张</span></el-col>
         <el-col :span="6"><span>订单总额： {{(statisticData.unPrintOrderAmount / 100) || 0}} 元</span></el-col>
         <el-col :span="6"><span>获取时间： {{statisticData.assginTime ? statisticData.assginTime : '无'}}</span></el-col>
-        <el-col :span="6" v-if="storeType===1">
+        <el-col :span="6" v-if="storeType===1" class="switch-box">
+          自动出票：
           <el-switch
             v-model="automaticMode"
             active-color="#13ce66"
             inactive-color="#dcdfe6"
-            :width="60"
-            active-text="开"
-            inactive-text="关"
+            :width="40"
+            active-text="是"
+            inactive-text="否"
             @change="changeAutoCommit">
           </el-switch>
         </el-col>
@@ -280,6 +281,7 @@
 </template>
 <script>
 import ChangeBetContext from '../../utils/changeBetContext.js'
+import {mul} from '../../utils/fastCombine'
 import req from '../../api/order-list/index.js'
 import getResultStr from '../../utils/combine.js'
 import formatDateTime from '../../utils/format.js'
@@ -513,14 +515,14 @@ export default {
     // 是否是自动提交模式的限售
     autoLimitFlag (val) {
       if (this.automaticMode && val) {
-        console.log('自动限售')
+        // console.log('自动限售')
         this.autoLimitSale()
       }
     },
     // 是否是自动提交模式的出票
     autoSubmitTicketsFlag (val) {
       if (this.automaticMode && val) {
-        console.log('自动出票')
+        // console.log('自动出票')
         this.autoSubmitTick()
       }
     }
@@ -833,9 +835,9 @@ export default {
                 sequenceNumberObj['value'] = sequenceNumberObj['value'] + 1
                 val['sequenceNumber'] = sequenceNumberObj['value']
               })
-              // if (this.storeType === 1) { // 集中票点
-              //   this.getOutPopover(this.tableData[0])
-              // }
+              if (this.storeType === 1 && this.automaticMode) { // 集中票点自动出票模式
+                this.getOutPopover(this.tableData[0])
+              }
             } else {
               // 不存在票
               this.$message({
@@ -939,49 +941,21 @@ export default {
           if (res.code === '00000') {
             let maxMoney = 0
             let calcData = JSON.parse(JSON.stringify(res.data))
-            // 数据出现异常
-            // if (calcData.orderInfo.betType !== 'single') {
-            //   // 判断后台拆票是否出现问题
-            //   let ticketErrorFlag = false
-            //   let betLen = Number(calcData.orderInfo.betType.split('x')[0])
-            //   let tablelen = calcData.betContextList.length
-            //   betLen !== tablelen && (ticketErrorFlag = true)
-            //   // 判断是否拆票时，有重复的matchUniqueId
-            //   let repeatIdFlag = false
-            //   for (let i = 0; i < calcData.betContextList.length - 1; i++) {
-            //     if (calcData.betContextList[i].matchUniqueId === calcData.betContextList[i + 1].matchUniqueId) {
-            //       repeatIdFlag = true
-            //       break
-            //     }
-            //   }
-            //   if (ticketErrorFlag || repeatIdFlag) {
-            //     this.$message({
-            //       type: 'error',
-            //       message: '数据出现异常，请联系开发人员！'
-            //     })
-            //     // this.$alert('数据出现异常，请联系开发人员！', '错误提示', {
-            //     //   confirmButtonText: '确定',
-            //     //   type: 'error',
-            //     //   showClose: false,
-            //     //   callback: action => {
-            //     //     console.log('后台数据出现异常，请检查！')
-            //     //   }
-            //     // })
-            //   }
-            // }
             // 计算最高奖金
             try {
               if (calcData.orderInfo.betType === 'single') {
                 maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(JSON.parse(calcData.orderInfo.betContextOdds), calcData.orderInfo.multiple)))
               } else {
                 let dataInfo = ChangeBetContext.getPassMaxMoney(calcData)
-                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
+                // maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
+                maxMoney = mul(dataInfo.price, calcData.orderInfo.multiple)
+                maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(maxMoney))
               }
-              maxMoney = maxMoney > 1000000 ? maxMoney / 10000 + '万' : ChangeBetContext.getQianfenWei(maxMoney)
+              maxMoney = (maxMoney > 1000000 && maxMoney % 1000000 === 0) ? maxMoney / 10000 + '万' : ChangeBetContext.getQianfenWei(maxMoney)
             } catch (error) {
               console.log(error, '过关方式与赛事场次对不上')
             }
-            this.showOutPopover = true
+            // this.showOutPopover = true
             this.confirmDisabled = false
             // 获取信息
             let orderInfo = res.data.orderInfo
@@ -1053,6 +1027,7 @@ export default {
               val.subPlayTypeWord = ChangeBetContext.subPlayType(val.subPlayType)
             })
             this.hoverData = betContextList
+            this.showOutPopover = true
             this.tableData.map(item => {
               if (this.orderInfo.serialNumber === item.serialNumber) {
                 this.$set(item, 'flag', false)
@@ -1079,7 +1054,6 @@ export default {
       this.editAssumption = this.editAssumption.replace(/(^\s*)|(\s*$)/g, '')
       // 没有修改内容，就关闭弹框，如果修改了，则替换原数据
       if (this.editAssumption) {
-        // let reg = /^[1-9-+]+([.]{1}[0-9]+){0,1}$/
         let reg = /(^[+-][1-9]+[.]{1}\d+$)|(^\d+[.]{1}\d+$)|(^[1-9]\d{0,}$)|(^[+-][1-9]+$)/
         let assumptionTestFlag = reg.test(this.editAssumption)
         if (!assumptionTestFlag) {
@@ -1116,10 +1090,7 @@ export default {
     getEditOdds (rows, betItemsObjIndex, editOdds) {
       this.editOdds = this.editOdds.replace(/(^\s*)|(\s*$)/g, '')
       if (this.editOdds) {
-        // let reg = /^[1-9]+([.]{1}[0-9]+){0,1}$/
         let reg = /(^\d+[.]{1}\d+$)|(^[1-9]\d{0,}$)/
-        // let reg = /(^[0]{1}[.]{1}([0]{0,}[1-9]+)$)|(^[1-9]+[.]{1}\d+$)|(^[1-9]\d{0,}$)/
-        // let reg = /(^[0]{1}[.]{1}([0]+[1-9]+)$)|(^[1-9]\d{0,}[.]{1}\d+$)|(^[1-9]\d{0,}$)/
         let oddsTestFlag = reg.test(this.editOdds)
         if (!oddsTestFlag) {
           this.$message({
@@ -1179,7 +1150,7 @@ export default {
             betContextOdds.push(obj)
           })
           let maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(betContextOdds, orderInfo.multiple)))
-          maxMoney = maxMoney > 1000000 ? maxMoney / 10000 + '万' : ChangeBetContext.getQianfenWei(maxMoney)
+          maxMoney = (maxMoney > 1000000 && maxMoney % 1000000 === 0) ? maxMoney / 10000 + '万' : ChangeBetContext.getQianfenWei(maxMoney)
           this.$set(this.orderInfo, 'maxMoney', maxMoney)
         } else {
           let calcData = {
@@ -1188,8 +1159,9 @@ export default {
           }
           let editOddsFlag = true
           let dataInfo = ChangeBetContext.getPassMaxMoney(calcData, editOddsFlag)
-          let maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(ChangeBetContext.returnEvenRound(dataInfo.price) * calcData.orderInfo.multiple))
-          maxMoney = maxMoney > 1000000 ? maxMoney / 10000 + '万' : ChangeBetContext.getQianfenWei(maxMoney)
+          let maxMoney = mul(dataInfo.price, calcData.orderInfo.multiple)
+          maxMoney = ChangeBetContext.returnFloat(ChangeBetContext.returnEvenRound(maxMoney))
+          maxMoney = (maxMoney > 1000000 && maxMoney % 1000000 === 0) ? maxMoney / 10000 + '万' : ChangeBetContext.getQianfenWei(maxMoney)
           this.$set(this.orderInfo, 'maxMoney', maxMoney)
         }
       } else {
@@ -1692,7 +1664,6 @@ export default {
             this.tableData.map((item, index) => {
               if (item.serialNumber === this.orderInfo.serialNumber) {
                 this.$delete(this.tableData, index)
-                // this.getData()
               }
             })
             this.limitSaleData.limitSaleFlag = false
@@ -1846,6 +1817,14 @@ export default {
       .timer{
         span{
           color: #FE4C40;
+        }
+      }
+      .switch-box{
+        // text-align: right;
+        .el-switch__label{
+          span{
+            font-size: 20px;
+          }
         }
       }
     }
