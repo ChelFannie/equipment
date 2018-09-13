@@ -882,53 +882,55 @@ export default {
     },
     // 获取订单信息
     getOutPopover (rows, event, column) {
-      // 保存读票的订单号
-      this.ticketInfoSerialNumber = rows.serialNumber
-      this.orderInfo = {}
-      this.hoverData = []
-      this.ticketInfoNumber = ''
-      // 出票状态
-      this.printFlag = rows.printFlag
-      // 弹出当前点击的票详情框
-      this.tableData.map(item => {
-        if (item.serialNumber === rows.serialNumber) {
-          this.$set(item, 'flag', true)
-        }
-      })
-      req('queryTicketList', {serialNumber: rows.serialNumber})
-        .then(res => {
-          if (res.code === '00000') {
-            if (res.data.ticketInfoVoPage.result && res.data.ticketInfoVoPage.result.length) {
-              this.ticketInfoNumber = res.data.ticketInfoVoPage.result[0].ticketInfoNumber
+      if (rows) {
+        // 保存读票的订单号
+        this.ticketInfoSerialNumber = rows.serialNumber
+        this.orderInfo = {}
+        this.hoverData = []
+        this.ticketInfoNumber = ''
+        // 出票状态
+        this.printFlag = rows.printFlag
+        // 弹出当前点击的票详情框
+        this.tableData.map(item => {
+          if (item.serialNumber === rows.serialNumber) {
+            this.$set(item, 'flag', true)
+          }
+        })
+        req('queryTicketList', {serialNumber: rows.serialNumber})
+          .then(res => {
+            if (res.code === '00000') {
+              if (res.data.ticketInfoVoPage.result && res.data.ticketInfoVoPage.result.length) {
+                this.ticketInfoNumber = res.data.ticketInfoVoPage.result[0].ticketInfoNumber
+              } else {
+                this.$message({
+                  type: 'error',
+                  message: '此订单无票'
+                })
+                this.tableData.map(item => {
+                  if (item.serialNumber === rows.serialNumber) {
+                    this.$set(item, 'flag', false)
+                  }
+                })
+                return
+              }
+              // 订单中必须有票才能打开票详情弹出框
+              this.getPopoverData(rows)
             } else {
               this.$message({
                 type: 'error',
-                message: '此订单无票'
+                message: res.msg
               })
-              this.tableData.map(item => {
-                if (item.serialNumber === rows.serialNumber) {
-                  this.$set(item, 'flag', false)
-                }
-              })
-              return
             }
-            // 订单中必须有票才能打开票详情弹出框
-            this.getPopoverData(rows)
-          } else {
-            this.$message({
-              type: 'error',
-              message: res.msg
+            this.tableData.map(item => {
+              if (item.serialNumber === rows.serialNumber) {
+                this.$set(item, 'flag', false)
+              }
             })
-          }
-          this.tableData.map(item => {
-            if (item.serialNumber === rows.serialNumber) {
-              this.$set(item, 'flag', false)
-            }
           })
-        })
-        .catch(error => {
-          console.log(error)
-        })
+          .catch(error => {
+            console.log(error)
+          })
+      }
     },
     // 获取票面信息
     getPopoverData (rows) {
