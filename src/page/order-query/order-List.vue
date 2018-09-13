@@ -789,7 +789,7 @@ export default {
             this.printList = []
             this.loading = false
             // 剩余张数
-            this.unPrintOrdersCount = res.data.unPrintOrdersCount
+            res.data.unPrintOrdersCount && (this.unPrintOrdersCount = res.data.unPrintOrdersCount)
             // 销售与订单信息
             this.statisticData = res.data.statistic
             if (res.data.orderList.result.length) {

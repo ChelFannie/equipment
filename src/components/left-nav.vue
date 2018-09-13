@@ -374,6 +374,7 @@ export default {
         // 获取兑奖页面传回的累积总金额及累积兑奖票
         this.totalTicket = sessionStorage.getItem('totalTicket')
         this.totalMoney = sessionStorage.getItem('totalMoney')
+        this.clearStyle = true
         this.prizeExitVisible = true
         return
       }
@@ -529,13 +530,10 @@ export default {
       if (!flag) {
         this.$message({
           type: 'error',
-          message: '请输入正确的金额数字！',
-          onClose: () => {
-            this.$refs.inputMoney.focus()
-            this.originalAmount = ''
-          }
+          message: '请输入正确的金额数字！'
         })
         this.originalAmount = ''
+        this.$refs.inputMoney.focus()
         return
       }
       if (this.originalAmount) {
