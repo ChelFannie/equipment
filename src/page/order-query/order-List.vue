@@ -4,7 +4,7 @@
       <el-row>
         <el-col :span="6"><div>今日销售：{{statisticData.printedOrderCount || 0}} 张</div></el-col>
         <el-col :span="6"><div>金额：{{(statisticData.printedOrderAmount / 100) || 0}} 元</div></el-col>
-        <el-col :span="12">
+        <el-col :span="6">
           <div class="timer">订单剩余时间：
             <span>0</span>
             <span>0</span>
@@ -16,6 +16,8 @@
             <span>0</span>
           </div>
         </el-col>
+        <el-col :span="6" v-if="storeType === 1">剩余票数：<span class="redColor">{{unPrintOrdersCount || 0}}</span>张</el-col>
+        <el-col :span="6" v-if="storeType === 2">是否有票：<span class="redColor">{{unPrintOrdersCount>0?'是':'否' }}</span></el-col>
       </el-row>
       <el-row>
         <el-col :span="6"><span>当前订单： {{statisticData.unPrintOrderCount || 0}} 张</span></el-col>
@@ -25,7 +27,7 @@
           自动出票：
           <el-switch
             v-model="automaticMode"
-            active-color="#13ce66"
+            active-color="#035bda"
             inactive-color="#dcdfe6"
             :width="40"
             active-text="是"
@@ -403,7 +405,9 @@ export default {
       // 是否是自动提交模式的限售
       autoLimitFlag: false,
       // 是否是自动提交模式的出票
-      autoSubmitTicketsFlag: false
+      autoSubmitTicketsFlag: false,
+      // 剩余票数
+      unPrintOrdersCount: 0
     }
   },
   watch: {
@@ -784,6 +788,8 @@ export default {
           if (res.code === '00000') {
             this.printList = []
             this.loading = false
+            // 剩余张数
+            this.unPrintOrdersCount = res.data.unPrintOrdersCount
             // 销售与订单信息
             this.statisticData = res.data.statistic
             if (res.data.orderList.result.length) {
@@ -1820,11 +1826,20 @@ export default {
           color: #FE4C40;
         }
       }
+      .redColor{
+        color: #FE4C40;
+        padding: 10px;
+      }
       .switch-box{
         // text-align: right;
         .el-switch__label{
+          opacity: 0.3;
           span{
             font-size: 20px;
+          }
+          &.is-active{
+            opacity: 1;
+            color: #FE4C40;
           }
         }
       }
@@ -2003,7 +2018,7 @@ export default {
     z-index: 99999;
     overflow: auto;
     &::-webkit-scrollbar {
-    display: none;
+      display: none;
     }
     img{
       width: 100%;
