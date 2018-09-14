@@ -6,7 +6,8 @@ import { Message } from 'element-ui'
 // axios.defaults.baseURL = 'http://192.168.28.30:9731/'
 // axios.defaults.withCredentials = true
 // axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
-const BASE_URL = '/api/' // 配置api因为使用了代理，每个接口都需要加/api，在此加/api就不要加到每个接口了,生产环境需设置真实服务器地址
+// const BASE_URL = '/api/' // 配置api因为使用了代理，每个接口都需要加/api，在此加/api就不要加到每个接口了,生产环境需设置真实服务器地址
+const BASE_URL = process.env.BASE_API
 const TIMEOUT_MILLISECONDS = 20000 // 超时链接
 
 const instance = axios.create({

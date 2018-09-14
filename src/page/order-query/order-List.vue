@@ -742,7 +742,9 @@ export default {
     changeAutoCommit (val) {
       this.automaticMode = val
       if (val && this.storeType === 1) {
-        this.getOutPopover(this.tableData[0])
+        setTimeout(() => {
+          this.getOutPopover(this.tableData[0])
+        }, 100)
       }
     },
     // 确定是否已经存在未出票
