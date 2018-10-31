@@ -4,7 +4,7 @@
       <span class="mr">票机兑换票：{{totalTicket}} 张</span>
       <span class="mr">票机兑换金额：{{totalMoney.toFixed(2)}} 元</span>
       <span>兑奖金额(元)：</span>
-      <input v-model="awardAmount" ref="input" class="amount" type="number" @input="oninput" placeholder="请输入金额">
+      <input v-model="awardAmount" ref="input" class="amount" type="number" placeholder="请输入金额">
       <el-button type="primary" @click="upDate">确定</el-button>
     </div>
     <div class="ticketnum" v-show="!noticket">
@@ -70,7 +70,7 @@ export default {
   created () {
     this.getData()
     this.getHeight()
-    this.originalAmount = JSON.parse(sessionStorage.getItem('originalAmount'))
+    this.originalAmount = Number(sessionStorage.getItem('originalAmount'))
     this.totalMoney = Number(this.originalAmount)
   },
   mounted () {
@@ -138,7 +138,12 @@ export default {
             if (res.data) {
               this.serialNumber = res.data.serialNumber
               this.ticketInfoNumber = res.data.ticketInfoNumber
-              this.imgStr = res.data.printResult
+              // this.imgStr = res.data.printResult
+              try {
+                this.imgStr = 'data:image/bmp;base64,' + latech.getPDF417BMPFromJS(res.data.qrInfo) // eslint-disable-line
+              } catch (error) {
+                console.log('图片错误', error)
+              }
               this.imgAnimation = true
               this.calAwardAmount = res.data.calAwardAmount
               this.noticket = false
@@ -157,6 +162,18 @@ export default {
     upDate () {
       if (!this.noticket) {
         if (this.awardAmount) {
+          this.awardAmount = this.awardAmount.replace(/(^\s*)|(\s*$)/g, '')
+          let reg = /^([1-9]\d{0,9}|0)([.]?|(\.\d{1,2})?)$/
+          let flag = reg.test(this.awardAmount)
+          if (!flag) {
+            this.$message({
+              type: 'error',
+              message: '请输入正确的金额数字！'
+            })
+            this.awardAmount = ''
+            this.$refs.input.focus()
+            return
+          }
           let deviation = Number(this.awardAmount) - Number(this.calAwardAmount / 100)
           if (deviation >= -1 && deviation <= 1) {
             this.sureUpDate()
@@ -166,9 +183,9 @@ export default {
         } else {
           this.$message({
             type: 'error',
-            message: '请输入金额！',
-            onClose: () => { this.$refs.input.focus() }
+            message: '请输入金额！'
           })
+          this.$refs.input.focus()
         }
       } else {
         this.$message({
@@ -188,14 +205,16 @@ export default {
         .then(res => {
           if (res.code === '00000') {
             this.totalTicket = this.totalTicket + 1
-            this.totalMoney = Number(this.totalMoney) + Number(this.awardAmount)
+            this.totalMoney = Number(this.totalMoney) + Number(upDateParams.awardAmount)
             sessionStorage.setItem('totalTicket', this.totalTicket)
             sessionStorage.setItem('totalMoney', this.totalMoney)
-            let _this = this
+            // let _this = this
+            this.awardAmount = ''
+            this.$refs.input.focus()
+            this.getData()
             this.$message({
               type: 'success',
-              message: '兑奖成功！',
-              onClose: _this.getData
+              message: '兑奖成功！'
             })
           } else {
             this.$message({
@@ -209,11 +228,6 @@ export default {
       this.dialogVisible = false
       this.awardAmount = ''
       this.$refs.input.focus()
-    },
-    oninput (e) {
-      // 通过正则过滤小数点后两位
-      e.target.value = (e.target.value.match(/^\d*(\.?\d{0,2})/g)[0]) || null
-      this.awardAmount = e.target.value
     }
   }
 }
@@ -278,6 +292,7 @@ export default {
       margin: auto;
       display: inline-block;
       width: 500px;
+      filter: contrast(20);
     }
     .img-animation{
       animation:myfirst 1s forwards;

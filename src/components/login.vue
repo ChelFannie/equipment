@@ -40,6 +40,7 @@
 </template>
 <script>
 import req from '../api/login/login.js'
+// import getCode from '../utils/encoded.js'
 export default {
   inject: ['reload'],
   data () {
@@ -101,6 +102,23 @@ export default {
   },
   methods: {
     login () {
+      // let objStr9 = {
+      //   amount: 200,
+      //   betContext: [{'FB201807277001': ['1', '0']}, {'FB201807287002': ['1', '3']}],
+      //   betType: '2x1',
+      //   lotteryType: '51',
+      //   multiple: 3,
+      //   pot: 20,
+      //   subPlayType: '51'
+      // }
+      // let enCode = getCode(objStr9)
+      // console.log(enCode, 'encode')
+      // try {
+      //   latech.cotrolKeyboard(enCode, 500, 200) // eslint-disable-line
+      //   // latech.cotrolKeyboard('16')
+      // } catch (error) {
+      //   console.log(error)
+      // }
       if (this.form.userAccount === '' || this.form.password === '') {
         this.$message({
           message: '请填写完整信息!',
@@ -108,7 +126,7 @@ export default {
         })
         return
       }
-      this.statusCheckFlag = true
+      // this.statusCheckFlag = true
       if (this.statusCheckFlag) {
         req('login', this.form).then(res => {
           if (res.code === '00000') {

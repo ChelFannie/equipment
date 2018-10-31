@@ -7,7 +7,7 @@ import { Message } from 'element-ui'
 // axios.defaults.withCredentials = true
 // axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
 // const BASE_URL = '/api/' // 配置api因为使用了代理，每个接口都需要加/api，在此加/api就不要加到每个接口了,生产环境需设置真实服务器地址
-const BASE_URL = process.env.BASE_API
+const BASE_URL = process.env.BASE_API // webpack识别开发或生产环境，自动匹配baseUrl
 const TIMEOUT_MILLISECONDS = 20000 // 超时链接
 
 const instance = axios.create({
@@ -71,7 +71,8 @@ instance.interceptors.response.use((response) => {
   }
   return response.data
 }, (error) => {
-  removePending(error.config) // 不管成功与否都从记录中移除请求记录
+  // removePending(error.config) // 不管成功与否都从记录中移除请求记录
+  pending = []
   switch (error.response && error.response.status) {
     case 400:
       error.message = '请求错误(400)'

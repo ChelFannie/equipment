@@ -182,14 +182,18 @@
               v-loading.fullscreen.lock="autoLimitFlag"
               element-loading-background="rgba(0,0,0,0.4)"
               element-loading-text="拼命加载中...">限售</el-button>
-            <el-button
+            <!-- <el-button
               class="submit-btn"
               type="success"
               :disabled="submitFlag"
               v-loading.fullscreen.lock="confirmDisabled"
               element-loading-background="rgba(0,0,0,0.4)"
               element-loading-text="拼命加载中..."
-              @click="submitRealTicket">出票完成</el-button>
+              @click="submitRealTicket">出票完成</el-button> -->
+            <el-button
+              class="submit-btn"
+              type="success"
+              @click="printMachineEnCode">打印</el-button>
           </div>
           <img class="img" :src="imgStr" alt="" @click="enlarge">
         </div>
@@ -288,6 +292,7 @@ import req from '../../api/order-list/index.js'
 import getResultStr from '../../utils/combine.js'
 import formatDateTime from '../../utils/format.js'
 import exportFile from '../../components/order-query/exportFile'
+import getCode from '../../utils/encoded.js'
 export default {
   inject: ['reload'],
   components: {
@@ -407,7 +412,9 @@ export default {
       // 是否是自动提交模式的出票
       autoSubmitTicketsFlag: false,
       // 剩余票数
-      unPrintOrdersCount: 0
+      unPrintOrdersCount: 0,
+      // 打印码
+      enCode: ''
     }
   },
   watch: {
@@ -742,6 +749,7 @@ export default {
     changeAutoCommit (val) {
       this.automaticMode = val
       if (val && this.storeType === 1) {
+        // this.getOutPopover(this.tableData[0])
         setTimeout(() => {
           this.getOutPopover(this.tableData[0])
         }, 100)
@@ -940,6 +948,16 @@ export default {
           })
       }
     },
+    // 打印彩票
+    printMachineEnCode () {
+      let enCode = getCode(this.enCode)
+      console.log(enCode, 'encode')
+      try {
+        latech.cotrolKeyboard(enCode, 500, 200) // eslint-disable-line
+      } catch (error) {
+        console.log(error)
+      }
+    },
     // 获取票面信息
     getPopoverData (rows) {
       this.imgStr = ''
@@ -949,6 +967,8 @@ export default {
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
+            // 获取票订单数据
+            this.enCode = JSON.parse(JSON.stringify(res.data.orderInfo))
             let maxMoney = 0
             let calcData = JSON.parse(JSON.stringify(res.data))
             // 计算最高奖金
