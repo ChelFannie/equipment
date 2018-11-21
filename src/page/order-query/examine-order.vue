@@ -253,7 +253,7 @@ export default {
           if (res.code === '00000') {
             try {
               clearInterval(this.timer)
-              latech.BCRDisableFromJS() // eslint-disable-line  
+              LA.BCRDisableFromJS() // eslint-disable-line  
             } catch (error) {
               console.log('条码枪')
             }
@@ -449,18 +449,18 @@ export default {
     },
     scan () {
       // 条码枪初始化
-      if (latech.BCRInitFromJS() === 0) { // eslint-disable-line
+      if (LA.BCRInitFromJS() === 0) { // eslint-disable-line
         // 条码枪设置扫描模式 参数： 1 手动模式， 2 自动模式
-        if (latech.BCRSetScanModeFromJS(1) === true) { // eslint-disable-line
+        if (LA.BCRSetScanModeFromJS(1) === true) { // eslint-disable-line
           // 条码枪开始扫描
-          // latech.BCRStartScanFromJS() // eslint-disable-line
+          // LA.BCRStartScanFromJS() // eslint-disable-line
           const _this = this
           _this.timer = setInterval(function () {
             // 判断扫描枪是否扫描完
-            if (latech.BCRScanIsCompleteFromJS() === true) { // eslint-disable-line
+            if (LA.BCRScanIsCompleteFromJS() === true) { // eslint-disable-line
               // clearInterval(_this.timer)
-              _this.scanTicket = latech.BCRGetTicketInfoFromJS() // eslint-disable-line
-              latech.BCRStopScan() // eslint-disable-line
+              _this.scanTicket = LA.BCRGetTicketInfoFromJS() // eslint-disable-line
+              LA.BCRStopScan() // eslint-disable-line
               if (_this.lastqrInfo === _this.scanTicket) {
                 _this.$message({
                   type: 'error',
@@ -497,7 +497,7 @@ export default {
   destroyed () {
     try {
       clearInterval(this.timer)
-      latech.BCRDisableFromJS() // eslint-disable-line
+      LA.BCRDisableFromJS() // eslint-disable-line
     } catch (error) {
       console.log('条码枪')
     }

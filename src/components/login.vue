@@ -2,7 +2,6 @@
   <div class="login">
       <div class="content">
           <div class="loginCon">
-            <img class="logo" src="../assets/image/logo.png" alt="">
             <div class="wrap">
               <el-form ref="form" :model="form" label-width="100px" class="form">
                   <el-form-item label="用户名：">
@@ -18,7 +17,15 @@
                     <div @click="createCode" class="right">{{validateCode}}</div>
                   </div> -->
               </el-form>
+
               <div class="btnbox">
+                <span class="deviceSelect">设备选择:</span>
+                <div class="rightBtn1">
+                  <el-radio v-model="radio" :disabled="disabledFlag" @change="radioChange(0)" label="0" class="el-dialog1" border size="medium">打印机</el-radio>
+                  <el-radio v-model="radio" :disabled="disabledFlag" @change="radioChange(1)" label="1" class="el-dialog1" border size="medium">机械键盘</el-radio>
+                </div>
+              </div>
+              <div class="btnbox" v-if="radio==0">
                 <el-button class="leftBtn" type="warning"  @click="statusCheck">设备检测</el-button>
                 <div class="rightBtn">
                   <div class="success" v-if="statusCheckFlag">
@@ -51,9 +58,13 @@ export default {
       },
       QRcode: '',
       timer: null,
-      latechFlag: false,
+      LAFlag: false,
       statusCheckFlag: false,
-      focusRecord: 0
+      focusRecord: 0,
+      radio: '3',
+      disabledFlag: true,
+      serialPortStatus: -10,
+      printStatus: -10
     }
   },
   created () {
@@ -99,12 +110,32 @@ export default {
   },
   mounted () {
     this.$refs.user.focus()
+    try {
+      this.serialPortStatus = LA.getDeviceNumberKeyboadrd() // eslint-disable-line
+      this.printStatus = LA.printStatusFromJS() // eslint-disable-line
+      if (this.serialPortStatus === '0' && this.printStatus === 0) {
+        this.radio = '2'
+        this.disabledFlag = false
+      } else if (this.serialPortStatus === '0') {
+        this.radio = '1'
+        this.statusCheckFlag = true
+        this.$store.commit('setDeviceStatus', 1)
+      } else if (this.printStatus === 0) {
+        this.radio = '0'
+        this.statusCheckFlag = false
+        this.$store.commit('setDeviceStatus', 0)
+      } else {
+        this.disabledFlag = false
+      }
+    } catch (error) {
+      console.log('设备选择错误', error)
+    }
   },
   methods: {
     login () {
       // let objStr9 = {
       //   amount: 200,
-      //   betContext: [{'FB201807277001': ['1', '0']}, {'FB201807287002': ['1', '3']}],
+      //   betContext: JSON.stringify([{'FB201807277001': ['1', '0']}, {'FB201807287002': ['1', '3']}]),
       //   betType: '2x1',
       //   lotteryType: '51',
       //   multiple: 3,
@@ -114,17 +145,43 @@ export default {
       // let enCode = getCode(objStr9)
       // console.log(enCode, 'encode')
       // try {
-      //   latech.cotrolKeyboard(enCode, 500, 200) // eslint-disable-line
-      //   // latech.cotrolKeyboard('16')
+      //   LA.cotrolKeyboard(enCode, 500, 200) // eslint-disable-line
+      //   // LA.cotrolKeyboard('16')
       // } catch (error) {
       //   console.log(error)
       // }
       if (this.form.userAccount === '' || this.form.password === '') {
-        this.$message({
-          message: '请填写完整信息!',
-          type: 'warning'
-        })
+        this.$message({message: '请填写完整信息!', type: 'warning'})
         return
+      }
+      if (this.radio === '2') {
+        this.$message({message: '请选择设备!', type: 'warning'})
+        return
+      }
+      if (this.radio === '3') {
+        this.$message({message: '请选择设备!', type: 'warning'})
+        return
+      }
+      if (this.radio !== '0' || this.radio !== '1') {
+        try {
+          let serialPortStatus = LA.getDeviceNumberKeyboadrd() // eslint-disable-line
+          let printStatus = LA.printStatusFromJS() // eslint-disable-line
+          if (serialPortStatus !== '0' && printStatus !== 0) {
+            this.disabledFlag = false
+            this.statusCheckFlag = false
+            this.$message({message: '请接入设备!', type: 'warning'})
+            return
+          } else if (serialPortStatus === '0' && printStatus !== 0) {
+            this.radio = '1'
+            this.statusCheckFlag = true
+            this.$store.commit('setDeviceStatus', 1)
+          } else if (serialPortStatus !== '0' && printStatus === 0) {
+            this.radio = '0'
+            this.$store.commit('setDeviceStatus', 0)
+          }
+        } catch (error) {
+          console.log('设备选择错误', error)
+        }
       }
       // this.statusCheckFlag = true
       if (this.statusCheckFlag) {
@@ -170,7 +227,7 @@ export default {
     },
     statusCheck () {
       this.QRcode = this.createCode(16)
-      this.latechFlag = true
+      this.LAFlag = true
       try {
         this.printTicket(this.QRcode)
         this.readTicket()
@@ -180,9 +237,9 @@ export default {
     },
     // 打印机
     printTicket (QRcode) {
-      let printStatus = latech.printStatusFromJS() // eslint-disable-line
+      let printStatus = LA.printStatusFromJS() // eslint-disable-line
       if (printStatus === 0) {
-        latech.printSampleBMPFromJS(QRcode) // eslint-disable-line
+        LA.printSampleBMPFromJS(QRcode) // eslint-disable-line
       } else {
         let str = `打印机异常，异常code: ${printStatus}`
         this.getTicketError(str)
@@ -190,16 +247,16 @@ export default {
     },
     readTicket () {
       // 读票机初始化
-      if (latech.ScannerInit() === 0) { // eslint-disable-line
+      if (LA.ScannerInit() === 0) { // eslint-disable-line
         const _this = this
         // 读票机开始
-        if (latech.ScannerStart() === true) { // eslint-disable-line
+        if (LA.ScannerStart() === true) { // eslint-disable-line
           this.timer = setInterval(function () {
-            let flag = latech.ScanIsComplete() // eslint-disable-line
+            let flag = LA.ScanIsComplete() // eslint-disable-line
             if (flag === true) { // 判断读票机是否读完票
-              let realTicketNumber = latech.ScannerGetTicketInfoFromJS() // eslint-disable-line
+              let realTicketNumber = LA.ScannerGetTicketInfoFromJS() // eslint-disable-line
               //  退票
-              latech.ScannerRollBackFromJS() // eslint-disable-line
+              LA.ScannerRollBackFromJS() // eslint-disable-line
               if (_this.QRcode === realTicketNumber) {
                 _this.statusCheckFlag = true
               } else {
@@ -212,12 +269,12 @@ export default {
             }
           }, 200)
         } else {
-          let errCode = latech.ScannerGetLastErrorCodeFromJS() // eslint-disable-line
+          let errCode = LA.ScannerGetLastErrorCodeFromJS() // eslint-disable-line
           let str = `读票机异常，异常code: ${errCode}`
           this.getTicketError(str)
         }
       } else {
-        let errCode = latech.ScannerGetLastErrorCodeFromJS() // eslint-disable-line
+        let errCode = LA.ScannerGetLastErrorCodeFromJS() // eslint-disable-line
         let str = `读票机异常，异常code: ${errCode}`
         this.getTicketError(str)
       }
@@ -239,16 +296,27 @@ export default {
     },
     exit () {
       try {
-        latech.exitApp() // eslint-disable-line
+        LA.exitApp() // eslint-disable-line
       } catch (error) {
         console.log('退出错误', error)
+      }
+    },
+    radioChange (val) {
+      if (val) {
+        // if (this.serialPortStatus === '0') {
+        this.statusCheckFlag = true
+        this.$store.commit('setDeviceStatus', 1)
+        // }
+      } else {
+        this.statusCheckFlag = false
+        this.$store.commit('setDeviceStatus', 0)
       }
     }
   },
   destroyed () {
     try {
       clearInterval(this.timer)
-      this.latechFlag && latech.ScannerStopFromJS() // eslint-disable-line
+      this.LAFlag && LA.ScannerStopFromJS() // eslint-disable-line
     } catch (error) {
       console.log('读票机关闭错误', error)
     }
@@ -360,6 +428,7 @@ export default {
                 }
               }
               .btnbox{
+                margin-top: 20px;
                 width: 420px;
                 overflow: hidden;
                 margin: 0 auto 20px;
@@ -379,6 +448,15 @@ export default {
                   i{
                     margin-left: 8px;
                   }
+                }
+                .deviceSelect{
+                  font-size: 20px;
+                  color: #606266;
+                  float: left;
+                  margin-left: 10px;
+                  line-height: 45px;
+                }
+                .rightBtn1{
                 }
               }
               .btn{
@@ -400,5 +478,20 @@ export default {
           border-radius: 5px;
         }
     }
+    .el-radio--medium.is-bordered{
+      padding: 10px 10px 0 10px;
+    }
+    .el-radio.is-bordered{
+      border: 2px solid #dcdfe6;
+    }
+    // .el-radio__input.is-disabled .el-radio__inner, .el-radio__input.is-disabled.is-checked .el-radio__inner{
+    //   background-color: none;
+    //   border-color: #409EFF;
+    // }
+    .el-radio__input.is-checked .el-radio__inner {
+      border-color: #409EFF;
+      background: #409EFF;
+    }
 }
+.el-dialog1{ -webkit-backface-visibility: hidden; }
 </style>

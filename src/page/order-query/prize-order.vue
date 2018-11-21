@@ -140,7 +140,7 @@ export default {
               this.ticketInfoNumber = res.data.ticketInfoNumber
               // this.imgStr = res.data.printResult
               try {
-                this.imgStr = 'data:image/bmp;base64,' + latech.getPDF417BMPFromJS(res.data.qrInfo) // eslint-disable-line
+                this.imgStr = 'data:image/bmp;base64,' + LA.getPDF417BMPFromJS(res.data.qrInfo) // eslint-disable-line
               } catch (error) {
                 console.log('图片错误', error)
               }

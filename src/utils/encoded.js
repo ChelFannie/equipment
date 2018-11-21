@@ -104,6 +104,13 @@ function getCode (dataObj) {
   if (dataObj.subPlayType !== '59' && dataObj.subPlayType !== '69') {
     JSON.parse(dataObj.betContext).map(val => {
       for (const key in val) {
+        // 测试增加的 开始
+        // let a = key
+        // let arr = a.split('')
+        // arr.splice(10, 1, '7')
+        // a = arr.join('')
+        // resultCode += numberCode(a.substr(10, 4))
+        // 测试增加的 结束
         resultCode += numberCode(key.substr(10, 4))
         val[key].map((item, index) => {
           if (dataObj.subPlayType === '63' && item.substr(0, 1) === '5') {

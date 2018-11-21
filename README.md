@@ -1,4 +1,4 @@
-# latech-pc
+# LA-pc
 
 > 设备界面
 

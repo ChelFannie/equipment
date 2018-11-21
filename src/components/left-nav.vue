@@ -81,7 +81,6 @@
               </span>
             </el-menu-item>
           </el-menu>
-          <img class="logo" src="../assets/image/logo.png" alt="">
         </div>
     </div>
 
@@ -140,7 +139,7 @@
       width="30%"
       :close-on-click-modal="false"
       class="prize-dialog">
-      <span>请核对当前票机兑奖票共<span class="xuan">{{totalTicket || 0}}</span>张<br>票机兑奖金额为<span class="xuan">{{totalMoney}}</span> 元</span>
+      <span>请核对当前票机兑奖票共<span class="xuan">{{totalTicket || 0}}</span>张<br>票机兑奖金额为<span class="xuan">{{totalMoney.toFixed(2)}}</span> 元</span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="canclePrize">取 消</el-button>
         <el-button type="primary" @click="prizeExit">确 定</el-button>
@@ -166,7 +165,7 @@ export default {
       originalAmount: '',
       // 兑奖后总金额及票数
       totalTicket: '',
-      totalMoney: '',
+      totalMoney: 0,
       // 更改选中样式
       handActive: false,
       clearStyle: false,
@@ -373,7 +372,7 @@ export default {
       if (localStorage.getItem('setActiveIndex') === '/order-query/prize-order') {
         // 获取兑奖页面传回的累积总金额及累积兑奖票
         this.totalTicket = sessionStorage.getItem('totalTicket')
-        this.totalMoney = sessionStorage.getItem('totalMoney')
+        this.totalMoney = Number(sessionStorage.getItem('totalMoney'))
         this.clearStyle = true
         this.prizeExitVisible = true
         return
@@ -428,7 +427,7 @@ export default {
       if (localStorage.getItem('setActiveIndex') === '/order-query/prize-order') {
         // 获取兑奖页面传回的累积总金额及累积兑奖票
         this.totalTicket = sessionStorage.getItem('totalTicket')
-        this.totalMoney = sessionStorage.getItem('totalMoney')
+        this.totalMoney = Number(sessionStorage.getItem('totalMoney'))
         this.prizeExitVisible = true
         return
       }
@@ -525,7 +524,7 @@ export default {
     },
     toPrizeOrder () {
       this.originalAmount = this.originalAmount.replace(/(^\s*)|(\s*$)/g, '')
-      let reg = /(^[0]{1}[.]{1}([0]{0,1}[1-9]{0,2})$)|(^[1-9]\d{0,}[.]{1}\d{1,2}$)|(^[0-9]\d{0,}$)/
+      let reg = /^([1-9]\d{0,9}|0)([.]?|(\.\d{1,2})?)$/
       let flag = reg.test(this.originalAmount)
       if (!flag) {
         this.$message({
@@ -704,14 +703,14 @@ export default {
                 }
             }
         }
-        .logo{
-            width: 200px;
-            position: absolute;
-            right: 30px;
-            top: 0;
-            bottom: 0;
-            margin: auto;
-        }
+        // .logo{
+        //     width: 200px;
+        //     position: absolute;
+        //     right: 30px;
+        //     top: 0;
+        //     bottom: 0;
+        //     margin: auto;
+        // }
     }
     .content{
         box-sizing: border-box;

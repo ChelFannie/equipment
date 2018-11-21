@@ -15,7 +15,8 @@ const state = {
   managerFlag: false,
   originalPrizeFlag: false,
   prizeExitFlag: false,
-  prizeCancelFlag: false
+  prizeCancelFlag: false,
+  deviceStatus: 0 // 设备判断，0：投注单打印机，1：彩票单打印机
 }
 
 const mutations = {
@@ -44,6 +45,9 @@ const mutations = {
   },
   setPrizeCancelFlag (state, param) {
     state.prizeCancelFlag = param
+  },
+  setDeviceStatus (state, param) {
+    state.deviceStatus = param
   }
 }
 

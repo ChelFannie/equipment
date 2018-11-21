@@ -119,7 +119,7 @@ export default {
           type: 'warning'
         }).then(() => {
           try {
-            latech.deleteCommandFromJS(data) // eslint-disable-line
+            LA.deleteCommandFromJS(data) // eslint-disable-line
             _this.fileFlag ? _this.getFolderList() : _this.getFileList()
           } catch (error) {
             console.log('删除文件')
@@ -158,7 +158,7 @@ export default {
     },
     getFolderList () {
       try {
-        let objData = JSON.parse(latech.getFileListInfoFromJS('/sdcard/HQBMP/')) // eslint-disable-line
+        let objData = JSON.parse(LA.getFileListInfoFromJS('/sdcard/HQBMP/')) // eslint-disable-line
         if (objData.FileInfoList) {
           this.folderInfo = objData.FileInfoList
         }
@@ -168,7 +168,7 @@ export default {
     },
     getFileList () {
       try {
-        let objData = JSON.parse(latech.getFileListInfoFromJS('/sdcard/HQBMP/' + this.fileName)) // eslint-disable-line
+        let objData = JSON.parse(LA.getFileListInfoFromJS('/sdcard/HQBMP/' + this.fileName)) // eslint-disable-line
         if (objData.FileInfoList) {
           this.imgData = objData.FileInfoList
         }
