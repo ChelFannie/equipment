@@ -429,11 +429,7 @@ export default {
       // 机械设备打印数据
       enCode: '',
       // 机械设备打印码
-      commitEnCode: '',
-      // 机械设备 自动限售
-      autoLimitMachineFlag: false,
-      // 机械设备 自动提交
-      autoPrintMachineFlag: false
+      commitEnCode: ''
     }
   },
   watch: {
@@ -562,19 +558,6 @@ export default {
         if (!this.automaticMode) {
           this.confirmSumbit()
         }
-      }
-    },
-    // 是否是自动提交模式的出票
-    autoPrintMachineFlag (val) {
-      if (this.automaticMode && val) {
-        // console.log('自动出票')
-        this.autoSubmitTick()
-      }
-    },
-    // 是否是自动限售模式的出票
-    autoLimitMachineFlag (val) {
-      if (this.automaticMode && val) {
-        this.autoLimitSale()
       }
     }
   },
@@ -1040,13 +1023,19 @@ export default {
               let resultObj = getResultStr(obj)
               this.LAFlag = true
               try {
-                if (this.$store.state.deviceStatus === 0) {
+                if (this.$store.state.deviceStatus === 0 || (this.automaticMode && this.$store.state.deviceStatus === 1)) {
                   if (this.printList.includes(rows.serialNumber)) {
                     this.printVisible = true
                     this.printOneData = {resultObj: resultObj, serialNumber: rows.serialNumber}
                   } else {
                     this.printList.push(rows.serialNumber)
-                    this.printTicket(resultObj, rows.serialNumber)
+                    if (this.$store.state.deviceStatus === 0) {
+                      this.printTicket(resultObj, rows.serialNumber)
+                    } else if (this.automaticMode && this.$store.state.deviceStatus === 1) {
+                      setTimeout(() => {
+                        this.printEnCode()
+                      }, 1200)
+                    }
                   }
                 }
                 this.readTicket(rows.serialNumber)
@@ -1092,11 +1081,6 @@ export default {
                 this.$set(item, 'flag', false)
               }
             })
-            if (this.automaticMode && this.$store.state.deviceStatus === 1) { // 自动出票，打开界面就打印
-              setTimeout(() => {
-                this.printEnCode()
-              }, 1000)
-            }
           } else {
             this.$message({
               type: 'error',
@@ -1327,11 +1311,7 @@ export default {
                 _this.submitFlag = true
                 // 自动提交限售
                 if (_this.storeType === 1 && _this.automaticMode) {
-                  if (_this.$store.state.deviceStatus === 0) { // 投注单限售
-                    _this.autoLimitFlag = true
-                  } else { // 机械限售
-                    _this.autoLimitMachineFlag = true
-                  }
+                  _this.autoLimitFlag = true
                 }
               } else {
                 _this.$message({
@@ -1342,11 +1322,7 @@ export default {
             } else if (QRreg.test(_this.realTicketNumber)) { // 读票成功
               // 自动提交出票
               if (_this.storeType === 1 && _this.automaticMode) {
-                if (_this.$store.state.deviceStatus === 0) { // 投注单打印
-                  _this.autoSubmitTicketsFlag = true
-                } else { // 机械打印
-                  _this.autoPrintMachineFlag = true
-                }
+                _this.autoSubmitTicketsFlag = true
               }
               _this.submitFlag = false
               _this.selectOddFlag = false
@@ -1713,12 +1689,10 @@ export default {
             })
           }
           this.confirmDisabled = false
-          this.$store.state.deviceStatus === 0 && (this.autoSubmitTicketsFlag = false)
-          this.$store.state.deviceStatus === 1 && (this.autoPrintMachineFlag = false)
+          this.autoSubmitTicketsFlag = false
         })
         .catch(error => {
-          this.$store.state.deviceStatus === 0 && (this.autoSubmitTicketsFlag = false)
-          this.$store.state.deviceStatus === 1 && (this.autoPrintMachineFlag = false)
+          this.autoSubmitTicketsFlag = false
           this.confirmDisabled = false
           console.log(error)
         })
@@ -1799,12 +1773,10 @@ export default {
             })
             this.showOutPopover = true
           }
-          this.$store.state.deviceStatus === 0 && (this.autoLimitFlag = false)
-          this.$store.state.deviceStatus === 1 && (this.autoLimitMachineFlag = false)
+          this.autoLimitFlag = false
         })
         .catch(error => {
-          this.$store.state.deviceStatus === 0 && (this.autoLimitFlag = false)
-          this.$store.state.deviceStatus === 1 && (this.autoLimitMachineFlag = false)
+          this.autoLimitFlag = false
           console.log(error)
         })
     },
@@ -1845,7 +1817,13 @@ export default {
       this.printVisible = false
       e.stopPropagation()
       try {
-        this.printTicket(this.printOneData.resultObj, this.printOneData.serialNumber)
+        if (this.$store.state.deviceStatus === 0) {
+          this.printTicket(this.printOneData.resultObj, this.printOneData.serialNumber)
+        } else if (this.automaticMode && this.$store.state.deviceStatus === 1) {
+          setTimeout(() => {
+            this.printEnCode()
+          }, 1200)
+        }
       } catch (error) {
         console.log(error)
       }
@@ -1862,7 +1840,6 @@ export default {
     printEnCode () {
       this.commitEnCode = getCode(this.enCode)
       console.log(this.commitEnCode, 'encode')
-      // this.confirmFlag = false
       try {
         // latech.cotrolKeyboard(this.commitEnCode, 500, 200) // eslint-disable-line
         LA.cotrolKeyboard(this.commitEnCode, 500, 200) // eslint-disable-line
