@@ -168,7 +168,7 @@ function getCode (dataObj) {
   return dataObj.amount >= 200
     // ? enCode['ESC'] + enCode['ESC'] + enCode['ESC'] + enCode['ESC'] + resultCode + enCode['Enter']
     ? enCode['ESC'] + enCode['ESC'] + enCode['ESC'] + enCode['ESC'] + resultCode + enCode['Enter'] + enCode['ESC'] + enCode['ESC']
-    : enCode['ESC'] + enCode['ESC'] + resultCode
+    : enCode['ESC'] + enCode['ESC'] + resultCode + enCode['Enter'] + enCode['ESC'] + enCode['ESC']
 }
 
 export default getCode

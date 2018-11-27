@@ -183,6 +183,7 @@
     <div class="enlarge" v-if="enlargeImg">
       <img :src="imgStr" alt="" @click="narrow">
     </div>
+    <i-dialog-error :dialogVisible="errorDialogVisible" :content="errorContent"></i-dialog-error>
   </div>
 </template>
 
@@ -190,8 +191,10 @@
 import {mul} from '../../utils/fastCombine'
 import ChangeBetContext from '../../utils/changeBetContext.js'
 import req from '../../api/order-list/index.js'
+import iDialogError from '../../components/common/i-dialog-error'
 export default {
   components: {
+    iDialogError
   },
   data () {
     return {
@@ -291,7 +294,9 @@ export default {
       // 系统票号
       ticketInfoNumber: '',
       // 扫描枪初始化标志
-      scanInitFlag: true
+      scanInitFlag: true,
+      errorContent: '',
+      errorDialogVisible: false
     }
   },
   watch: {
@@ -343,6 +348,10 @@ export default {
       }
       switch (e.keyCode) {
         case 0:
+          if (_this.errorDialogVisible) {
+            _this.errorDialogVisible = false
+            return
+          }
           if (_this.$store.state.managerFlag || _this.$store.state.originalPrizeFlag || _this.$store.state.prizeExitFlag) {
             _this.$store.commit('setkeyboardCode', 0)
           } else {
@@ -617,14 +626,19 @@ export default {
           }, 200)
         }
       } else {
-        this.$confirm(`扫描枪异常，异常code: ${code}`, '错误', {
-          confirmButtonText: '确定',
-          showCancelButton: false,
-          type: 'error',
-          closeOnClickModal: false,
-          callback: action => {
-          }
-        })
+        this.errorDialogVisible = true
+        this.errorContent = `扫描枪异常，异常code: ${code}`
+        // this.$confirm(`扫描枪异常，异常code: ${code}`, '错误', {
+        //   confirmButtonText: '确定',
+        //   showCancelButton: false,
+        //   type: 'error',
+        //   closeOnClickModal: false,
+        //   beforeClose: (action, instance, done) => {
+        //     done()
+        //   },
+        //   callback: action => {
+        //   }
+        // })
       }
     }
   },

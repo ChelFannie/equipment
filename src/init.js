@@ -5,7 +5,7 @@ import './style/index.css'
 import router from './router'
 import store from './store/store'
 import {Button, Row, Dialog, Col, Menu, MenuItem, Table, TableColumn, Popover, Form, FormItem, Icon, Loading, Message, MessageBox, Pagination, Input, Select, Option, DatePicker, Switch, Radio} from 'element-ui'
-require('./utils/vconsole.js')
+// require('./utils/vconsole.js')
 
 // Vue.use(ElementUI)
 Vue.use(Button)

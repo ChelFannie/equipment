@@ -195,7 +195,7 @@
               class="submit-btn"
               type="success"
               @click="printMachineEnCode"
-              v-else>出票完成</el-button>
+              v-else>打印</el-button>
           </div>
           <img class="img" :src="imgStr" alt="" @click="enlarge">
         </div>
@@ -204,6 +204,7 @@
 
     <!-- 赔率异常确认框 -->
     <el-dialog
+      v-if="!automaticMode"
       title="是否确认票信息的内容？"
       :visible.sync="confirmFlag"
       width="30%"
@@ -215,19 +216,9 @@
       <p class="edit-content">赔率数据异常有：<span>{{validateOdds}}</span></p>
       <span slot="footer" class="dialog-footer">
         <el-button
-          v-if="$store.state.deviceStatus===0"
           size="medium"
           type="primary"
           @click.stop="confirmSumbit"
-          :disabled="sumbitDisabled"
-          v-loading.fullscreen.lock="sumbitDisabled"
-          element-loading-background="rgba(0,0,0,0.4)"
-          element-loading-text="拼命加载中...">确 定</el-button>
-        <el-button
-          v-else
-          size="medium"
-          type="primary"
-          @click.stop="printEnCode"
           :disabled="sumbitDisabled"
           v-loading.fullscreen.lock="sumbitDisabled"
           element-loading-background="rgba(0,0,0,0.4)"
@@ -429,7 +420,9 @@ export default {
       // 机械设备打印数据
       enCode: '',
       // 机械设备打印码
-      commitEnCode: ''
+      commitEnCode: '',
+      // 提交重复的票据后，更换票据
+      changeTicktFlag: ''
     }
   },
   watch: {
@@ -552,11 +545,17 @@ export default {
         this.autoSubmitTick()
       }
     },
-    // 票面详情页的读取图片
+    // 机械设备 票面详情页的读取图片后自动提交
     imgStr (val) {
       if (val && this.commitEnCode && (this.$store.state.deviceStatus === 1)) {
-        if (!this.automaticMode) {
-          this.confirmSumbit()
+        if (!this.automaticMode) { // 非自动出票模式
+          this.getBetContextOdds()
+          // if (this.changeTicktFlag) {
+          //   this.confirmSumbit()
+          // } else { // 非自动出票第一次读票
+          //   this.getBetContextOdds()
+          //   // this.submitRealTicket()
+          // }
         }
       }
     }
@@ -649,6 +648,14 @@ export default {
         case 105:
           _this.showOutPopover || (_this.tableData.length > 8 && _this.getOutPopover(_this.tableData[8]))
           break
+        case 96:
+          if (_this.showOutPopover) {
+            _this.limitSale(_this.orderInfo.ticketInfoNumber)
+          } else {
+            _this.changeAutoCommit(!_this.automaticMode)
+          }
+          // _this.showOutPopover || _this.changeAutoCommit(!_this.automaticMode)
+          break
         case 8: // 返回
           if (_this.keyOddFalg || _this.keyAssumptionFalg) { // 关闭修改赔率弹框
             _this.editOdds = _this.editOdds.substr(0, _this.editOdds.length)
@@ -703,7 +710,11 @@ export default {
                 _this.printQuery(e)
                 _this.printVisible = false
               } else { // 限售和出票提交enter
-                _this.submitFlag ? _this.limitSale(_this.orderInfo.ticketInfoNumber) : _this.submitRealTicket()
+                _this.submitFlag
+                  ? _this.limitSale(_this.orderInfo.ticketInfoNumber)
+                  : _this.$store.state.deviceStatus
+                    ? _this.printMachineEnCode()
+                    : _this.submitRealTicket()
               }
             }
           }
@@ -976,6 +987,7 @@ export default {
       this.oddRecord = -1
       this.submitFlag = false
       this.selectOddFlag = false
+      this.printVisible = false
       req('getTicketInfo', {ticketInfoNumber: this.ticketInfoNumber})
         .then(res => {
           if (res.code === '00000') {
@@ -1018,20 +1030,43 @@ export default {
               this.orderInfo.assumptionShow = false
             }
             if (rows.printFlag === 1) { // 未出票状态（printFlag=1）才能读票
+              // 如果此票已经读票成功，就显示图片
+              let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
+              if (keepTicketInfo) {
+                if (keepTicketInfo.serialNumber === rows.serialNumber && keepTicketInfo.qrInfo) {
+                  this.imgStr = keepTicketInfo.imgStr
+                  this.realTicketNumber = keepTicketInfo.qrInfo
+                }
+              }
+
               let obj = JSON.parse(JSON.stringify(this.orderInfo))
               obj['betContext'] = JSON.parse(obj['betContext'])
               let resultObj = getResultStr(obj)
               this.LAFlag = true
+              // 判断是否是已经打印过投注单
               try {
-                if (this.$store.state.deviceStatus === 0 || (this.automaticMode && this.$store.state.deviceStatus === 1)) {
-                  if (this.printList.includes(rows.serialNumber)) {
+                if (this.printList.includes(rows.serialNumber)) {
+                  if (this.$store.state.deviceStatus === 0) {
                     this.printVisible = true
-                    this.printOneData = {resultObj: resultObj, serialNumber: rows.serialNumber}
-                  } else {
+                  } else if (this.$store.state.deviceStatus === 1) {
+                    if (!this.imgStr || !this.commitEnCode) {
+                      this.printVisible = true
+                    } else {
+                      this.showOutPopover = true
+                      if (this.automaticMo) {
+                        this.autoSubmitTick()
+                      } else {
+                        this.getBetContextOdds()
+                      }
+                    }
+                  }
+                  this.printOneData = {resultObj: resultObj, serialNumber: rows.serialNumber}
+                } else {
+                  if (this.$store.state.deviceStatus === 0) {
                     this.printList.push(rows.serialNumber)
-                    if (this.$store.state.deviceStatus === 0) {
-                      this.printTicket(resultObj, rows.serialNumber)
-                    } else if (this.automaticMode && this.$store.state.deviceStatus === 1) {
+                    this.printTicket(resultObj, rows.serialNumber)
+                  } else if (this.$store.state.deviceStatus === 1) {
+                    if (this.automaticMode) {
                       setTimeout(() => {
                         this.printEnCode()
                       }, 1200)
@@ -1041,14 +1076,6 @@ export default {
                 this.readTicket(rows.serialNumber)
               } catch (error) {
                 console.log('打印机读票机', error)
-              }
-              // 如果此票已经读票成功，就显示图片
-              let keepTicketInfo = JSON.parse(localStorage.getItem('keepTicketInfo'))
-              if (keepTicketInfo) {
-                if (keepTicketInfo.serialNumber === rows.serialNumber && keepTicketInfo.qrInfo) {
-                  this.imgStr = keepTicketInfo.imgStr
-                  this.realTicketNumber = keepTicketInfo.qrInfo
-                }
               }
             } else {
               this.LAFlag = false
@@ -1187,14 +1214,12 @@ export default {
               arr.push(item1[item.matchUniqueId])
             })
             obj[item.matchUniqueId] = arr
-            // if (item.score) {
             if (this.orderInfo.subPlayType === '64') {
               obj['totalScore'] = item.score
             }
             if (this.orderInfo.subPlayType === '61') {
               obj['score'] = item.score
             }
-            // }
             betContextOdds.push(obj)
           })
           let maxMoney = ChangeBetContext.returnFloat((ChangeBetContext.getSingleMaxMoney(betContextOdds, orderInfo.multiple)))
@@ -1299,7 +1324,6 @@ export default {
             let size = LA.ScannerGetOriginImageSize() // eslint-disable-line
             //  获取图片
             _this.imgStr = LA.ScannerGetOriginImage(size) // eslint-disable-line
-            // console.log(1, _this.realTicketNumber)
             //  退票
             LA.ScannerRollBackFromJS() // eslint-disable-line
             _this.imgStr = 'data:image/bmp;base64,' + _this.imgStr
@@ -1504,9 +1528,13 @@ export default {
             this.confirmFlag = true
           } else if (res.code === '00000') {
             // 返回'00000'，说明是没有赔率异常
-            this.$store.state.deviceStatus === 1 && (this.printEnCode())
-            this.$store.state.deviceStatus === 0 && (this.confirmSumbit())
+            this.confirmSumbit()
           } else {
+            if (this.$store.state.deviceStatus === 0) {
+              this.showOutPopover = true
+            } else {
+              this.showOutPopover = false
+            }
             this.$message({
               type: 'error',
               message: res.msg
@@ -1515,6 +1543,11 @@ export default {
           this.confirmDisabled = false
         })
         .catch(error => {
+          if (this.$store.state.deviceStatus === 0) {
+            this.showOutPopover = true
+          } else {
+            this.showOutPopover = false
+          }
           this.confirmDisabled = false
           console.log(error)
         })
@@ -1544,6 +1577,7 @@ export default {
           if (res.code === '00000') {
             this.confirmFlag = false
             this.showOutPopover = false
+            this.changeTicktFlag = false
             this.tableData.map((item, index) => {
               if (item.serialNumber === this.orderInfo.serialNumber) {
                 this.$delete(this.tableData, index)
@@ -1569,6 +1603,8 @@ export default {
               })
             }
           } else if (res.code === '20041') {
+            this.$store.state.deviceStatus === 1 && (this.changeTicktFlag = true)
+            this.imgStr = ''
             this.confirmFlag = false
             this.showOutPopover = true
             this.$message({
@@ -1577,7 +1613,11 @@ export default {
             })
           } else {
             this.confirmFlag = true
-            this.showOutPopover = true
+            if (this.$store.state.deviceStatus === 0) {
+              this.showOutPopover = true
+            } else {
+              this.showOutPopover = false
+            }
             this.$message({
               type: 'error',
               message: res.msg
@@ -1586,8 +1626,14 @@ export default {
           this.sumbitDisabled = false
         })
         .catch(error => {
+          if (this.$store.state.deviceStatus === 0) {
+            this.showOutPopover = true
+          } else {
+            this.showOutPopover = false
+            this.confirmFlag = false
+          }
           this.sumbitDisabled = false
-          console.log(error)
+          console.log(1, error)
         })
     },
     // 自动提交出票
@@ -1659,6 +1705,7 @@ export default {
         .then(res => {
           if (res.code === '00000') {
             this.showOutPopover = false
+            this.changeTicktFlag = false
             this.tableData.map((item, index) => {
               if (item.serialNumber === this.orderInfo.serialNumber) {
                 this.$delete(this.tableData, index)
@@ -1677,12 +1724,18 @@ export default {
             })
           } else if (res.code === '20041') {
             this.showOutPopover = true
+            this.$store.state.deviceStatus === 1 && (this.changeTicktFlag = true)
+            this.imgStr = ''
             this.$message({
               type: 'error',
               message: '此票已读票成功，请更换票据读票！'
             })
           } else {
-            this.showOutPopover = true
+            if (this.$store.state.deviceStatus === 0) {
+              this.showOutPopover = true
+            } else {
+              this.showOutPopover = false
+            }
             this.$message({
               type: 'error',
               message: res.msg
@@ -1694,6 +1747,12 @@ export default {
         .catch(error => {
           this.autoSubmitTicketsFlag = false
           this.confirmDisabled = false
+          if (this.$store.state.deviceStatus === 0) {
+            this.showOutPopover = true
+          } else {
+            this.showOutPopover = false
+            this.confirmFlag = false
+          }
           console.log(error)
         })
     },
@@ -1733,12 +1792,21 @@ export default {
               message: res.msg
             })
             this.limitSaleData.limitSaleFlag = true
-            this.showOutPopover = true
+            if (this.$store.state.deviceStatus === 0) {
+              this.showOutPopover = true
+            } else {
+              this.showOutPopover = false
+            }
           }
           this.limitSaleData.limitDisabled = false
         })
         .catch(error => {
           this.limitSaleData.limitDisabled = false
+          if (this.$store.state.deviceStatus === 0) {
+            this.showOutPopover = true
+          } else {
+            this.showOutPopover = false
+          }
           console.log(error)
         })
     },
@@ -1810,7 +1878,6 @@ export default {
     printCancel (e) {
       this.printVisible = false
       e.stopPropagation()
-      // this.showOutPopover = true
     },
     // 是否打印弹出框确认
     printQuery (e) {
@@ -1819,7 +1886,7 @@ export default {
       try {
         if (this.$store.state.deviceStatus === 0) {
           this.printTicket(this.printOneData.resultObj, this.printOneData.serialNumber)
-        } else if (this.automaticMode && this.$store.state.deviceStatus === 1) {
+        } else if (this.$store.state.deviceStatus === 1) {
           setTimeout(() => {
             this.printEnCode()
           }, 1200)
@@ -1830,11 +1897,7 @@ export default {
     },
     // 机械打印彩票 检验赔率
     printMachineEnCode () {
-      if (!this.automaticMode) {
-        this.getBetContextOdds()
-      } else if (!this.commitEnCode) {
-        this.printEnCode()
-      }
+      this.printEnCode()
     },
     // 机械打印彩票
     printEnCode () {
@@ -1843,6 +1906,7 @@ export default {
       try {
         // latech.cotrolKeyboard(this.commitEnCode, 500, 200) // eslint-disable-line
         LA.cotrolKeyboard(this.commitEnCode, 500, 200) // eslint-disable-line
+        this.printList.push(this.ticketInfoSerialNumber)
         // this.showOutPopover = false
       } catch (error) {
         console.log(error)

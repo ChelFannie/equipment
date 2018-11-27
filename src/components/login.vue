@@ -81,7 +81,15 @@ export default {
           break
         case 109:
           _this.focusRecord--
-          if (_this.focusRecord === 0) {
+          if (_this.focusRecord === 2) {
+            _this.disabledFlag ? (_this.focusRecord = 0) : (_this.radio = '0')
+            _this.statusCheckFlag = false
+            _this.$store.commit('setDeviceStatus', 0)
+            return false
+          } else if (_this.focusRecord === 1) {
+            _this.$refs.password.focus()
+            return false
+          } else if (_this.focusRecord === 0) {
             _this.$refs.user.focus()
             return false
           } else if (_this.focusRecord === -1) {
@@ -95,12 +103,27 @@ export default {
             _this.$refs.password.focus()
             return false
           } else if (_this.focusRecord === 2) {
-            _this.focusRecord = 1
+            if (_this.disabledFlag) {
+              _this.focusRecord = 1
+            } else {
+              _this.radio = '0'
+              _this.statusCheckFlag = false
+              _this.$refs.password.blur()
+            }
+            _this.$store.commit('setDeviceStatus', 0)
+            return false
+          } else if (_this.focusRecord === 3) {
+            _this.radio = '1'
+            _this.statusCheckFlag = true
+            _this.$store.commit('setDeviceStatus', 1)
+            return false
+          } else if (_this.focusRecord === 4) {
+            _this.focusRecord = 3
             return false
           }
           break
         case 106:
-          _this.statusCheck()
+          _this.radio === '0' && _this.statusCheck()
           return false
           break // eslint-disable-line
         default:
@@ -133,23 +156,6 @@ export default {
   },
   methods: {
     login () {
-      // let objStr9 = {
-      //   amount: 200,
-      //   betContext: JSON.stringify([{'FB201807277001': ['1', '0']}, {'FB201807287002': ['1', '3']}]),
-      //   betType: '2x1',
-      //   lotteryType: '51',
-      //   multiple: 3,
-      //   pot: 20,
-      //   subPlayType: '51'
-      // }
-      // let enCode = getCode(objStr9)
-      // console.log(enCode, 'encode')
-      // try {
-      //   LA.cotrolKeyboard(enCode, 500, 200) // eslint-disable-line
-      //   // LA.cotrolKeyboard('16')
-      // } catch (error) {
-      //   console.log(error)
-      // }
       if (this.form.userAccount === '' || this.form.password === '') {
         this.$message({message: '请填写完整信息!', type: 'warning'})
         return

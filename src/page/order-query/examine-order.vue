@@ -174,7 +174,7 @@ export default {
                 this.$message({
                   message: '此单已经扫码完成',
                   type: 'error',
-                  duration: 1000
+                  duration: 3000
                 })
                 break
               }
@@ -187,7 +187,7 @@ export default {
               this.$message({
                 message: '扫描成功',
                 type: 'success',
-                duration: 1000
+                duration: 3000
               })
             }
           } else {
@@ -197,7 +197,7 @@ export default {
             this.$message({
               message: '扫描成功',
               type: 'success',
-              duration: 1000
+              duration: 3000
             })
           }
         }
@@ -206,7 +206,7 @@ export default {
         this.$message({
           message: '该订单不在待审核列表里',
           type: 'error',
-          duration: 1000
+          duration: 3000
         })
       }
       // 排序
@@ -259,13 +259,15 @@ export default {
             }
             this.$message({
               type: 'success',
-              message: '全部扫码完成，提交成功!'
+              message: '全部扫码完成，提交成功!',
+              duration: 3000
             })
             this.getData()
           } else {
             this.$message({
               type: 'error',
-              message: res.msg
+              message: res.msg,
+              duration: 3000
             })
           }
         })
@@ -316,7 +318,8 @@ export default {
           } else {
             this.$message({
               type: 'error',
-              message: res.msg
+              message: res.msg,
+              duration: 2000
             })
           }
         })
@@ -349,7 +352,8 @@ export default {
             } else {
               this.$message({
                 type: 'error',
-                message: '此订单无票'
+                message: '此订单无票',
+                duration: 2000
               })
               return
             }
@@ -357,7 +361,8 @@ export default {
           } else {
             this.$message({
               type: 'error',
-              message: res.msg
+              message: res.msg,
+              duration: 2000
             })
           }
         })
@@ -439,7 +444,8 @@ export default {
           } else {
             this.$message({
               type: 'error',
-              message: res.msg
+              message: res.msg,
+              duration: 2000
             })
           }
         })
@@ -464,7 +470,8 @@ export default {
               if (_this.lastqrInfo === _this.scanTicket) {
                 _this.$message({
                   type: 'error',
-                  message: '此单已扫码，请扫码新的单据！'
+                  message: '此单已扫码，请扫码新的单据！',
+                  duration: 1500
                 })
               } else {
                 _this.lastqrInfo = _this.scanTicket
